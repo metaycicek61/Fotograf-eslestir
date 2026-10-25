@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Fotoğraf Eşleştir</title>
+
+<style>
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  margin:0;
+  padding:25px;
+  background:#f2f2f7;
+  text-align:center;
+}
+h1{margin-top:30px;}
+.card{
+  background:white;
+  padding:20px;
+  margin:18px 0;
+  border-radius:18px;
+  box-shadow:0 2px 10px #0001;
+}
+button,.button{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  border:0;
+  border-radius:14px;
+  padding:16px;
+  margin:12px 0;
+  font-size:18px;
+  font-weight:600;
+  background:#007aff;
+  color:white;
+}
+input[type=file]{display:none;}
+img{
+  max-width:100%;
+  max-height:300px;
+  border-radius:12px;
+  margin-top:15px;
+}
+#result{
+  font-size:20px;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📷 Fotoğraf Eşleştir</h1>
+<p>Fotoğraflarını kaydet ve kameradan çektiğin fotoğrafla karşılaştır.</p>
+
+<div class="card">
+<h2>Referans Fotoğraf Ekle</h2>
+
+<label class="button">
+Fotoğraf Seç
+<input id="reference" type="file" accept="image/*">
+</label>
+
+<img id="referencePreview">
+</div>
+
+<div class="card">
+<h2>Karşılaştır</h2>
+
+<label class="button">
+📷 Kamerayla Fotoğraf Çek
+<input id="camera" type="file" accept="image/*" capture="environment">
+</label>
+
+<img id="cameraPreview">
+
+<p id="result">Fotoğraf bekleniyor…</p>
+</div>
+
+<script>
+const reference = document.getElementById("reference");
+const camera = document.getElementById("camera");
+const referencePreview = document.getElementById("referencePreview");
+const cameraPreview = document.getElementById("cameraPreview");
+const result = document.getElementById("result");
+
+let refImage = null;
+
+reference.onchange = function(){
+  const file = this.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+    refImage = e.target.result;
+    referencePreview.src = refImage;
+
+    localStorage.setItem("referencePhoto", refImage);
+  };
+
+  reader.readAsDataURL(file);
+};
+
+camera.onchange = function(){
+  const file = this.files[0];
+  if(!file) return;
+
+  cameraPreview.src = URL.createObjectURL(file);
+
+  if(refImage){
+    result.innerHTML =
+      "✅ Fotoğraf alındı.<br>Karşılaştırmaya hazır.";
+  }else{
+    result.innerHTML =
+      "Önce bir referans fotoğraf ekle.";
+  }
+};
+
+const saved = localStorage.getItem("referencePhoto");
+
+if(saved){
+  refImage = saved;
+  referencePreview.src = saved;
+}
+</script>
+
+</body>
+</html>
