@@ -2,46 +2,71 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Fotoğraf Eşleştir</title>
 
 <style>
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   margin:0;
-  padding:25px;
+  padding:20px;
   background:#f2f2f7;
   text-align:center;
 }
-h1{margin-top:25px;}
+h1{margin-top:25px}
 .card{
   background:white;
-  padding:20px;
-  margin:18px 0;
+  padding:18px;
+  margin:16px 0;
   border-radius:18px;
 }
-.button{
+.button,button{
   display:block;
   width:100%;
   box-sizing:border-box;
+  border:0;
   border-radius:14px;
   padding:16px;
   margin:12px 0;
-  font-size:18px;
+  font-size:17px;
   font-weight:600;
   background:#007aff;
   color:white;
 }
-input[type=file]{display:none;}
-img{
+.delete{
+  background:#ff3b30;
+}
+input[type=file]{display:none}
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:12px;
+}
+.gallery img{
+  width:100%;
+  aspect-ratio:1;
+  object-fit:cover;
+  border-radius:10px;
+}
+.preview{
   max-width:100%;
   max-height:300px;
   border-radius:12px;
-  margin-top:15px;
+  margin-top:12px;
 }
 #result{
-  font-size:20px;
+  font-size:19px;
   font-weight:bold;
+  line-height:1.5;
+}
+#bestImage{
+  max-width:100%;
+  max-height:300px;
+  border-radius:12px;
+  display:none;
+  margin:15px auto;
 }
 </style>
 </head>
@@ -49,17 +74,23 @@ img{
 <body>
 
 <h1>📷 Fotoğraf Eşleştir</h1>
-<p>Referans fotoğrafını kaydet ve kameradan fotoğraf çek.</p>
+<p>Referans fotoğraflarını ekle, sonra kamerayla çek ve en yakın eşleşmeyi bul.</p>
 
 <div class="card">
-<h2>Referans Fotoğraf</h2>
+<h2>Referans Fotoğraflar</h2>
 
 <label class="button">
-Fotoğraf Seç
-<input id="reference" type="file" accept="image/*">
+➕ Fotoğraf Ekle
+<input id="referenceInput" type="file" accept="image/*" multiple>
 </label>
 
-<img id="referencePreview">
+<div id="gallery" class="gallery"></div>
+
+<button id="clearButton" class="delete">
+Tüm Referansları Sil
+</button>
+
+<p id="count">0 fotoğraf kayıtlı</p>
 </div>
 
 <div class="card">
@@ -67,57 +98,210 @@ Fotoğraf Seç
 
 <label class="button">
 📷 Kamerayla Fotoğraf Çek
-<input id="camera" type="file" accept="image/*" capture="environment">
+<input id="cameraInput" type="file" accept="image/*" capture="environment">
 </label>
 
-<img id="cameraPreview">
+<img id="cameraPreview" class="preview">
 
 <p id="result">Fotoğraf bekleniyor…</p>
+
+<img id="bestImage">
 </div>
 
+<canvas id="canvas" width="32" height="32" style="display:none"></canvas>
+
 <script>
-const reference = document.getElementById("reference");
-const camera = document.getElementById("camera");
-const referencePreview = document.getElementById("referencePreview");
-const cameraPreview = document.getElementById("cameraPreview");
+const referenceInput = document.getElementById("referenceInput");
+const cameraInput = document.getElementById("cameraInput");
+const gallery = document.getElementById("gallery");
+const count = document.getElementById("count");
 const result = document.getElementById("result");
+const cameraPreview = document.getElementById("cameraPreview");
+const bestImage = document.getElementById("bestImage");
+const clearButton = document.getElementById("clearButton");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d", {willReadFrequently:true});
 
-let refImage = null;
+let references = [];
 
-reference.onchange = function(){
-  const file = this.files[0];
-  if(!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = function(e){
-    refImage = e.target.result;
-    referencePreview.src = refImage;
-    localStorage.setItem("referencePhoto", refImage);
-  };
-
-  reader.readAsDataURL(file);
-};
-
-camera.onchange = function(){
-  const file = this.files[0];
-  if(!file) return;
-
-  cameraPreview.src = URL.createObjectURL(file);
-
-  if(refImage){
-    result.innerHTML = "✅ Fotoğraf alındı.<br>Karşılaştırmaya hazır.";
-  }else{
-    result.innerHTML = "Önce bir referans fotoğraf ekle.";
-  }
-};
-
-const saved = localStorage.getItem("referencePhoto");
-
-if(saved){
-  refImage = saved;
-  referencePreview.src = saved;
+try{
+  references = JSON.parse(localStorage.getItem("referencePhotos") || "[]");
+}catch(e){
+  references = [];
 }
+
+function saveReferences(){
+  try{
+    localStorage.setItem("referencePhotos", JSON.stringify(references));
+  }catch(e){
+    alert("Telefon depolaması doldu. Daha az fotoğraf eklemeyi dene.");
+  }
+}
+
+function renderGallery(){
+  gallery.innerHTML = "";
+
+  references.forEach(src => {
+    const img = document.createElement("img");
+    img.src = src;
+    gallery.appendChild(img);
+  });
+
+  count.textContent = references.length + " fotoğraf kayıtlı";
+}
+
+function resizeImage(dataUrl, maxSize = 500){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+
+    img.onload = ()=>{
+      let w = img.width;
+      let h = img.height;
+
+      if(w > h && w > maxSize){
+        h = Math.round(h * maxSize / w);
+        w = maxSize;
+      }else if(h >= w && h > maxSize){
+        w = Math.round(w * maxSize / h);
+        h = maxSize;
+      }
+
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+
+      const x = c.getContext("2d");
+      x.drawImage(img,0,0,w,h);
+
+      resolve(c.toDataURL("image/jpeg",0.72));
+    };
+
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+function fileToDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function imageVector(src){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+
+    img.onload = ()=>{
+      ctx.clearRect(0,0,32,32);
+      ctx.drawImage(img,0,0,32,32);
+
+      const data = ctx.getImageData(0,0,32,32).data;
+      const vector = [];
+
+      for(let i=0;i<data.length;i+=4){
+        const gray =
+          data[i] * 0.299 +
+          data[i+1] * 0.587 +
+          data[i+2] * 0.114;
+
+        vector.push(gray);
+      }
+
+      resolve(vector);
+    };
+
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function similarity(a,b){
+  let diff = 0;
+
+  for(let i=0;i<a.length;i++){
+    diff += Math.abs(a[i] - b[i]);
+  }
+
+  const max = a.length * 255;
+  return Math.max(0, 100 * (1 - diff/max));
+}
+
+referenceInput.addEventListener("change", async function(){
+  const files = Array.from(this.files || []);
+
+  for(const file of files){
+    try{
+      const original = await fileToDataURL(file);
+      const small = await resizeImage(original);
+      references.push(small);
+    }catch(e){}
+  }
+
+  saveReferences();
+  renderGallery();
+  this.value = "";
+});
+
+clearButton.addEventListener("click", ()=>{
+  if(confirm("Tüm referans fotoğrafları silinsin mi?")){
+    references = [];
+    localStorage.removeItem("referencePhotos");
+    renderGallery();
+    bestImage.style.display = "none";
+    result.textContent = "Fotoğraf bekleniyor…";
+  }
+});
+
+cameraInput.addEventListener("change", async function(){
+  const file = this.files[0];
+  if(!file) return;
+
+  if(references.length === 0){
+    result.textContent = "Önce en az bir referans fotoğraf ekle.";
+    return;
+  }
+
+  result.textContent = "🔎 Karşılaştırılıyor…";
+
+  try{
+    const original = await fileToDataURL(file);
+    const cameraImage = await resizeImage(original);
+
+    cameraPreview.src = cameraImage;
+
+    const target = await imageVector(cameraImage);
+
+    let bestScore = -1;
+    let bestSrc = null;
+
+    for(const ref of references){
+      const vector = await imageVector(ref);
+      const score = similarity(target,vector);
+
+      if(score > bestScore){
+        bestScore = score;
+        bestSrc = ref;
+      }
+    }
+
+    bestImage.src = bestSrc;
+    bestImage.style.display = "block";
+
+    result.innerHTML =
+      "✅ En yakın eşleşme bulundu.<br>" +
+      "Benzerlik: %" + bestScore.toFixed(1);
+
+  }catch(e){
+    result.textContent = "Karşılaştırma sırasında hata oluştu.";
+  }
+
+  this.value = "";
+});
+
+renderGallery();
 </script>
 
 </body>
