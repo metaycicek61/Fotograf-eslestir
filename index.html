@@ -5,406 +5,995 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Fotoğraf Eşleştir</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:18px;background:#f4f4f6;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{
+ margin:0;padding:18px;background:#f4f4f6;color:#111;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
 .container{max-width:720px;margin:auto}
 h1{text-align:center;font-size:25px}
-.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:18px;box-shadow:0 2px 12px #00000014}
-button{width:100%;border:0;border-radius:13px;padding:15px;margin:6px 0;font-size:17px;font-weight:700}
+.card{
+ background:#fff;border-radius:18px;padding:16px;margin-bottom:18px;
+ box-shadow:0 2px 12px rgba(0,0,0,.08)
+}
+button{
+ width:100%;border:0;border-radius:13px;padding:15px;margin:6px 0;
+ font-size:17px;font-weight:700
+}
 .blue{background:#087cff;color:#fff}
 .red{background:#ff3b30;color:#fff}
-#refs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+#refs{
+ display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0
+}
 .ref{background:#f6f6f7;border-radius:10px;padding:5px;text-align:center}
-.ref img{width:100%;height:90px;object-fit:contain;background:#fff;border-radius:7px}
-.refName{font-size:11px;font-weight:700;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.small{text-align:center;color:#666;font-size:13px}
+.ref img{
+ width:100%;height:90px;object-fit:contain;background:#fff;border-radius:7px
+}
+.refName{
+ font-size:11px;font-weight:700;margin-top:4px;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.small{text-align:center;color:#666;font-size:13px;line-height:1.5}
 #status{text-align:center;font-weight:700;line-height:1.5;margin:12px 0}
-#resultCanvas{display:none;width:100%;height:auto;border-radius:12px;margin-top:12px}
-#answer{display:none;text-align:center;background:#f0fff4;border:2px solid #20a856;border-radius:14px;padding:14px;margin-top:14px}
+#resultCanvas{
+ display:none;width:100%;height:auto;border-radius:12px;margin-top:12px
+}
+#answer{
+ display:none;text-align:center;background:#f0fff4;border:2px solid #20a856;
+ border-radius:14px;padding:14px;margin-top:14px
+}
 #answerName{font-size:25px;font-weight:900}
 #answerScore{font-size:34px;font-weight:900;color:#159447}
-.badge{display:inline-block;padding:7px 11px;border-radius:20px;background:#e8f7ed;color:#13773a;font-size:13px;font-weight:700;margin:4px}
-.match{display:flex;align-items:center;gap:10px;background:#f7f7f8;padding:8px;border-radius:11px;margin:7px 0}
-.match img{width:62px;height:55px;object-fit:contain;background:#fff;border-radius:7px}
+.badge{
+ display:inline-block;padding:7px 11px;border-radius:20px;
+ background:#e8f7ed;color:#13773a;font-size:13px;font-weight:700;margin:4px
+}
+.match{
+ display:flex;align-items:center;gap:10px;background:#f7f7f8;
+ padding:8px;border-radius:11px;margin:7px 0
+}
+.match img{
+ width:62px;height:55px;object-fit:contain;background:#fff;border-radius:7px
+}
 .matchText{flex:1;font-size:14px}
 .bar{height:6px;background:#ddd;border-radius:8px;overflow:hidden;margin-top:5px}
 .fill{height:100%;background:#087cff}
 </style>
 </head>
+
 <body>
 <div class="container">
 
-<h1>🔍 Fotoğraf Eşleştir — Lens</h1>
+<h1>🔍 Fotoğraf Eşleştir — AI Lens</h1>
 
 <div class="card">
 <h2>Formasyon Kütüphanesi</h2>
+
 <button class="blue" onclick="refInput.click()">➕ Formasyon Ekle</button>
 <input id="refInput" type="file" accept="image/*" multiple hidden>
+
 <div id="refs"></div>
+
 <button class="red" onclick="clearRefs()">Tüm Formasyonları Sil</button>
 <div id="count" class="small"></div>
 </div>
 
 <div class="card">
 <h2>Grafiği Tara</h2>
+
 <button class="blue" onclick="cameraInput.click()">📷 Kamerayla Grafik Çek</button>
 <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+
 <div id="status"></div>
+
 <canvas id="resultCanvas"></canvas>
 
 <div id="answer">
-<div>🎯 Eşleşen Formasyon</div>
-<div id="answerName"></div>
-<div id="answerScore"></div>
-<div id="answerInfo"></div>
+ <div>🎯 Eşleşen Formasyon</div>
+ <div id="answerName"></div>
+ <div id="answerScore"></div>
+ <div id="answerInfo"></div>
 </div>
 
 <div id="topMatches"></div>
 </div>
+
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
-const refInput=$("refInput"),cameraInput=$("cameraInput"),refsDiv=$("refs"),
-countDiv=$("count"),statusDiv=$("status"),canvas=$("resultCanvas"),
-answer=$("answer"),answerName=$("answerName"),answerScore=$("answerScore"),
-answerInfo=$("answerInfo"),topMatches=$("topMatches");
+
+const refInput=$("refInput");
+const cameraInput=$("cameraInput");
+const refsDiv=$("refs");
+const countDiv=$("count");
+const statusDiv=$("status");
+const canvas=$("resultCanvas");
+const answer=$("answer");
+const answerName=$("answerName");
+const answerScore=$("answerScore");
+const answerInfo=$("answerInfo");
+const topMatches=$("topMatches");
 
 let references=[];
 
+/* =========================
+   KÜTÜPHANE
+========================= */
+
 try{
- let a=JSON.parse(localStorage.getItem("chartReferences")||"[]");
- references=a.map((r,i)=>typeof r==="string"?{name:"Formasyon "+(i+1),src:r}:{name:r.name||("Formasyon "+(i+1)),src:r.src||r.data||r.image||""}).filter(x=>x.src);
-}catch(e){references=[]}
-renderRefs();
+ const old=JSON.parse(localStorage.getItem("chartReferences")||"[]");
 
-function saveRefs(){localStorage.setItem("chartReferences",JSON.stringify(references))}
-function renderRefs(){
- refsDiv.innerHTML="";
- references.forEach((r,i)=>{
-  const d=document.createElement("div");d.className="ref";
-  const im=document.createElement("img");im.src=r.src;
-  const n=document.createElement("div");n.className="refName";n.textContent=r.name;
-  d.append(im,n);
-  d.onclick=()=>{
-   const x=prompt("Formasyon adı:",r.name);
-   if(x&&x.trim()){references[i].name=x.trim();saveRefs();renderRefs()}
-  };
-  refsDiv.appendChild(d);
- });
- countDiv.textContent=references.length+" formasyon kayıtlı";
-}
-function clearRefs(){
- if(!confirm("Tüm formasyonlar silinsin mi?"))return;
- references=[];saveRefs();renderRefs();
-}
-refInput.onchange=async e=>{
- for(const f of [...e.target.files]){
-  references.push({name:f.name.replace(/\.[^.]+$/,"")||("Formasyon "+(references.length+1)),src:await fileURL(f)});
- }
- saveRefs();renderRefs();refInput.value="";
-};
-
-cameraInput.onchange=async e=>{
- const f=e.target.files[0];if(!f)return;
- if(!references.length){alert("Önce formasyon ekleyin.");return}
- reset();
- try{
-  statusDiv.textContent="🔍 Grafik ve son mumlar taranıyor...";
-  const img=await loadImg(await fileURL(f));
-  const q=extractCandles(img,true);
-
-  if(q.candles.length<4){
-   drawPlain(img);
-   noMatch("Yeterli gerçek mum algılanamadı ("+q.candles.length+" mum).");
-   cameraInput.value="";return;
+ references=old.map((r,i)=>{
+  if(typeof r==="string"){
+   return{name:"Formasyon "+(i+1),src:r};
   }
 
+  return{
+   name:r.name||("Formasyon "+(i+1)),
+   src:r.src||r.data||r.image||""
+  };
+ }).filter(r=>r.src);
+
+}catch(e){
+ references=[];
+}
+
+renderRefs();
+
+function saveRefs(){
+ localStorage.setItem("chartReferences",JSON.stringify(references));
+}
+
+function renderRefs(){
+ refsDiv.innerHTML="";
+
+ references.forEach((r,i)=>{
+  const box=document.createElement("div");
+  box.className="ref";
+
+  const img=document.createElement("img");
+  img.src=r.src;
+
+  const n=document.createElement("div");
+  n.className="refName";
+  n.textContent=r.name;
+
+  box.append(img,n);
+
+  box.onclick=()=>{
+   const name=prompt("Formasyon adı:",r.name);
+   if(name&&name.trim()){
+    references[i].name=name.trim();
+    saveRefs();
+    renderRefs();
+   }
+  };
+
+  refsDiv.appendChild(box);
+ });
+
+ countDiv.textContent=references.length+" formasyon kayıtlı";
+}
+
+function clearRefs(){
+ if(!confirm("Tüm formasyonlar silinsin mi?"))return;
+ references=[];
+ saveRefs();
+ renderRefs();
+}
+
+refInput.onchange=async e=>{
+ for(const file of [...e.target.files]){
+  const src=await fileURL(file);
+
+  let name=file.name.replace(/\.[^/.]+$/,"").trim();
+  if(!name)name="Formasyon "+(references.length+1);
+
+  references.push({name,src});
+ }
+
+ saveRefs();
+ renderRefs();
+ refInput.value="";
+};
+
+/* =========================
+   KAMERA
+========================= */
+
+cameraInput.onchange=async e=>{
+ const file=e.target.files[0];
+ if(!file)return;
+
+ if(!references.length){
+  alert("Önce en az bir formasyon ekleyin.");
+  cameraInput.value="";
+  return;
+ }
+
+ reset();
+
+ try{
+  statusDiv.textContent="🔍 Grafik AI Lens ile taranıyor...";
+
+  const img=await loadImg(await fileURL(file));
+
+  /*
+    Grafiğin ana bölgesini kullan.
+    Üst menü ve alt hacim alanını azaltır.
+  */
+  const chart={
+   x:Math.round(img.width*.04),
+   y:Math.round(img.height*.16),
+   w:Math.round(img.width*.92),
+   h:Math.round(img.height*.68)
+  };
+
   const results=[];
+
   for(let i=0;i<references.length;i++){
-   statusDiv.innerHTML="🔍 Kütüphane taranıyor...<br>"+(i+1)+" / "+references.length+" — Kamera: "+q.candles.length+" mum";
-   const ri=await loadImg(references[i].src);
-   const r=extractCandles(ri,false);
-   if(r.candles.length<3)continue;
-   const m=findRecentMatch(q.candles,r.candles);
-   if(m)results.push({...m,name:references[i].name,src:references[i].src});
+
+   statusDiv.innerHTML=
+    "🔍 Son grafik bölgesi taranıyor...<br>"+
+    (i+1)+" / "+references.length;
+
+   const refImg=await loadImg(references[i].src);
+
+   const match=scanForReference(img,chart,refImg);
+
+   if(match){
+    results.push({
+     ...match,
+     name:references[i].name,
+     src:references[i].src
+    });
+   }
+
+   await sleep(10);
   }
 
   results.sort((a,b)=>b.score-a.score);
-  if(!results.length||results[0].score<45){
+
+  if(!results.length){
    drawPlain(img);
-   noMatch("Son mumlarda yeterince güçlü bir eşleşme bulunamadı.");
-   showCandidates(results);
-  }else{
-   const best=results[0];
-   drawMatch(img,q,best);
-   showBest(best,q.candles.length);
-   showCandidates(results);
+   noMatch("Geçerli bir görsel eşleşme bulunamadı.");
+   cameraInput.value="";
+   return;
   }
+
+  const best=results[0];
+
+  /*
+    Çok zayıf eşleşmeyi sonuç diye göstermiyoruz.
+  */
+  if(best.score<48){
+   drawPlain(img);
+   noMatch("Son mumlarda yeterince güçlü bir formasyon bulunamadı.");
+   showCandidates(results);
+   cameraInput.value="";
+   return;
+  }
+
+  drawMatch(img,best);
+  showBest(best);
+  showCandidates(results);
+
  }catch(err){
-  console.error(err);noMatch("Grafik analiz edilirken hata oluştu.");
+  console.error(err);
+  noMatch("Grafik analiz edilirken hata oluştu.");
  }
+
  cameraInput.value="";
 };
 
-/* MUM ALGILAMA:
-   Önce her X sütunundaki kırmızı/yeşil yoğunluğu ölçülür.
-   İnce MA çizgileri değil, gövde kalınlığı olan kümeler seçilir. */
-function extractCandles(img,isCamera){
- const maxW=720,scale=Math.min(1,maxW/img.width);
- const W=Math.round(img.width*scale),H=Math.round(img.height*scale);
- const c=document.createElement("canvas");c.width=W;c.height=H;
- const x=c.getContext("2d",{willReadFrequently:true});x.drawImage(img,0,0,W,H);
- const dat=x.getImageData(0,0,W,H).data;
- const top=isCamera?Math.floor(H*.08):0,bottom=isCamera?Math.floor(H*.92):H;
+/* =====================================================
+   LENS TARAMASI
 
- const mask=new Uint8Array(W*H);
- for(let y=top;y<bottom;y++)for(let xx=0;xx<W;xx++){
-  const p=(y*W+xx)*4;
-  mask[y*W+xx]=candleColor(dat[p],dat[p+1],dat[p+2]);
- }
+   Referans görüntüyü küçük bir renk/şekil imzasına
+   çeviriyoruz.
 
- const col=[];
- for(let xx=0;xx<W;xx++){
-  let red=0,green=0;
-  for(let y=top;y<bottom;y++){
-   const v=mask[y*W+xx];
-   if(v===1)red++; else if(v===2)green++;
-  }
-  col.push({red,green,total:red+green});
- }
+   Kamera grafiğinin özellikle SAĞ bölümünde farklı
+   pencere boyutları taranıyor.
+===================================================== */
 
- /* Mum gövdesi için renkli sütun yoğunluğu.
-    MA çizgileri genelde 1-2 piksel ve elenir. */
- const minCol=isCamera?3:2;
- const raw=[];
- let s=-1;
- for(let xx=0;xx<=W;xx++){
-  const active=xx<W&&col[xx].total>=minCol;
-  if(active&&s<0)s=xx;
-  if(!active&&s>=0){raw.push([s,xx-1]);s=-1}
- }
+function scanForReference(img,chart,refImg){
 
- /* Çok geniş gruplar, birbirine yakın gerçek mumlar olabilir.
-    İçlerindeki yoğunluk vadilerine göre böl. */
- let groups=[];
- for(const g of raw){
-  const width=g[1]-g[0]+1;
-  if(width<=Math.max(12,W*.025)){groups.push(g);continue}
-  let start=g[0];
-  for(let xx=g[0]+1;xx<g[1];xx++){
-   if(col[xx].total<=1&&xx-start>=2){
-    groups.push([start,xx-1]);start=xx+1;
-   }
-  }
-  if(g[1]-start>=1)groups.push([start,g[1]]);
- }
+ const refSig=makeSignature(refImg);
 
- let candles=[];
- for(const g of groups){
-  let minY=H,maxY=-1,red=0,green=0;
-  const rows=[];
-  for(let y=top;y<bottom;y++){
-   let count=0;
-   for(let xx=g[0];xx<=g[1];xx++){
-    const v=mask[y*W+xx];
-    if(v){count++;minY=Math.min(minY,y);maxY=Math.max(maxY,y);if(v===1)red++;else green++}
-   }
-   if(count)rows.push([y,count]);
-  }
-  if(maxY<0)continue;
-  const w=g[1]-g[0]+1,h=maxY-minY+1;
-  if(w<1||w>W*.045||h<3||h>H*.28)continue;
+ if(!refSig)return null;
 
-  const maxRow=Math.max(...rows.map(a=>a[1]));
-  /* Gerçek mum gövdesinde birkaç yatay piksel bulunmalı. */
-  if(isCamera&&maxRow<2)continue;
-
-  const th=Math.max(2,Math.ceil(maxRow*.55));
-  const bodyRows=rows.filter(a=>a[1]>=th).map(a=>a[0]);
-  if(!bodyRows.length)continue;
-
-  const bodyTop=Math.min(...bodyRows),bodyBottom=Math.max(...bodyRows);
-  const bodyH=bodyBottom-bodyTop+1;
-
-  /* İnce çapraz/yatay MA parçalarını ele. */
-  if(isCamera&&bodyH<2)continue;
-  if(w>bodyH*3.2&&bodyH<5)continue;
-
-  candles.push({
-   color:green>=red?2:1,
-   minX:g[0],maxX:g[1],minY,maxY,bodyTop,bodyBottom,
-   cx:(g[0]+g[1])/2
-  });
- }
-
- candles.sort((a,b)=>a.cx-b.cx);
-
- /* Çok yakın parçaları tek mum yap. */
- const merged=[];
- for(const c0 of candles){
-  const last=merged[merged.length-1];
-  if(last&&c0.color===last.color&&c0.cx-last.cx<=2.5){
-   last.minX=Math.min(last.minX,c0.minX);last.maxX=Math.max(last.maxX,c0.maxX);
-   last.minY=Math.min(last.minY,c0.minY);last.maxY=Math.max(last.maxY,c0.maxY);
-   last.bodyTop=Math.min(last.bodyTop,c0.bodyTop);last.bodyBottom=Math.max(last.bodyBottom,c0.bodyBottom);
-   last.cx=(last.minX+last.maxX)/2;
-  }else merged.push({...c0});
- }
-
- /* X aralıkları aşırı düzensiz sahte adayları azalt. */
- let final=merged;
- if(isCamera&&merged.length>=5){
-  const gaps=[];
-  for(let i=1;i<merged.length;i++){
-   const d=merged[i].cx-merged[i-1].cx;
-   if(d>3)gaps.push(d);
-  }
-  if(gaps.length){
-   gaps.sort((a,b)=>a-b);
-   const med=gaps[Math.floor(gaps.length/2)];
-   final=merged.filter((c,i)=>{
-    if(i===0||i===merged.length-1)return true;
-    const l=c.cx-merged[i-1].cx,r=merged[i+1].cx-c.cx;
-    return !(l<med*.18&&r<med*.18);
-   });
-  }
- }
- return{candles:final,width:W,height:H};
-}
-
-/* Binance benzeri kırmızı / yeşil.
-   Sarı, mor ve magenta MA çizgileri bu hue alanlarının dışında kalır. */
-function candleColor(r,g,b){
- const hsv=rgbHSV(r,g,b);
- if(hsv.v<.25||hsv.s<.25)return 0;
- if((hsv.h>=338||hsv.h<=18)&&r>g+18)return 1;
- if(hsv.h>=135&&hsv.h<=175&&g>r+18)return 2;
- /* Kamera renk kayması için dar yedek aralık */
- if(r>115&&r-g>35&&r-b>20)return 1;
- if(g>95&&g-r>28&&g-b>-15)return 2;
- return 0;
-}
-function rgbHSV(r,g,b){
- r/=255;g/=255;b/=255;
- const M=Math.max(r,g,b),m=Math.min(r,g,b),d=M-m;
- let h=0;
- if(d){
-  if(M===r)h=60*(((g-b)/d)%6);
-  else if(M===g)h=60*((b-r)/d+2);
-  else h=60*((r-g)/d+4);
- }
- if(h<0)h+=360;
- return{h,s:M?d/M:0,v:M};
-}
-
-function findRecentMatch(q,r){
  let best=null;
- const lens=[...new Set([Math.max(3,r.length-1),r.length,r.length+1])];
- for(const len of lens){
-  if(len>q.length)continue;
-  const last=q.length-len,first=Math.max(0,last-7);
-  for(let start=first;start<=last;start++){
-   const end=start+len-1,distance=q.length-1-end;
-   const structure=compare(q.slice(start,end+1),r);
-   let score=structure*.91+((7-distance)/7)*12-distance*1.2;
-   score=Math.max(0,Math.min(99,score));
-   if(!best||score>best.score)best={score,start,end,distance};
+
+ /*
+   Son mumları yakalamak için grafiğin
+   sağ %58'lik bölümüne odaklanıyoruz.
+ */
+ const searchLeft=chart.x+chart.w*.42;
+ const searchRight=chart.x+chart.w;
+
+ /*
+   Farklı büyüklükte formasyon pencereleri.
+ */
+ const widths=[
+  chart.w*.18,
+  chart.w*.23,
+  chart.w*.28,
+  chart.w*.34,
+  chart.w*.40
+ ];
+
+ for(const ww0 of widths){
+
+  const ww=Math.round(ww0);
+
+  /*
+    Referans oranına göre pencere yüksekliği,
+    fakat grafik için makul sınırda.
+  */
+  let hh=Math.round(
+   ww*(refImg.height/refImg.width)
+  );
+
+  hh=Math.max(
+   Math.round(chart.h*.20),
+   Math.min(
+    Math.round(chart.h*.72),
+    hh
+   )
+  );
+
+  const xStep=Math.max(8,Math.round(ww*.10));
+  const yStep=Math.max(8,Math.round(hh*.10));
+
+  /*
+    Sağdan sola tarıyoruz.
+    Böylece eşit skorda en yeni bölge kazanır.
+  */
+  for(
+   let x=Math.round(searchRight-ww);
+   x>=searchLeft;
+   x-=xStep
+  ){
+
+   for(
+    let y=chart.y;
+    y<=chart.y+chart.h-hh;
+    y+=yStep
+   ){
+
+    const sig=signatureFromRegion(img,x,y,ww,hh);
+
+    if(!sig)continue;
+
+    const similarity=compareSignatures(refSig,sig);
+
+    /*
+      Sağ uca yakınlık bonusu.
+    */
+    const rightEdge=x+ww;
+
+    const distance=
+     Math.max(
+      0,
+      searchRight-rightEdge
+     );
+
+    const rightFactor=
+     1-Math.min(
+      1,
+      distance/(chart.w*.55)
+     );
+
+    /*
+      Renkli mum yoğunluğu bonusu.
+      Boş grafik alanlarının kazanmasını engeller.
+    */
+    const densityBonus=
+     Math.min(
+      7,
+      sig.density*24
+     );
+
+    let score=
+     similarity*.90+
+     rightFactor*7+
+     densityBonus;
+
+    score=Math.max(0,Math.min(99,score));
+
+    if(!best||score>best.score){
+     best={
+      score,
+      x,y,w:ww,h:hh,
+      rightFactor
+     };
+    }
+   }
   }
  }
+
  return best;
 }
 
-function compare(a,b){
- const N=10,A=resample(a,N),B=resample(b,N),AN=norm(A),BN=norm(B);
- let color=0,pos=0,move=0,body=0,range=0;
- for(let i=0;i<N;i++){
-  if(A[i].color===B[i].color)color++;
-  pos+=similar(AN[i].center,BN[i].center,.5);
-  body+=similar(AN[i].body,BN[i].body,.45);
-  range+=similar(AN[i].range,BN[i].range,.55);
-  if(i)move+=similar(AN[i].delta,BN[i].delta,.4);
+/* =========================
+   REFERANS İMZASI
+========================= */
+
+function makeSignature(img){
+ return signatureFromRegion(
+  img,
+  0,0,
+  img.width,
+  img.height
+ );
+}
+
+/*
+  Görüntüyü 18 x 18 küçük hücreye indiriyoruz.
+
+  Her hücrede:
+  0 = boş / arka plan
+  1 = kırmızı mum
+  2 = yeşil mum
+  3 = koyu şekil
+
+  MA çizgileri gibi sarı/mor renkler büyük ölçüde yok sayılır.
+*/
+function signatureFromRegion(img,x,y,w,h){
+
+ const GW=18;
+ const GH=18;
+
+ const work=document.createElement("canvas");
+ work.width=GW;
+ work.height=GH;
+
+ const ctx=work.getContext("2d",{willReadFrequently:true});
+
+ ctx.fillStyle="#fff";
+ ctx.fillRect(0,0,GW,GH);
+
+ ctx.drawImage(
+  img,
+  x,y,w,h,
+  0,0,GW,GH
+ );
+
+ const d=ctx.getImageData(0,0,GW,GH).data;
+
+ const cells=[];
+ let colored=0;
+
+ for(let i=0;i<GW*GH;i++){
+
+  const r=d[i*4];
+  const g=d[i*4+1];
+  const b=d[i*4+2];
+
+  const type=pixelType(r,g,b);
+
+  cells.push(type);
+
+  if(type===1||type===2){
+   colored++;
+  }
  }
- return color/N*32+move/(N-1)*28+pos/N*20+body/N*12+range/N*8;
-}
-function norm(a){
- let lo=Infinity,hi=-Infinity;
- a.forEach(c=>{lo=Math.min(lo,c.minY);hi=Math.max(hi,c.maxY)});
- const h=Math.max(1,hi-lo);let prev=null;
- return a.map(c=>{
-  const center=((c.bodyTop+c.bodyBottom)/2-lo)/h;
-  const z={center,body:(c.bodyBottom-c.bodyTop+1)/h,range:(c.maxY-c.minY+1)/h,delta:prev===null?0:center-prev};
-  prev=center;return z;
- });
-}
-function resample(a,n){
- return Array.from({length:n},(_,i)=>a[Math.round(i*(a.length-1)/(n-1))]);
-}
-function similar(a,b,t){return Math.max(0,1-Math.abs(a-b)/t)}
 
-function drawMatch(img,data,best){
- canvas.width=img.width;canvas.height=img.height;
- const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0);
- const a=data.candles.slice(best.start,best.end+1);
- if(!a.length){drawPlain(img);return}
- const sx=img.width/data.width,sy=img.height/data.height;
- let x1=Math.min(...a.map(c=>c.minX))*sx,x2=Math.max(...a.map(c=>c.maxX))*sx;
- let y1=Math.min(...a.map(c=>c.minY))*sy,y2=Math.max(...a.map(c=>c.maxY))*sy;
- const px=Math.max(10,(x2-x1)*.12),py=Math.max(12,(y2-y1)*.18);
- x1=Math.max(3,x1-px);x2=Math.min(img.width-3,x2+px);
- y1=Math.max(3,y1-py);y2=Math.min(img.height-3,y2+py);
+ /*
+   Tamamen boş bölgeyi aday yapma.
+ */
+ const density=colored/(GW*GH);
 
- ctx.strokeStyle="#18b65b";ctx.lineWidth=Math.max(5,img.width*.006);
- ctx.strokeRect(x1,y1,x2-x1,y2-y1);
+ if(density<.012){
+  return null;
+ }
 
- const txt=best.name+" %"+Math.round(best.score),fs=Math.max(24,img.width*.035);
- ctx.font="bold "+fs+"px -apple-system,Arial";
- const tw=ctx.measureText(txt).width,lh=fs*1.5,ly=Math.max(0,y1-lh);
- ctx.fillStyle="#18b65b";ctx.fillRect(x1,ly,tw+24,lh);
- ctx.fillStyle="#fff";ctx.fillText(txt,x1+12,ly+fs*1.1);
+ /*
+   Her sütundaki kırmızı/yeşil dağılımı.
+   Mumların soldan sağa yapısını korur.
+ */
+ const columns=[];
+
+ for(let xx=0;xx<GW;xx++){
+
+  let red=0;
+  let green=0;
+  let dark=0;
+  let sumY=0;
+  let count=0;
+
+  for(let yy=0;yy<GH;yy++){
+
+   const v=cells[yy*GW+xx];
+
+   if(v===1){
+    red++;
+    sumY+=yy;
+    count++;
+   }
+
+   if(v===2){
+    green++;
+    sumY+=yy;
+    count++;
+   }
+
+   if(v===3){
+    dark++;
+   }
+  }
+
+  columns.push({
+   red:red/GH,
+   green:green/GH,
+   dark:dark/GH,
+   center:count ? (sumY/count)/(GH-1) : -1
+  });
+ }
+
+ return{
+  cells,
+  columns,
+  density,
+  GW,
+  GH
+ };
+}
+
+/* =========================
+   RENK SINIFLANDIRMA
+========================= */
+
+function pixelType(r,g,b){
+
+ const hsv=rgbHSV(r,g,b);
+
+ /*
+   Kırmızı mum.
+ */
+ if(
+  hsv.s>.24 &&
+  hsv.v>.28 &&
+  (
+   hsv.h<=22 ||
+   hsv.h>=337
+  ) &&
+  r>g+15
+ ){
+  return 1;
+ }
+
+ /*
+   Yeşil / turkuaz mum.
+ */
+ if(
+  hsv.s>.22 &&
+  hsv.v>.25 &&
+  hsv.h>=125 &&
+  hsv.h<=185 &&
+  g>r+14
+ ){
+  return 2;
+ }
+
+ /*
+   Siyah/koyu mum kenarı veya fitil.
+   Çok az ağırlıkla kullanılır.
+ */
+ if(
+  r<90 &&
+  g<90 &&
+  b<90
+ ){
+  return 3;
+ }
+
+ return 0;
+}
+
+function rgbHSV(r,g,b){
+
+ r/=255;
+ g/=255;
+ b/=255;
+
+ const max=Math.max(r,g,b);
+ const min=Math.min(r,g,b);
+ const d=max-min;
+
+ let h=0;
+
+ if(d){
+  if(max===r){
+   h=60*(((g-b)/d)%6);
+  }else if(max===g){
+   h=60*((b-r)/d+2);
+  }else{
+   h=60*((r-g)/d+4);
+  }
+ }
+
+ if(h<0)h+=360;
+
+ return{
+  h,
+  s:max===0?0:d/max,
+  v:max
+ };
+}
+
+/* =========================
+   İMZA KARŞILAŞTIRMA
+========================= */
+
+function compareSignatures(a,b){
+
+ if(!a||!b)return 0;
+
+ let cellScore=0;
+ let cellWeight=0;
+
+ /*
+   Kırmızı / yeşil hücrelerin
+   konum benzerliği.
+ */
+ for(let i=0;i<a.cells.length;i++){
+
+  const A=a.cells[i];
+  const B=b.cells[i];
+
+  if(A===0&&B===0)continue;
+
+  let weight=1;
+
+  if(A===1||A===2){
+   weight=2.2;
+  }
+
+  if(B===1||B===2){
+   weight=Math.max(weight,2.2);
+  }
+
+  cellWeight+=weight;
+
+  if(A===B){
+   cellScore+=weight;
+  }else if(
+   (A===1||A===2) &&
+   (B===1||B===2)
+  ){
+   /*
+     Mum var ama rengi ters.
+   */
+   cellScore+=weight*.18;
+  }
+ }
+
+ const spatial=
+  cellWeight ?
+  cellScore/cellWeight :
+  0;
+
+ /*
+   Soldan sağa renk ve yükseklik yapısı.
+ */
+ let columnScore=0;
+ let used=0;
+
+ for(let i=0;i<a.columns.length;i++){
+
+  const A=a.columns[i];
+  const B=b.columns[i];
+
+  const aAmount=A.red+A.green;
+  const bAmount=B.red+B.green;
+
+  if(
+   aAmount<.01 &&
+   bAmount<.01
+  ){
+   continue;
+  }
+
+  const amountSim=
+   1-Math.min(
+    1,
+    Math.abs(aAmount-bAmount)/.35
+   );
+
+  const redSim=
+   1-Math.min(
+    1,
+    Math.abs(A.red-B.red)/.28
+   );
+
+  const greenSim=
+   1-Math.min(
+    1,
+    Math.abs(A.green-B.green)/.28
+   );
+
+  let centerSim=.5;
+
+  if(
+   A.center>=0 &&
+   B.center>=0
+  ){
+   centerSim=
+    1-Math.min(
+     1,
+     Math.abs(A.center-B.center)/.42
+    );
+  }
+
+  columnScore+=
+   amountSim*.25+
+   redSim*.25+
+   greenSim*.25+
+   centerSim*.25;
+
+  used++;
+ }
+
+ const structure=
+  used ?
+  columnScore/used :
+  0;
+
+ /*
+   Toplam kırmızı/yeşil yoğunluk.
+ */
+ const densitySim=
+  1-Math.min(
+   1,
+   Math.abs(a.density-b.density)/.22
+  );
+
+ /*
+   Son skor.
+ */
+ return(
+  spatial*.46+
+  structure*.44+
+  densitySim*.10
+ )*100;
+}
+
+/* =========================
+   YEŞİL KUTU
+========================= */
+
+function drawMatch(img,best){
+
+ canvas.width=img.width;
+ canvas.height=img.height;
+
+ const ctx=canvas.getContext("2d");
+
+ ctx.drawImage(img,0,0);
+
+ let x=best.x;
+ let y=best.y;
+ let w=best.w;
+ let h=best.h;
+
+ const px=Math.max(8,w*.04);
+ const py=Math.max(8,h*.04);
+
+ x=Math.max(3,x-px);
+ y=Math.max(3,y-py);
+
+ w=Math.min(
+  img.width-x-3,
+  w+px*2
+ );
+
+ h=Math.min(
+  img.height-y-3,
+  h+py*2
+ );
+
+ ctx.strokeStyle="#18b65b";
+ ctx.lineWidth=Math.max(5,img.width*.006);
+
+ ctx.strokeRect(x,y,w,h);
+
+ const text=
+  best.name+
+  " %"+
+  Math.round(best.score);
+
+ const fs=Math.max(24,img.width*.035);
+
+ ctx.font=
+  "bold "+fs+
+  "px -apple-system,Arial";
+
+ const tw=ctx.measureText(text).width;
+
+ const lh=fs*1.5;
+
+ let ly=y-lh;
+
+ if(ly<0){
+  ly=y;
+ }
+
+ ctx.fillStyle="#18b65b";
+
+ ctx.fillRect(
+  x,
+  ly,
+  tw+24,
+  lh
+ );
+
+ ctx.fillStyle="#fff";
+
+ ctx.fillText(
+  text,
+  x+12,
+  ly+fs*1.1
+ );
+
  canvas.style.display="block";
 }
+
 function drawPlain(img){
- canvas.width=img.width;canvas.height=img.height;
- canvas.getContext("2d").drawImage(img,0,0);
+
+ canvas.width=img.width;
+ canvas.height=img.height;
+
+ canvas
+  .getContext("2d")
+  .drawImage(img,0,0);
+
  canvas.style.display="block";
 }
-function showBest(b,total){
+
+/* =========================
+   SONUÇ
+========================= */
+
+function showBest(best){
+
  answer.style.display="block";
- answerName.textContent=b.name;
- answerScore.textContent="%"+Math.round(b.score);
- answerInfo.innerHTML='<span class="badge">Mum '+(b.start+1)+'–'+(b.end+1)+'</span><span class="badge">'+(b.distance===0?"Son mumda bitiyor":"Sağ uçtan "+b.distance+" mum geride")+'</span><div class="small" style="margin-top:8px">Grafikte '+total+' mum algılandı</div>';
- statusDiv.innerHTML="✅ Formasyon bulundu";
+
+ answerName.textContent=best.name;
+
+ answerScore.textContent=
+  "%"+Math.round(best.score);
+
+ let rightText="Son bölge";
+
+ if(best.rightFactor>.80){
+  rightText="En son mumlara çok yakın";
+ }else if(best.rightFactor>.55){
+  rightText="Son mumlar bölgesi";
+ }
+
+ answerInfo.innerHTML=
+  '<span class="badge">'+
+  rightText+
+  '</span>'+
+  '<div class="small" style="margin-top:8px">'+
+  'AI Lens görsel eşleştirme'+
+  '</div>';
+
+ statusDiv.innerHTML=
+  "✅ Formasyon bulundu";
 }
-function showCandidates(r){
+
+function showCandidates(results){
+
  topMatches.innerHTML="";
- if(!r.length)return;
- const h=document.createElement("h3");h.textContent="En yakın eşleşmeler";topMatches.appendChild(h);
- r.slice(0,3).forEach((m,i)=>{
-  const d=document.createElement("div");d.className="match";
-  const im=document.createElement("img");im.src=m.src;
-  const t=document.createElement("div");t.className="matchText";
-  t.innerHTML="<b>"+(i+1)+". "+esc(m.name)+"</b><br>%"+Math.round(m.score)+" — sağ uçtan "+m.distance+' mum<div class="bar"><div class="fill" style="width:'+Math.max(0,Math.min(100,m.score))+'%"></div></div>';
-  d.append(im,t);topMatches.appendChild(d);
+
+ if(!results.length)return;
+
+ const h=document.createElement("h3");
+ h.textContent="En yakın eşleşmeler";
+
+ topMatches.appendChild(h);
+
+ results.slice(0,3).forEach((m,i)=>{
+
+  const row=document.createElement("div");
+  row.className="match";
+
+  const im=document.createElement("img");
+  im.src=m.src;
+
+  const text=document.createElement("div");
+  text.className="matchText";
+
+  text.innerHTML=
+   "<b>"+
+   (i+1)+
+   ". "+
+   esc(m.name)+
+   "</b><br>%"+
+   Math.round(m.score)+
+   '<div class="bar">'+
+   '<div class="fill" style="width:'+
+   Math.max(0,Math.min(100,m.score))+
+   '%"></div></div>';
+
+  row.append(im,text);
+
+  topMatches.appendChild(row);
  });
 }
-function noMatch(t){
+
+function noMatch(text){
+
  answer.style.display="none";
- statusDiv.innerHTML="⚠️ Formasyon bulunamadı<br><span style='font-weight:400'>"+t+"</span>";
+
+ statusDiv.innerHTML=
+  "⚠️ Formasyon bulunamadı"+
+  "<br>"+
+  "<span style='font-weight:400'>"+
+  text+
+  "</span>";
 }
+
 function reset(){
- answer.style.display="none";canvas.style.display="none";topMatches.innerHTML="";statusDiv.textContent="";
+
+ answer.style.display="none";
+ canvas.style.display="none";
+ topMatches.innerHTML="";
+ statusDiv.textContent="";
 }
-function fileURL(f){
- return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(f)});
+
+/* =========================
+   YARDIMCILAR
+========================= */
+
+function fileURL(file){
+
+ return new Promise((resolve,reject)=>{
+
+  const reader=new FileReader();
+
+  reader.onload=
+   ()=>resolve(reader.result);
+
+  reader.onerror=reject;
+
+  reader.readAsDataURL(file);
+ });
 }
+
 function loadImg(src){
- return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src});
+
+ return new Promise((resolve,reject)=>{
+
+  const img=new Image();
+
+  img.onload=
+   ()=>resolve(img);
+
+  img.onerror=reject;
+
+  img.src=src;
+ });
 }
+
+function sleep(ms){
+ return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
 function esc(s){
- return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+ return String(s)
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;");
 }
 </script>
+
 </body>
 </html>
