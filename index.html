@@ -2,10 +2,18 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fotoğraf Eşleştir">
+
 <title>Fotoğraf Eşleştir</title>
 
 <style>
+
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   margin:0;
@@ -13,14 +21,17 @@ body{
   background:#f4f4f6;
   color:#111;
 }
+
 .container{
   max-width:650px;
   margin:auto;
 }
+
 h1{
   text-align:center;
   font-size:28px;
 }
+
 .card{
   background:white;
   border-radius:16px;
@@ -28,6 +39,7 @@ h1{
   margin-bottom:18px;
   box-shadow:0 2px 10px rgba(0,0,0,.08);
 }
+
 button{
   width:100%;
   border:0;
@@ -37,492 +49,1598 @@ button{
   font-size:17px;
   font-weight:600;
 }
+
 .blue{
   background:#087cff;
   color:white;
 }
+
 .red{
   background:#ff3b30;
   color:white;
 }
+
 #refs{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:8px;
   margin:12px 0;
 }
+
 #refs img{
   width:100%;
   height:105px;
-  object-fit:cover;
+  object-fit:contain;
+  background:white;
   border-radius:8px;
   border:1px solid #ddd;
 }
+
 .preview{
   width:100%;
-  max-height:300px;
+  max-height:320px;
   object-fit:contain;
   border-radius:10px;
   margin-top:10px;
+  background:#fff;
 }
+
 .result{
   text-align:center;
   font-size:19px;
   font-weight:700;
   margin-top:14px;
+  line-height:1.45;
 }
+
 .small{
   text-align:center;
   color:#666;
   font-size:14px;
 }
-canvas{display:none}
+
+.badge{
+  display:inline-block;
+  margin-top:8px;
+  padding:7px 12px;
+  border-radius:20px;
+  background:#eef6ff;
+  color:#087cff;
+  font-size:14px;
+}
+
+#topMatches{
+  margin-top:14px;
+}
+
+.matchRow{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:9px 0;
+  padding:8px;
+  border-radius:10px;
+  background:#f7f7f8;
+}
+
+.matchRow img{
+  width:64px;
+  height:55px;
+  object-fit:contain;
+  background:white;
+  border-radius:7px;
+}
+
+.matchInfo{
+  flex:1;
+  font-size:14px;
+}
+
+.bar{
+  width:100%;
+  height:7px;
+  background:#ddd;
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:5px;
+}
+
+.barFill{
+  height:100%;
+  background:#087cff;
+}
+
+canvas{
+  display:none;
+}
+
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
 <h1>📷 Fotoğraf Eşleştir</h1>
 
 <div class="card">
-<h2>Referans Fotoğraflar</h2>
 
-<button class="blue" onclick="refInput.click()">➕ Fotoğraf Ekle</button>
+<h2>Referans Kütüphanesi</h2>
 
-<input id="refInput"
-       type="file"
-       accept="image/*"
-       multiple
-       hidden>
+<button class="blue" onclick="refInput.click()">
+➕ Referans Ekle
+</button>
+
+<input
+id="refInput"
+type="file"
+accept="image/*"
+multiple
+hidden>
 
 <div id="refs"></div>
 
-<button class="red" onclick="clearRefs()">Tüm Referansları Sil</button>
+<button class="red" onclick="clearRefs()">
+Tüm Referansları Sil
+</button>
 
-<div id="count" class="small">0 fotoğraf kayıtlı</div>
+<div id="count" class="small">
+0 fotoğraf kayıtlı
 </div>
 
+</div>
+
+
 <div class="card">
+
 <h2>Karşılaştır</h2>
 
-<button class="blue" onclick="cameraInput.click()">📷 Kamerayla Fotoğraf Çek</button>
+<button class="blue" onclick="cameraInput.click()">
+📷 Kamerayla Grafik Çek
+</button>
 
-<input id="cameraInput"
-       type="file"
-       accept="image/*"
-       capture="environment"
-       hidden>
+<input
+id="cameraInput"
+type="file"
+accept="image/*"
+capture="environment"
+hidden>
 
-<img id="queryPreview" class="preview" style="display:none">
+<img
+id="queryPreview"
+class="preview"
+style="display:none">
 
 <div id="status" class="result"></div>
 
-<img id="matchPreview" class="preview" style="display:none">
+<img
+id="matchPreview"
+class="preview"
+style="display:none">
+
+<div id="topMatches"></div>
+
 </div>
 
-<canvas id="canvas"></canvas>
-
 </div>
+
 
 <script>
-const refInput = document.getElementById("refInput");
-const cameraInput = document.getElementById("cameraInput");
-const refsDiv = document.getElementById("refs");
-const countDiv = document.getElementById("count");
-const queryPreview = document.getElementById("queryPreview");
-const matchPreview = document.getElementById("matchPreview");
-const statusDiv = document.getElementById("status");
 
-let references = [];
+/* ==============================
+   TEMEL AYARLAR
+================================ */
+
+const refInput =
+document.getElementById("refInput");
+
+const cameraInput =
+document.getElementById("cameraInput");
+
+const refsDiv =
+document.getElementById("refs");
+
+const countDiv =
+document.getElementById("count");
+
+const queryPreview =
+document.getElementById("queryPreview");
+
+const matchPreview =
+document.getElementById("matchPreview");
+
+const statusDiv =
+document.getElementById("status");
+
+const topMatchesDiv =
+document.getElementById("topMatches");
+
+
+let references=[];
+
+
+/* ==============================
+   REFERANSLARI YÜKLE
+================================ */
 
 try{
-  references = JSON.parse(localStorage.getItem("chartReferences") || "[]");
+
+  references =
+  JSON.parse(
+    localStorage.getItem("chartReferences") || "[]"
+  );
+
 }catch(e){
-  references = [];
+
+  references=[];
+
 }
 
 renderRefs();
 
-refInput.addEventListener("change", async e => {
-  const files = [...e.target.files];
+
+/* ==============================
+   REFERANS EKLE
+================================ */
+
+refInput.addEventListener(
+"change",
+async e=>{
+
+  const files=[...e.target.files];
 
   for(const file of files){
-    const data = await fileToDataURL(file);
+
+    const data =
+    await fileToDataURL(file);
+
     references.push(data);
+
   }
 
   saveRefs();
   renderRefs();
+
   refInput.value="";
+
 });
 
-cameraInput.addEventListener("change", async e => {
-  const file = e.target.files[0];
+
+/* ==============================
+   KAMERA
+================================ */
+
+cameraInput.addEventListener(
+"change",
+async e=>{
+
+  const file=e.target.files[0];
+
   if(!file) return;
 
-  if(references.length === 0){
-    alert("Önce en az bir referans fotoğraf ekleyin.");
+
+  if(references.length===0){
+
+    alert(
+      "Önce referans kütüphanesine fotoğraf ekleyin."
+    );
+
     return;
+
   }
 
-  const query = await fileToDataURL(file);
 
-  queryPreview.src = query;
-  queryPreview.style.display = "block";
+  const query =
+  await fileToDataURL(file);
 
-  statusDiv.textContent = "Grafik analiz ediliyor...";
-  matchPreview.style.display = "none";
 
-  await new Promise(r => setTimeout(r,100));
+  queryPreview.src=query;
+  queryPreview.style.display="block";
 
-  let bestScore = -1;
-  let bestRef = null;
+  matchPreview.style.display="none";
 
-  const queryFeatures = await extractChartFeatures(query);
+  topMatchesDiv.innerHTML="";
 
-  for(const ref of references){
-    const refFeatures = await extractChartFeatures(ref);
-    const score = compareFeatures(queryFeatures, refFeatures);
+  statusDiv.innerHTML=
+  "🔎 Grafik taranıyor...";
 
-    if(score > bestScore){
-      bestScore = score;
-      bestRef = ref;
+
+  await sleep(80);
+
+
+  try{
+
+    const results=[];
+
+
+    /*
+      Her referansı gerçek grafik üzerinde
+      ayrı ayrı arıyoruz.
+    */
+
+    for(
+      let i=0;
+      i<references.length;
+      i++
+    ){
+
+      statusDiv.innerHTML=
+      "🔎 Karşılaştırılıyor...<br>" +
+      (i+1) + " / " +
+      references.length;
+
+
+      const score =
+      await lensCompare(
+        query,
+        references[i]
+      );
+
+
+      results.push({
+
+        index:i,
+        src:references[i],
+        score:score
+
+      });
+
+
+      await sleep(10);
+
     }
+
+
+    results.sort(
+      (a,b)=>b.score-a.score
+    );
+
+
+    showResults(results);
+
+
+  }catch(error){
+
+    console.error(error);
+
+    statusDiv.innerHTML=
+    "❌ Görüntü analiz edilirken hata oluştu.";
+
   }
 
-  const percent = Math.max(0, Math.min(100, bestScore * 100));
-
-  /*
-    Artık uygulama her durumda bir eşleşmeyi zorlamıyor.
-    Güven düşükse "eşleşme yok" diyor.
-  */
-  if(percent < 68){
-    statusDiv.innerHTML =
-      "❌ Yeterli eşleşme bulunamadı.<br>" +
-      "En yakın benzerlik: %" + percent.toFixed(1);
-
-    matchPreview.style.display = "none";
-  }else{
-    statusDiv.innerHTML =
-      "✅ En yakın formasyon bulundu.<br>" +
-      "Benzerlik: %" + percent.toFixed(1);
-
-    matchPreview.src = bestRef;
-    matchPreview.style.display = "block";
-  }
 
   cameraInput.value="";
+
 });
 
-function fileToDataURL(file){
-  return new Promise((resolve,reject)=>{
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
-function saveRefs(){
-  try{
-    localStorage.setItem("chartReferences", JSON.stringify(references));
-  }catch(e){
-    alert("Telefon hafızasında yeterli alan olmayabilir.");
-  }
-}
+/* ==============================
+   LENS BENZERİ KARŞILAŞTIRMA
+================================ */
 
-function renderRefs(){
-  refsDiv.innerHTML="";
+async function lensCompare(
+querySrc,
+referenceSrc
+){
 
-  references.forEach((src,index)=>{
-    const img=document.createElement("img");
-    img.src=src;
+  const queryImage =
+  await loadImage(querySrc);
 
-    img.onclick=()=>{
-      if(confirm("Bu referans fotoğraf silinsin mi?")){
-        references.splice(index,1);
-        saveRefs();
-        renderRefs();
-      }
-    };
+  const referenceImage =
+  await loadImage(referenceSrc);
 
-    refsDiv.appendChild(img);
-  });
-
-  countDiv.textContent =
-    references.length + " fotoğraf kayıtlı";
-}
-
-function clearRefs(){
-  if(!references.length) return;
-
-  if(confirm("Tüm referans fotoğraflar silinsin mi?")){
-    references=[];
-    saveRefs();
-    renderRefs();
-    statusDiv.textContent="";
-    matchPreview.style.display="none";
-  }
-}
-
-/*
-  FOTOĞRAFI GRAFİK VERİSİNE DÖNÜŞTÜR
-
-  Kenarlardaki yazı ve uygulama arayüzünü azaltmak için
-  görüntünün merkez bölümü kullanılıyor.
-
-  Renk yerine:
-  - parlaklık
-  - dikey değişimler
-  - yatay değişimler
-  - mum benzeri kenarlar
-  karşılaştırılıyor.
-*/
-async function extractChartFeatures(src){
-
-  const img = await loadImage(src);
-
-  const SIZE = 72;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-
-  const ctx = canvas.getContext("2d",{
-    willReadFrequently:true
-  });
 
   /*
-    Üst-alt ve kenar bölgelerini kırp.
-    Böylece fiyat yazıları, saatler ve menüler
-    karşılaştırmayı daha az etkiler.
+    Referansı normalize ediyoruz.
+
+    Beyaz boşlukları mümkün olduğunca
+    temizleyip asıl mum yapısını alır.
   */
-  const sx = img.width * 0.07;
-  const sy = img.height * 0.12;
-  const sw = img.width * 0.86;
-  const sh = img.height * 0.72;
+
+  const reference =
+  createNormalizedFeature(
+    referenceImage,
+    0,
+    0,
+    referenceImage.width,
+    referenceImage.height
+  );
+
+
+  /*
+    Kamera fotoğrafının kenarlarında
+    fiyat, menü, saat vb. bulunabilir.
+
+    Bu yüzden merkez grafik alanını
+    kullanıyoruz.
+  */
+
+  const qx =
+  queryImage.width * 0.04;
+
+  const qy =
+  queryImage.height * 0.08;
+
+  const qw =
+  queryImage.width * 0.90;
+
+  const qh =
+  queryImage.height * 0.78;
+
+
+  let best=0;
+
+
+  /*
+    Farklı genişliklerde pencere taraması.
+
+    Böylece sembol grafiğin yalnızca
+    küçük bir bölümündeyse de bulunabilir.
+  */
+
+  const windowWidths=[
+    0.30,
+    0.38,
+    0.46,
+    0.55,
+    0.66,
+    0.78,
+    0.90
+  ];
+
+
+  const verticalVariants=[
+    0.68,
+    0.78,
+    0.88
+  ];
+
+
+  for(
+    const widthRatio
+    of windowWidths
+  ){
+
+    const windowW =
+    qw * widthRatio;
+
+
+    const step =
+    Math.max(
+      windowW * 0.12,
+      qw * 0.035
+    );
+
+
+    for(
+      let x=qx;
+      x+windowW<=qx+qw;
+      x+=step
+    ){
+
+      for(
+        const heightRatio
+        of verticalVariants
+      ){
+
+        const windowH =
+        qh * heightRatio;
+
+
+        const y =
+        qy +
+        (qh-windowH)/2;
+
+
+        const candidate =
+        createNormalizedFeature(
+          queryImage,
+          x,
+          y,
+          windowW,
+          windowH
+        );
+
+
+        const score =
+        compareFeatureSets(
+          candidate,
+          reference
+        );
+
+
+        if(score>best){
+
+          best=score;
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+  return best;
+
+}
+
+
+/* ==============================
+   GÖRÜNTÜ ÖZELLİKLERİ
+================================ */
+
+function createNormalizedFeature(
+img,
+sx,
+sy,
+sw,
+sh
+){
+
+  const SIZE=96;
+
+  const canvas=
+  document.createElement("canvas");
+
+  canvas.width=SIZE;
+  canvas.height=SIZE;
+
+  const ctx=
+  canvas.getContext(
+    "2d",
+    {willReadFrequently:true}
+  );
+
+
+  ctx.fillStyle="white";
+
+  ctx.fillRect(
+    0,
+    0,
+    SIZE,
+    SIZE
+  );
+
 
   ctx.drawImage(
     img,
-    sx,sy,sw,sh,
-    0,0,SIZE,SIZE
+    sx,
+    sy,
+    sw,
+    sh,
+    0,
+    0,
+    SIZE,
+    SIZE
   );
 
-  const data =
-    ctx.getImageData(0,0,SIZE,SIZE).data;
 
-  const gray = new Float32Array(SIZE*SIZE);
+  const imageData=
+  ctx.getImageData(
+    0,
+    0,
+    SIZE,
+    SIZE
+  );
 
-  for(let i=0;i<SIZE*SIZE;i++){
-    const r=data[i*4];
-    const g=data[i*4+1];
-    const b=data[i*4+2];
 
-    gray[i] =
-      (0.299*r + 0.587*g + 0.114*b)/255;
-  }
+  const data=
+  imageData.data;
+
+
+  const gray=
+  new Float32Array(
+    SIZE*SIZE
+  );
+
+
+  const colorMask=
+  new Float32Array(
+    SIZE*SIZE
+  );
+
 
   /*
-    Ortalama parlaklığı çıkar.
-    Beyaz veya koyu zemin farkının etkisini azaltır.
+    Mum grafiğinde iki ayrı bilgi çıkarıyoruz:
+
+    1. Kenar / şekil
+    2. Renkli mum bölgeleri
   */
+
+  for(
+    let i=0;
+    i<SIZE*SIZE;
+    i++
+  ){
+
+    const r=
+    data[i*4];
+
+    const g=
+    data[i*4+1];
+
+    const b=
+    data[i*4+2];
+
+
+    gray[i]=
+    (
+      0.299*r +
+      0.587*g +
+      0.114*b
+    ) / 255;
+
+
+    const max=
+    Math.max(r,g,b);
+
+    const min=
+    Math.min(r,g,b);
+
+    const saturation=
+    max-min;
+
+
+    /*
+      Kırmızı / yeşil mumları
+      özellikle öne çıkar.
+    */
+
+    if(
+      saturation>35 &&
+      (
+        r>g*1.10 ||
+        g>r*1.05
+      )
+    ){
+
+      colorMask[i]=1;
+
+    }else{
+
+      colorMask[i]=0;
+
+    }
+
+  }
+
+
+  /*
+    Parlaklık normalizasyonu
+  */
+
   let mean=0;
 
-  for(const v of gray) mean+=v;
+  for(const v of gray)
+    mean+=v;
+
   mean/=gray.length;
 
-  for(let i=0;i<gray.length;i++){
+
+  for(
+    let i=0;
+    i<gray.length;
+    i++
+  ){
+
     gray[i]-=mean;
+
   }
 
-  const edges = new Float32Array(SIZE*SIZE);
-
-  let edgeMean=0;
 
   /*
-    Basit Sobel benzeri kenar analizi.
-    Mumların gövdeleri ve fitilleri burada öne çıkar.
+    Kenar çıkarma
   */
-  for(let y=1;y<SIZE-1;y++){
-    for(let x=1;x<SIZE-1;x++){
 
-      const i=y*SIZE+x;
+  const edges=
+  new Float32Array(
+    SIZE*SIZE
+  );
 
-      const gx =
-        gray[i+1] -
-        gray[i-1];
 
-      const gy =
-        gray[i+SIZE] -
-        gray[i-SIZE];
+  let edgeAverage=0;
+  let edgeCount=0;
 
-      let magnitude =
-        Math.sqrt(gx*gx + gy*gy);
 
-      edges[i]=magnitude;
-      edgeMean+=magnitude;
+  for(
+    let y=1;
+    y<SIZE-1;
+    y++
+  ){
+
+    for(
+      let x=1;
+      x<SIZE-1;
+      x++
+    ){
+
+      const i=
+      y*SIZE+x;
+
+
+      const gx=
+      gray[i+1]-
+      gray[i-1];
+
+
+      const gy=
+      gray[i+SIZE]-
+      gray[i-SIZE];
+
+
+      const mag=
+      Math.sqrt(
+        gx*gx+
+        gy*gy
+      );
+
+
+      edges[i]=mag;
+
+      edgeAverage+=mag;
+      edgeCount++;
+
     }
+
   }
 
-  edgeMean /= (SIZE-2)*(SIZE-2);
 
-  /*
-    Çok zayıf kenarları temizle.
-    Küçük yazılar ve gürültüler azalır.
-  */
-  const threshold=edgeMean*1.15;
+  edgeAverage /=
+  Math.max(1,edgeCount);
 
-  for(let i=0;i<edges.length;i++){
-    if(edges[i]<threshold){
+
+  const threshold =
+  edgeAverage * 1.20;
+
+
+  for(
+    let i=0;
+    i<edges.length;
+    i++
+  ){
+
+    if(
+      edges[i] <
+      threshold
+    ){
+
       edges[i]=0;
+
     }
+
   }
 
+
   /*
-    Grafiği 12x12 bölgelere indiriyoruz.
-    Bu, küçük kamera açısı ve ölçek farklarına
-    tolerans sağlar.
+    16 x 16 yapı haritası
   */
-  const GRID=12;
-  const block=SIZE/GRID;
 
-  const grid=[];
+  const GRID=16;
 
-  for(let gy=0;gy<GRID;gy++){
-    for(let gx=0;gx<GRID;gx++){
+  const edgeGrid=[];
+  const colorGrid=[];
 
-      let sum=0;
 
-      for(let y=0;y<block;y++){
-        for(let x=0;x<block;x++){
+  for(
+    let gy=0;
+    gy<GRID;
+    gy++
+  ){
 
-          const px =
-            Math.floor(gx*block+x);
+    for(
+      let gx=0;
+      gx<GRID;
+      gx++
+    ){
 
-          const py =
-            Math.floor(gy*block+y);
+      let edgeSum=0;
+      let colorSum=0;
+      let count=0;
 
-          sum += edges[py*SIZE+px];
+
+      const x0=
+      Math.floor(
+        gx*SIZE/GRID
+      );
+
+      const x1=
+      Math.floor(
+        (gx+1)*SIZE/GRID
+      );
+
+      const y0=
+      Math.floor(
+        gy*SIZE/GRID
+      );
+
+      const y1=
+      Math.floor(
+        (gy+1)*SIZE/GRID
+      );
+
+
+      for(
+        let y=y0;
+        y<y1;
+        y++
+      ){
+
+        for(
+          let x=x0;
+          x<x1;
+          x++
+        ){
+
+          const i=
+          y*SIZE+x;
+
+          edgeSum+=edges[i];
+          colorSum+=colorMask[i];
+
+          count++;
+
         }
+
       }
 
-      grid.push(sum/(block*block));
+
+      edgeGrid.push(
+        edgeSum/
+        Math.max(1,count)
+      );
+
+
+      colorGrid.push(
+        colorSum/
+        Math.max(1,count)
+      );
+
     }
+
   }
 
+
   /*
-    Dikey profil:
-    mumların soldan sağa dağılımını yakalar.
+    Soldan sağa mum yoğunluğu
   */
+
   const vertical=[];
 
-  for(let x=0;x<SIZE;x++){
+
+  for(
+    let x=0;
+    x<SIZE;
+    x++
+  ){
+
     let sum=0;
 
-    for(let y=0;y<SIZE;y++){
-      sum+=edges[y*SIZE+x];
+    for(
+      let y=0;
+      y<SIZE;
+      y++
+    ){
+
+      sum+=
+      edges[
+        y*SIZE+x
+      ];
+
     }
 
-    vertical.push(sum/SIZE);
+    vertical.push(
+      sum/SIZE
+    );
+
   }
+
 
   /*
-    Yatay profil:
-    fiyat hareketinin yükseklik dağılımını yakalar.
+    Yukarıdan aşağı fiyat yapısı
   */
+
   const horizontal=[];
 
-  for(let y=0;y<SIZE;y++){
+
+  for(
+    let y=0;
+    y<SIZE;
+    y++
+  ){
+
     let sum=0;
 
-    for(let x=0;x<SIZE;x++){
-      sum+=edges[y*SIZE+x];
+    for(
+      let x=0;
+      x<SIZE;
+      x++
+    ){
+
+      sum+=
+      edges[
+        y*SIZE+x
+      ];
+
     }
 
-    horizontal.push(sum/SIZE);
+    horizontal.push(
+      sum/SIZE
+    );
+
   }
 
-  return {
-    grid:normalize(grid),
-    vertical:normalize(vertical),
-    horizontal:normalize(horizontal)
+
+  /*
+    Sol ve sağ yarının ağırlık merkezi.
+
+    Formasyonun yükselme/düşme yapısını
+    anlamaya yardımcı olur.
+  */
+
+  const shapeProfile=[];
+
+
+  const PROFILE=24;
+
+
+  for(
+    let p=0;
+    p<PROFILE;
+    p++
+  ){
+
+    const x0=
+    Math.floor(
+      p*SIZE/PROFILE
+    );
+
+    const x1=
+    Math.floor(
+      (p+1)*SIZE/PROFILE
+    );
+
+
+    let weightedY=0;
+    let total=0;
+
+
+    for(
+      let x=x0;
+      x<x1;
+      x++
+    ){
+
+      for(
+        let y=0;
+        y<SIZE;
+        y++
+      ){
+
+        const value=
+        edges[
+          y*SIZE+x
+        ] +
+        colorMask[
+          y*SIZE+x
+        ]*0.35;
+
+
+        weightedY +=
+        y*value;
+
+        total+=value;
+
+      }
+
+    }
+
+
+    if(total>0){
+
+      shapeProfile.push(
+        weightedY/
+        total/
+        SIZE
+      );
+
+    }else{
+
+      shapeProfile.push(0.5);
+
+    }
+
+  }
+
+
+  return{
+
+    edgeGrid:
+    normalize(edgeGrid),
+
+    colorGrid:
+    normalize(colorGrid),
+
+    vertical:
+    normalize(vertical),
+
+    horizontal:
+    normalize(horizontal),
+
+    shape:
+    normalize(shapeProfile)
+
   };
+
 }
+
+
+/* ==============================
+   ÖZELLİK KARŞILAŞTIR
+================================ */
+
+function compareFeatureSets(
+a,
+b
+){
+
+  const edgeScore=
+  cosine01(
+    a.edgeGrid,
+    b.edgeGrid
+  );
+
+
+  const colorScore=
+  cosine01(
+    a.colorGrid,
+    b.colorGrid
+  );
+
+
+  const verticalScore=
+  cosine01(
+    a.vertical,
+    b.vertical
+  );
+
+
+  const horizontalScore=
+  cosine01(
+    a.horizontal,
+    b.horizontal
+  );
+
+
+  const shapeScore=
+  cosine01(
+    a.shape,
+    b.shape
+  );
+
+
+  /*
+    Asıl ağırlık mum dizilişi ve
+    genel formasyon şekline veriliyor.
+  */
+
+  const score=
+
+    edgeScore*0.30 +
+
+    shapeScore*0.30 +
+
+    verticalScore*0.18 +
+
+    horizontalScore*0.12 +
+
+    colorScore*0.10;
+
+
+  /*
+    Ham matematik skorunu
+    kullanıcı için daha anlaşılır
+    güven puanına dönüştürüyoruz.
+  */
+
+  return clamp(
+    (score-0.42)/0.50,
+    0,
+    1
+  );
+
+}
+
+
+/* ==============================
+   SONUÇ GÖSTER
+================================ */
+
+function showResults(
+results
+){
+
+  if(!results.length){
+
+    statusDiv.innerHTML=
+    "❌ Sonuç bulunamadı.";
+
+    return;
+
+  }
+
+
+  const best=
+  results[0];
+
+
+  const percent=
+  best.score*100;
+
+
+  /*
+    Tek başına yüzde yetmez.
+
+    Birinci ile ikinci sonuç arasındaki
+    fark da güven için önemlidir.
+  */
+
+  const second=
+  results.length>1
+  ? results[1].score
+  : 0;
+
+
+  const margin=
+  best.score-second;
+
+
+  if(
+    percent<55 ||
+    (
+      percent<68 &&
+      margin<0.035
+    )
+  ){
+
+    statusDiv.innerHTML=
+    "❌ Güvenilir eşleşme bulunamadı." +
+    "<br>" +
+    "<span class='badge'>" +
+    "En yakın: %" +
+    percent.toFixed(1) +
+    "</span>";
+
+
+    matchPreview.style.display=
+    "none";
+
+  }else{
+
+    statusDiv.innerHTML=
+    "✅ En yakın formasyon bulundu" +
+    "<br>" +
+    "<span class='badge'>" +
+    "Eşleşme: %" +
+    percent.toFixed(1) +
+    "</span>";
+
+
+    matchPreview.src=
+    best.src;
+
+    matchPreview.style.display=
+    "block";
+
+  }
+
+
+  /*
+    İlk üç aday
+  */
+
+  topMatchesDiv.innerHTML="";
+
+
+  results
+  .slice(0,3)
+  .forEach(
+    (item,index)=>{
+
+      const p=
+      item.score*100;
+
+
+      const row=
+      document.createElement(
+        "div"
+      );
+
+      row.className=
+      "matchRow";
+
+
+      row.innerHTML=
+
+      "<img src='" +
+      item.src +
+      "'>" +
+
+      "<div class='matchInfo'>" +
+
+      "<strong>" +
+      (index+1) +
+      ". aday</strong>" +
+
+      "<br>%" +
+      p.toFixed(1) +
+
+      "<div class='bar'>" +
+
+      "<div class='barFill' " +
+      "style='width:" +
+      clamp(p,0,100) +
+      "%'></div>" +
+
+      "</div>" +
+
+      "</div>";
+
+
+      topMatchesDiv.appendChild(
+        row
+      );
+
+    }
+  );
+
+}
+
+
+/* ==============================
+   MATEMATİK
+================================ */
 
 function normalize(arr){
 
-  let mean =
-    arr.reduce((a,b)=>a+b,0)/arr.length;
+  if(!arr.length)
+    return [];
 
-  let out =
-    arr.map(v=>v-mean);
 
-  let norm =
-    Math.sqrt(
-      out.reduce((a,b)=>a+b*b,0)
-    );
+  const mean=
+  arr.reduce(
+    (a,b)=>a+b,
+    0
+  ) / arr.length;
 
-  if(norm===0) norm=1;
 
-  return out.map(v=>v/norm);
-}
+  const centered=
+  arr.map(
+    v=>v-mean
+  );
 
-function cosine(a,b){
 
-  let sum=0;
+  let norm=
+  Math.sqrt(
+    centered.reduce(
+      (a,b)=>
+      a+b*b,
+      0
+    )
+  );
 
-  for(let i=0;i<a.length;i++){
-    sum+=a[i]*b[i];
+
+  if(
+    !Number.isFinite(norm) ||
+    norm===0
+  ){
+
+    norm=1;
+
   }
 
-  /*
-    cosine yaklaşık -1..1.
-    0..1 aralığına dönüştür.
-  */
-  return (sum+1)/2;
-}
 
-function compareFeatures(a,b){
-
-  const gridScore =
-    cosine(a.grid,b.grid);
-
-  const verticalScore =
-    cosine(a.vertical,b.vertical);
-
-  const horizontalScore =
-    cosine(a.horizontal,b.horizontal);
-
-  /*
-    Mum/grafik yapısına en fazla ağırlık.
-  */
-  return (
-    gridScore*0.60 +
-    verticalScore*0.25 +
-    horizontalScore*0.15
+  return centered.map(
+    v=>v/norm
   );
+
 }
 
-function loadImage(src){
-  return new Promise((resolve,reject)=>{
-    const img=new Image();
-    img.onload=()=>resolve(img);
-    img.onerror=reject;
-    img.src=src;
-  });
+
+function cosine01(
+a,
+b
+){
+
+  const length=
+  Math.min(
+    a.length,
+    b.length
+  );
+
+
+  if(!length)
+    return 0;
+
+
+  let dot=0;
+  let na=0;
+  let nb=0;
+
+
+  for(
+    let i=0;
+    i<length;
+    i++
+  ){
+
+    dot+=a[i]*b[i];
+
+    na+=a[i]*a[i];
+
+    nb+=b[i]*b[i];
+
+  }
+
+
+  if(
+    na===0 ||
+    nb===0
+  ){
+
+    return 0;
+
+  }
+
+
+  const cosine=
+  dot/
+  Math.sqrt(
+    na*nb
+  );
+
+
+  return clamp(
+    (cosine+1)/2,
+    0,
+    1
+  );
+
 }
 
-/*
-  Eski service worker varsa kayıt devam etsin.
-*/
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{
-    navigator.serviceWorker
-      .register("./service-worker.js")
-      .catch(()=>{});
-  });
+
+function clamp(
+value,
+min,
+max
+){
+
+  return Math.max(
+    min,
+    Math.min(
+      max,
+      value
+    )
+  );
+
 }
+
+
+/* ==============================
+   REFERANS İŞLEMLERİ
+================================ */
+
+function saveRefs(){
+
+  try{
+
+    localStorage.setItem(
+      "chartReferences",
+      JSON.stringify(
+        references
+      )
+    );
+
+  }catch(e){
+
+    alert(
+      "Telefon hafızasında yeterli alan olmayabilir."
+    );
+
+  }
+
+}
+
+
+function renderRefs(){
+
+  refsDiv.innerHTML="";
+
+
+  references.forEach(
+    (src,index)=>{
+
+      const img=
+      document.createElement(
+        "img"
+      );
+
+
+      img.src=src;
+
+
+      img.onclick=()=>{
+
+        if(
+          confirm(
+            "Bu referans silinsin mi?"
+          )
+        ){
+
+          references.splice(
+            index,
+            1
+          );
+
+          saveRefs();
+          renderRefs();
+
+        }
+
+      };
+
+
+      refsDiv.appendChild(
+        img
+      );
+
+    }
+  );
+
+
+  countDiv.textContent=
+  references.length +
+  " fotoğraf kayıtlı";
+
+}
+
+
+function clearRefs(){
+
+  if(!references.length)
+    return;
+
+
+  if(
+    confirm(
+      "Tüm referans fotoğraflar silinsin mi?"
+    )
+  ){
+
+    references=[];
+
+    saveRefs();
+    renderRefs();
+
+    statusDiv.innerHTML="";
+
+    matchPreview.style.display=
+    "none";
+
+    topMatchesDiv.innerHTML="";
+
+  }
+
+}
+
+
+/* ==============================
+   DOSYA / RESİM
+================================ */
+
+function fileToDataURL(
+file
+){
+
+  return new Promise(
+    (resolve,reject)=>{
+
+      const reader=
+      new FileReader();
+
+
+      reader.onload=()=>
+      resolve(
+        reader.result
+      );
+
+
+      reader.onerror=
+      reject;
+
+
+      reader.readAsDataURL(
+        file
+      );
+
+    }
+  );
+
+}
+
+
+function loadImage(
+src
+){
+
+  return new Promise(
+    (resolve,reject)=>{
+
+      const img=
+      new Image();
+
+
+      img.onload=()=>
+      resolve(img);
+
+
+      img.onerror=
+      reject;
+
+
+      img.src=src;
+
+    }
+  );
+
+}
+
+
+function sleep(ms){
+
+  return new Promise(
+    resolve=>
+    setTimeout(
+      resolve,
+      ms
+    )
+  );
+
+}
+
+
+/* ==============================
+   ÇEVRİMDIŞI ÇALIŞMA
+================================ */
+
+if(
+  "serviceWorker"
+  in navigator
+){
+
+  window.addEventListener(
+    "load",
+    ()=>{
+
+      navigator
+      .serviceWorker
+      .register(
+        "./service-worker.js"
+      )
+      .catch(
+        error=>
+        console.log(
+          "Service worker:",
+          error
+        )
+      );
+
+    }
+  );
+
+}
+
 </script>
 
 </body>
