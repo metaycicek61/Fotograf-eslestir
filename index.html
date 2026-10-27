@@ -2,843 +2,571 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Fotoğraf Eşleştir AI</title>
+
+<title>Akıllı Formasyon AI</title>
 
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;padding:18px;background:#f4f4f6;color:#111;
+ margin:0;
+ background:#111;
+ color:#fff;
  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
-.container{max-width:720px;margin:auto}
-h1{text-align:center;font-size:24px}
+.wrap{max-width:720px;margin:auto;padding:14px}
+h1{text-align:center;font-size:21px;margin:8px 0 14px}
+
+.cameraBox{
+ position:relative;
+ width:100%;
+ aspect-ratio:15/12;
+ background:#000;
+ overflow:hidden;
+ border-radius:14px;
+ border:2px solid #555
+}
+
+video{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ object-fit:cover
+}
+
+#overlay{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ z-index:3;
+ pointer-events:none
+}
+
+button,.fileBtn{
+ width:100%;
+ border:0;
+ border-radius:12px;
+ padding:14px;
+ margin-top:10px;
+ font-size:16px;
+ font-weight:700
+}
+
+#start{background:#28a745;color:white}
+#scanToggle{background:#0d6efd;color:white}
+#scanToggle.active{background:#dc3545}
+
+.fileBtn{
+ display:block;
+ text-align:center;
+ background:#6f42c1;
+ color:white
+}
+.fileBtn input{display:none}
+
 .card{
- background:#fff;border-radius:18px;padding:16px;margin-bottom:18px;
- box-shadow:0 2px 12px rgba(0,0,0,.08)
+ margin-top:12px;
+ padding:13px;
+ border-radius:14px;
+ background:#1d1d1d;
+ border:1px solid #333
 }
-button{
- width:100%;border:0;border-radius:13px;padding:15px;margin:6px 0;
- font-size:17px;font-weight:700
+
+#status{
+ text-align:center;
+ font-size:14px;
+ color:#ccc
 }
-.blue{background:#087cff;color:#fff}
-.red{background:#ff3b30;color:#fff}
-#refs{
- display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0
+
+.resultTitle{
+ font-size:13px;
+ color:#aaa
 }
-.ref{background:#f6f6f7;border-radius:10px;padding:5px;text-align:center}
+
+#bestName{
+ font-size:24px;
+ font-weight:800;
+ margin-top:5px
+}
+
+#bestScore{
+ font-size:34px;
+ font-weight:900;
+ margin-top:3px
+}
+
+#details{
+ font-size:14px;
+ line-height:1.6;
+ color:#ddd;
+ margin-top:8px
+}
+
+.refGrid{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px;
+ margin-top:10px
+}
+
+.ref{
+ background:#292929;
+ border-radius:10px;
+ overflow:hidden;
+ text-align:center;
+ font-size:12px
+}
+
 .ref img{
- width:100%;height:90px;object-fit:contain;background:#fff;border-radius:7px
+ width:100%;
+ aspect-ratio:1/1;
+ object-fit:contain;
+ background:white
 }
-.refName{
- font-size:11px;font-weight:700;margin-top:4px;
- white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+
+.ref div{
+ padding:6px;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap
 }
-.small{text-align:center;color:#666;font-size:13px;line-height:1.5}
-#status{text-align:center;font-weight:700;line-height:1.5;margin:12px 0}
-#resultCanvas{
- display:none;width:100%;height:auto;border-radius:12px;margin-top:12px
+
+.small{
+ font-size:12px;
+ color:#aaa;
+ line-height:1.4
 }
-#answer{
- display:none;text-align:center;background:#f0fff4;
- border:2px solid #20a856;border-radius:14px;padding:14px;margin-top:14px
+
+#clear{
+ background:#444;
+ color:white;
+ padding:10px
 }
-#answerName{font-size:25px;font-weight:900}
-#answerScore{font-size:34px;font-weight:900;color:#159447}
-.badge{
- display:inline-block;padding:7px 11px;border-radius:20px;
- background:#e8f7ed;color:#13773a;font-size:13px;font-weight:700;margin:4px
-}
-.match{
- display:flex;align-items:center;gap:10px;background:#f7f7f8;
- padding:8px;border-radius:11px;margin:7px 0
-}
-.match img{
- width:62px;height:55px;object-fit:contain;background:#fff;border-radius:7px
-}
-.matchText{flex:1;font-size:14px}
-.bar{height:6px;background:#ddd;border-radius:8px;overflow:hidden;margin-top:5px}
-.fill{height:100%;background:#087cff}
-.note{
- background:#eef6ff;padding:10px;border-radius:10px;
- text-align:center;font-size:12px;color:#345;margin-top:10px
-}
+
+canvas#capture{display:none}
 </style>
 </head>
 
 <body>
-<div class="container">
+<div class="wrap">
 
-<h1>🧠 Fotoğraf Eşleştir — AI</h1>
+<h1>📷 Akıllı Formasyon AI</h1>
+
+<div class="cameraBox">
+ <video id="video" autoplay playsinline muted></video>
+ <canvas id="overlay"></canvas>
+</div>
+
+<button id="start">📷 Kamerayı Aç</button>
+<button id="scanToggle">🧠 AI Taramayı Başlat</button>
+
+<label class="fileBtn">
+ ➕ Formasyon Ekle
+ <input id="refInput" type="file" accept="image/*" multiple>
+</label>
 
 <div class="card">
-<h2>Formasyon Kütüphanesi</h2>
-
-<button class="blue" onclick="refInput.click()">➕ Formasyon Ekle</button>
-<input id="refInput" type="file" accept="image/*" multiple hidden>
-
-<div id="refs"></div>
-
-<button class="red" onclick="clearRefs()">Tüm Formasyonları Sil</button>
-<div id="count" class="small"></div>
+ <div id="status">Kamera kapalı.</div>
 </div>
 
 <div class="card">
-<h2>Grafiği AI ile Tara</h2>
-
-<button class="blue" onclick="cameraInput.click()">📷 Kamerayla Grafik Çek</button>
-<input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
-
-<div id="status">Grafiği çekmeye hazır.</div>
-
-<div class="note">
-Önce mumlar bulunur, sonra AI yalnızca mum bölgelerini karşılaştırır.
+ <div class="resultTitle">EN İYİ EŞLEŞME</div>
+ <div id="bestName">—</div>
+ <div id="bestScore">—</div>
+ <div id="details">
+   Kamera açıldığında AI sağdaki son mum bölgesini tarayacak.
+ </div>
 </div>
 
-<canvas id="resultCanvas"></canvas>
-
-<div id="answer">
- <div>🎯 Eşleşen Formasyon</div>
- <div id="answerName"></div>
- <div id="answerScore"></div>
- <div id="answerInfo"></div>
+<div class="card">
+ <b>📚 Formasyon Kütüphanesi</b>
+ <div class="small">
+   AI yalnızca buraya eklediğin formasyonları arar.
+ </div>
+ <div id="refs" class="refGrid"></div>
+ <button id="clear">Tüm Formasyonları Sil</button>
 </div>
 
-<div id="topMatches"></div>
-</div>
+<canvas id="capture" width="450" height="360"></canvas>
 
 </div>
 
 <script type="module">
 
-import { pipeline }
-from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
+import { pipeline } from
+"https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
 
-const $=id=>document.getElementById(id);
+const video=document.getElementById("video");
+const overlay=document.getElementById("overlay");
+const capture=document.getElementById("capture");
 
-const refInput=$("refInput");
-const cameraInput=$("cameraInput");
-const refsDiv=$("refs");
-const countDiv=$("count");
-const statusDiv=$("status");
-const canvas=$("resultCanvas");
-const answer=$("answer");
-const answerName=$("answerName");
-const answerScore=$("answerScore");
-const answerInfo=$("answerInfo");
-const topMatches=$("topMatches");
+const startBtn=document.getElementById("start");
+const scanBtn=document.getElementById("scanToggle");
+
+const statusEl=document.getElementById("status");
+const bestName=document.getElementById("bestName");
+const bestScore=document.getElementById("bestScore");
+const details=document.getElementById("details");
+
+const refInput=document.getElementById("refInput");
+const refsEl=document.getElementById("refs");
+const clearBtn=document.getElementById("clear");
 
 let references=[];
+let extractor=null;
+let scanning=false;
+let busy=false;
+let timer=null;
 
-/* =====================
+const STORAGE="chartReferences";
+
+/* ---------------------------
    KÜTÜPHANE
-===================== */
+---------------------------- */
 
-try{
- const old=JSON.parse(localStorage.getItem("chartReferences")||"[]");
-
- references=old.map((r,i)=>{
-   if(typeof r==="string"){
-     return {name:"Formasyon "+(i+1),src:r};
-   }
-
-   return{
-     name:r.name||("Formasyon "+(i+1)),
-     src:r.src||r.data||r.image||""
-   };
- }).filter(r=>r.src);
-
-}catch(e){
- references=[];
+function loadRefs(){
+ try{
+   references=JSON.parse(localStorage.getItem(STORAGE)||"[]");
+ }catch{
+   references=[];
+ }
+ renderRefs();
 }
 
-renderRefs();
-
 function saveRefs(){
- localStorage.setItem("chartReferences",JSON.stringify(references));
+ localStorage.setItem(STORAGE,JSON.stringify(references));
 }
 
 function renderRefs(){
- refsDiv.innerHTML="";
+
+ refsEl.innerHTML="";
+
+ if(!references.length){
+   refsEl.innerHTML=
+   '<div class="small">Henüz formasyon eklenmedi.</div>';
+   return;
+ }
 
  references.forEach((r,i)=>{
+
    const box=document.createElement("div");
    box.className="ref";
 
    const img=document.createElement("img");
    img.src=r.src;
 
-   const n=document.createElement("div");
-   n.className="refName";
-   n.textContent=r.name;
+   const name=document.createElement("div");
+   name.textContent=r.name;
 
-   box.append(img,n);
+   box.appendChild(img);
+   box.appendChild(name);
 
    box.onclick=()=>{
-     const name=prompt("Formasyon adı:",r.name);
 
-     if(name&&name.trim()){
-       references[i].name=name.trim();
+     const n=prompt("Formasyon adı:",r.name);
+
+     if(n && n.trim()){
+       references[i].name=n.trim();
        saveRefs();
        renderRefs();
      }
    };
 
-   refsDiv.appendChild(box);
+   refsEl.appendChild(box);
  });
-
- countDiv.textContent=references.length+" formasyon kayıtlı";
 }
 
-window.clearRefs=function(){
- if(!confirm("Tüm formasyonlar silinsin mi?"))return;
+refInput.onchange=async e=>{
+
+ const files=[...e.target.files];
+
+ for(const file of files){
+
+   const src=await fileToDataURL(file);
+
+   references.push({
+     name:file.name.replace(/\.[^.]+$/,""),
+     src
+   });
+ }
+
+ saveRefs();
+ renderRefs();
+
+ statusEl.textContent=
+ `${files.length} formasyon eklendi.`;
+
+ refInput.value="";
+};
+
+function fileToDataURL(file){
+
+ return new Promise(resolve=>{
+
+   const reader=new FileReader();
+
+   reader.onload=()=>resolve(reader.result);
+
+   reader.readAsDataURL(file);
+ });
+}
+
+clearBtn.onclick=()=>{
+
+ if(!confirm("Tüm formasyonlar silinsin mi?")) return;
 
  references=[];
  saveRefs();
  renderRefs();
+
+ bestName.textContent="—";
+ bestScore.textContent="—";
 };
 
-refInput.onchange=async e=>{
- for(const file of [...e.target.files]){
-   const src=await fileURL(file);
-
-   let name=file.name.replace(/\.[^/.]+$/,"").trim();
-   if(!name)name="Formasyon "+(references.length+1);
-
-   references.push({name,src});
- }
-
- saveRefs();
- renderRefs();
- refInput.value="";
-};
-
-/* =====================
-   AI
-===================== */
-
-let extractor=null;
-
-async function getAI(){
-
- if(extractor)return extractor;
-
- statusDiv.innerHTML=
-   "🧠 AI modeli hazırlanıyor...<br>İlk açılış biraz sürebilir.";
-
- extractor=await pipeline(
-   "image-feature-extraction",
-   "Xenova/clip-vit-base-patch32"
- );
-
- return extractor;
-}
-
-/* =====================
+/* ---------------------------
    KAMERA
-===================== */
+---------------------------- */
 
-cameraInput.onchange=async e=>{
-
- const file=e.target.files[0];
- if(!file)return;
-
- if(!references.length){
-   alert("Kayıtlı formasyon bulunamadı.");
-   cameraInput.value="";
-   return;
- }
-
- reset();
+startBtn.onclick=async()=>{
 
  try{
 
-   statusDiv.textContent="📷 Grafik okunuyor...";
+   const stream=await navigator.mediaDevices.getUserMedia({
+     video:{
+       facingMode:{ideal:"environment"},
+       width:{ideal:1280},
+       height:{ideal:720}
+     },
+     audio:false
+   });
 
-   const img=await loadImg(await fileURL(file));
+   video.srcObject=stream;
 
-   /*
-     Ana grafik alanı.
-   */
-   const chart={
-     x:Math.round(img.width*.04),
-     y:Math.round(img.height*.18),
-     w:Math.round(img.width*.92),
-     h:Math.round(img.height*.58)
-   };
+   await video.play();
 
-   /*
-     1 — ÖNCE GERÇEK MUM KÜMELERİ
-   */
-   statusDiv.textContent="🔎 Kırmızı ve yeşil mumlar bulunuyor...";
+   drawGrid();
 
-   const clusters=findCandleClusters(img,chart);
-
-   if(!clusters.length){
-     drawPlain(img);
-     noMatch("Grafikte yeterli mum kümesi bulunamadı.");
-     cameraInput.value="";
-     return;
-   }
-
-   /*
-     Sağdaki kümelere öncelik.
-   */
-   clusters.sort((a,b)=>b.right-a.right);
-
-   /*
-     En sağdaki anlamlı kümeler.
-   */
-   const selected=clusters.slice(0,6);
-
-   /*
-     2 — MUM KÜMELERİNDEN ADAY KUTULAR
-   */
-   const candidates=[];
-
-   for(const cl of selected){
-
-     const paddingX=Math.max(
-       Math.round(chart.w*.025),
-       Math.round(cl.w*.22)
-     );
-
-     const paddingY=Math.max(
-       Math.round(chart.h*.035),
-       Math.round(cl.h*.22)
-     );
-
-     let x=cl.x-paddingX;
-     let y=cl.y-paddingY;
-     let w=cl.w+paddingX*2;
-     let h=cl.h+paddingY*2;
-
-     /*
-       Çok dar tek mum kutusunu kabul etme.
-     */
-     const minW=Math.round(chart.w*.12);
-
-     if(w<minW){
-       const extra=(minW-w)/2;
-       x-=extra;
-       w=minW;
-     }
-
-     /*
-       Maksimum kutu boyutu.
-       Artık dev boş kutular yok.
-     */
-     w=Math.min(w,chart.w*.32);
-     h=Math.min(h,chart.h*.46);
-
-     x=Math.max(chart.x,x);
-     y=Math.max(chart.y,y);
-
-     if(x+w>chart.x+chart.w){
-       x=chart.x+chart.w-w;
-     }
-
-     if(y+h>chart.y+chart.h){
-       y=chart.y+chart.h-h;
-     }
-
-     /*
-       Son kontrol:
-       kutunun gerçekten mum içermesi şart.
-     */
-     const evidence=candleEvidence(img,x,y,w,h);
-
-     if(!evidence.valid)continue;
-
-     const rightness=
-       (x+w-chart.x)/chart.w;
-
-     candidates.push({
-       x:Math.round(x),
-       y:Math.round(y),
-       w:Math.round(w),
-       h:Math.round(h),
-       rightBonus:Math.max(0,(rightness-.55)*10),
-       candleStrength:evidence.strength,
-       canvas:cropCanvas(img,x,y,w,h)
-     });
-   }
-
-   if(!candidates.length){
-     drawPlain(img);
-     noMatch("Mumlar bulundu fakat uygun formasyon alanı oluşmadı.");
-     cameraInput.value="";
-     return;
-   }
-
-   /*
-     3 — AI
-   */
-   const AI=await getAI();
-
-   statusDiv.textContent="🧠 Mum bölgeleri AI ile karşılaştırılıyor...";
-
-   const refCanvases=[];
-
-   for(const ref of references){
-     const refImg=await loadImg(ref.src);
-     refCanvases.push(imageToCanvas(refImg));
-   }
-
-   const refTensor=await AI(refCanvases);
-   const refVectors=tensorToVectors(refTensor,references.length);
-
-   const candidateTensor=
-     await AI(candidates.map(c=>c.canvas));
-
-   const candidateVectors=
-     tensorToVectors(candidateTensor,candidates.length);
-
-   const results=[];
-
-   for(let ci=0;ci<candidates.length;ci++){
-
-     for(let ri=0;ri<references.length;ri++){
-
-       const cosine=
-         cosineSimilarity(
-           candidateVectors[ci],
-           refVectors[ri]
-         );
-
-       let score=((cosine-.48)/.38)*100;
-
-       score+=candidates[ci].rightBonus;
-       score+=Math.min(5,candidates[ci].candleStrength*5);
-
-       score=Math.max(0,Math.min(99,score));
-
-       results.push({
-         ...candidates[ci],
-         score,
-         name:references[ri].name,
-         src:references[ri].src
-       });
-     }
-   }
-
-   results.sort((a,b)=>b.score-a.score);
-
-   const bestPerFormation=[];
-
-   for(const r of results){
-     if(!bestPerFormation.some(x=>x.name===r.name)){
-       bestPerFormation.push(r);
-     }
-   }
-
-   const best=results[0];
-
-   if(!best||best.score<54){
-
-     drawPlain(img);
-
-     noMatch(
-       "Mum bölgeleri bulundu ancak güçlü bir formasyon eşleşmesi çıkmadı."
-     );
-
-     showCandidates(bestPerFormation);
-
-     cameraInput.value="";
-     return;
-   }
-
-   drawMatch(img,best);
-   showBest(best);
-   showCandidates(bestPerFormation);
+   statusEl.textContent=
+   "Kamera açık — son mumları sağ tarafa hizala.";
 
  }catch(err){
 
-   console.error(err);
-
-   drawError(
-     err.message||"AI analizi sırasında hata oluştu."
-   );
+   statusEl.textContent=
+   "Kamera açılamadı. Safari kamera iznini kontrol et.";
  }
-
- cameraInput.value="";
 };
 
-/* =================================
-   MUM KÜMELERİNİ BUL
-================================= */
+/* ---------------------------
+   15 x 12 IZGARA
+---------------------------- */
 
-function findCandleClusters(img,chart){
+function drawGrid(highlight=false){
 
- const W=180;
- const H=120;
+ const rect=overlay.getBoundingClientRect();
 
- const c=document.createElement("canvas");
- c.width=W;
- c.height=H;
+ const dpr=window.devicePixelRatio||1;
 
- const ctx=c.getContext("2d",{willReadFrequently:true});
+ overlay.width=rect.width*dpr;
+ overlay.height=rect.height*dpr;
+
+ const ctx=overlay.getContext("2d");
+
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+
+ const W=rect.width;
+ const H=rect.height;
+
+ ctx.clearRect(0,0,W,H);
+
+ ctx.lineWidth=1;
+
+ for(let i=1;i<15;i++){
+
+   const x=W*i/15;
+
+   ctx.strokeStyle="rgba(255,255,255,.23)";
+
+   ctx.beginPath();
+   ctx.moveTo(x,0);
+   ctx.lineTo(x,H);
+   ctx.stroke();
+ }
+
+ for(let i=1;i<12;i++){
+
+   const y=H*i/12;
+
+   ctx.strokeStyle="rgba(255,255,255,.23)";
+
+   ctx.beginPath();
+   ctx.moveTo(0,y);
+   ctx.lineTo(W,y);
+   ctx.stroke();
+ }
+
+ /* AI'nin esas baktığı son mum bölgesi */
+ const x=W*6/15;
+
+ ctx.fillStyle=
+ highlight
+ ? "rgba(0,255,120,.13)"
+ : "rgba(255,255,255,.025)";
+
+ ctx.fillRect(x,0,W-x,H);
+
+ ctx.strokeStyle=
+ highlight
+ ? "rgba(0,255,120,.9)"
+ : "rgba(255,255,255,.55)";
+
+ ctx.lineWidth=2;
+
+ ctx.strokeRect(x+1,1,W-x-2,H-2);
+}
+
+window.addEventListener("resize",()=>drawGrid(false));
+
+/* ---------------------------
+   KAMERA GÖRÜNTÜSÜ
+---------------------------- */
+
+function captureLens(){
+
+ const ctx=capture.getContext("2d");
+
+ const W=450;
+ const H=360;
+
+ const vw=video.videoWidth;
+ const vh=video.videoHeight;
+
+ if(!vw || !vh) return null;
+
+ const ratio=15/12;
+
+ let sx=0,sy=0,sw=vw,sh=vh;
+
+ if(vw/vh>ratio){
+
+   sh=vh;
+   sw=vh*ratio;
+
+   sx=(vw-sw)/2;
+   sy=0;
+
+ }else{
+
+   sw=vw;
+   sh=vw/ratio;
+
+   sx=0;
+   sy=(vh-sh)/2;
+ }
 
  ctx.drawImage(
-   img,
-   chart.x,chart.y,chart.w,chart.h,
+   video,
+   sx,sy,sw,sh,
    0,0,W,H
  );
 
- const data=ctx.getImageData(0,0,W,H).data;
+ return capture;
+}
+
+/* ---------------------------
+   SABİT AI TARAMA ALANLARI
+
+   Tüm grafik yerine sağdaki
+   son mumlara giderek yaklaşır.
+---------------------------- */
+
+function makeScanWindows(source){
+
+ const result=[];
+
+ const W=source.width;
+ const H=source.height;
 
  /*
-   Her x sütununda kaç mum-renkli piksel var?
+   9 sütun
+   7 sütun
+   5 sütun
+   sağ taraf
  */
- const columnCounts=new Array(W).fill(0);
- const minY=new Array(W).fill(H);
- const maxY=new Array(W).fill(-1);
 
- for(let y=0;y<H;y++){
+ const columns=[9,7,5];
 
-   for(let x=0;x<W;x++){
+ for(const cols of columns){
 
-     const i=(y*W+x)*4;
+   const width=Math.round(W*(cols/15));
 
-     const r=data[i];
-     const g=data[i+1];
-     const b=data[i+2];
+   const c=document.createElement("canvas");
 
-     if(isCandlePixel(r,g,b)){
+   c.width=320;
+   c.height=320;
 
-       columnCounts[x]++;
+   const ctx=c.getContext("2d");
 
-       if(y<minY[x])minY[x]=y;
-       if(y>maxY[x])maxY[x]=y;
-     }
-   }
- }
+   ctx.fillStyle="white";
+   ctx.fillRect(0,0,320,320);
 
- /*
-   Aktif sütunları grupla.
-   Küçük boşluklar aynı mum kümesinde kalabilir.
- */
- const groups=[];
+   const temp=document.createElement("canvas");
 
- let start=-1;
- let last=-1;
+   temp.width=width;
+   temp.height=H;
 
- for(let x=0;x<W;x++){
+   temp.getContext("2d").drawImage(
+     source,
+     W-width,0,width,H,
+     0,0,width,H
+   );
 
-   const active=columnCounts[x]>=2;
+   const scale=Math.min(
+     320/width,
+     320/H
+   );
 
-   if(active){
+   const dw=width*scale;
+   const dh=H*scale;
 
-     if(start<0){
-       start=x;
-     }
+   ctx.drawImage(
+     temp,
+     (320-dw)/2,
+     (320-dh)/2,
+     dw,dh
+   );
 
-     last=x;
-
-   }else if(start>=0){
-
-     /*
-       3 sütundan küçük boşlukta hemen kapatma.
-     */
-     let future=false;
-
-     for(let k=1;k<=3;k++){
-       if(x+k<W && columnCounts[x+k]>=2){
-         future=true;
-         break;
-       }
-     }
-
-     if(!future){
-       groups.push({start,end:last});
-       start=-1;
-       last=-1;
-     }
-   }
- }
-
- if(start>=0){
-   groups.push({start,end:last});
- }
-
- const clusters=[];
-
- for(const group of groups){
-
-   const width=group.end-group.start+1;
-
-   /*
-     Tek ince çizgi / tek mum benzeri şeyleri at.
-   */
-   if(width<4)continue;
-
-   let gy1=H;
-   let gy2=-1;
-   let colored=0;
-   let activeCols=0;
-
-   for(let x=group.start;x<=group.end;x++){
-
-     if(columnCounts[x]>0){
-       activeCols++;
-       colored+=columnCounts[x];
-
-       if(minY[x]<gy1)gy1=minY[x];
-       if(maxY[x]>gy2)gy2=maxY[x];
-     }
-   }
-
-   if(gy2<gy1)continue;
-
-   const gh=gy2-gy1+1;
-
-   /*
-     Mum kümesi hem yatay hem dikey anlamlı olmalı.
-   */
-   if(activeCols<4)continue;
-   if(gh<8)continue;
-   if(colored<18)continue;
-
-   const scaleX=chart.w/W;
-   const scaleY=chart.h/H;
-
-   const x=
-     chart.x+group.start*scaleX;
-
-   const y=
-     chart.y+gy1*scaleY;
-
-   const w=
-     width*scaleX;
-
-   const h=
-     gh*scaleY;
-
-   clusters.push({
-     x,y,w,h,
-     right:x+w,
-     colored,
-     activeCols
+   result.push({
+     canvas:c,
+     cols
    });
  }
 
- /*
-   Yakın kümeleri birleştir.
-   Böylece yan yana mumlar tek formasyon adayı olur.
- */
- return mergeNearbyClusters(clusters,chart);
+ return result;
 }
 
-function mergeNearbyClusters(clusters,chart){
+/* ---------------------------
+   REFERANS GÖRÜNTÜ
+---------------------------- */
 
- if(!clusters.length)return [];
+function loadImage(src){
 
- clusters.sort((a,b)=>a.x-b.x);
+ return new Promise((resolve,reject)=>{
 
- const merged=[];
+   const img=new Image();
 
- for(const current of clusters){
+   img.onload=()=>resolve(img);
+   img.onerror=reject;
 
-   const last=merged[merged.length-1];
-
-   if(!last){
-     merged.push({...current});
-     continue;
-   }
-
-   const gap=current.x-(last.x+last.w);
-
-   if(gap<chart.w*.045){
-
-     const x1=Math.min(last.x,current.x);
-     const y1=Math.min(last.y,current.y);
-
-     const x2=Math.max(
-       last.x+last.w,
-       current.x+current.w
-     );
-
-     const y2=Math.max(
-       last.y+last.h,
-       current.y+current.h
-     );
-
-     last.x=x1;
-     last.y=y1;
-     last.w=x2-x1;
-     last.h=y2-y1;
-     last.right=x2;
-     last.colored+=current.colored;
-     last.activeCols+=current.activeCols;
-
-   }else{
-     merged.push({...current});
-   }
- }
-
- /*
-   Büyük kümelerden ayrıca sağ uç alt-kümeleri üret.
-   Bu özellikle "son mumları" yakalamaya yardım eder.
- */
- const extra=[];
-
- for(const m of merged){
-
-   if(m.w>chart.w*.22){
-
-     extra.push({
-       x:m.x+m.w*.45,
-       y:m.y,
-       w:m.w*.55,
-       h:m.h,
-       right:m.x+m.w,
-       colored:m.colored,
-       activeCols:m.activeCols
-     });
-   }
- }
-
- return [...merged,...extra];
+   img.src=src;
+ });
 }
 
-/* =================================
-   MUM RENK KONTROLÜ
-================================= */
+async function referenceCanvas(src){
 
-function isCandlePixel(r,g,b){
-
- /*
-   Kırmızı.
-   Mor/magenta MA çizgisini azaltmak için
-   r'nin b'den de belirgin yüksek olması şart.
- */
- const red=
-   r>100 &&
-   r>g+25 &&
-   r>b+18 &&
-   r>g*1.18;
-
- /*
-   Yeşil/turkuaz.
-   Sarı MA çizgisinde r de yüksek olduğu için
-   g-r farkı şart.
- */
- const green=
-   g>80 &&
-   g>r+13 &&
-   g>b*1.02;
-
- return red||green;
-}
-
-/* =================================
-   ADAY KUTU SON KONTROLÜ
-================================= */
-
-function candleEvidence(img,x,y,w,h){
-
- const W=100;
- const H=80;
-
- const c=document.createElement("canvas");
- c.width=W;
- c.height=H;
-
- const ctx=c.getContext("2d",{willReadFrequently:true});
-
- ctx.drawImage(
-   img,x,y,w,h,
-   0,0,W,H
- );
-
- const data=ctx.getImageData(0,0,W,H).data;
-
- let count=0;
- const cols=new Set();
- const rows=new Set();
-
- for(let py=0;py<H;py++){
-
-   for(let px=0;px<W;px++){
-
-     const i=(py*W+px)*4;
-
-     if(
-       isCandlePixel(
-         data[i],
-         data[i+1],
-         data[i+2]
-       )
-     ){
-       count++;
-       cols.add(px);
-       rows.add(py);
-     }
-   }
- }
-
- const density=count/(W*H);
- const colSpread=cols.size/W;
- const rowSpread=rows.size/H;
-
- /*
-   Mum içermeyen boş/MA alanını kesin reddet.
- */
- const valid=
-   count>=22 &&
-   cols.size>=6 &&
-   rows.size>=6 &&
-   density>.003 &&
-   density<.28;
-
- const strength=Math.min(
-   1,
-   density*12+
-   colSpread*.55+
-   rowSpread*.25
- );
-
- return{
-   valid,
-   count,
-   density,
-   strength
- };
-}
-
-/* =====================
-   CANVAS
-===================== */
-
-function imageToCanvas(img){
-
- const c=document.createElement("canvas");
-
- const max=420;
-
- let w=img.width;
- let h=img.height;
-
- const scale=Math.min(1,max/Math.max(w,h));
-
- w=Math.max(1,Math.round(w*scale));
- h=Math.max(1,Math.round(h*scale));
-
- c.width=w;
- c.height=h;
-
- const ctx=c.getContext("2d");
-
- ctx.fillStyle="#fff";
- ctx.fillRect(0,0,w,h);
-
- ctx.drawImage(img,0,0,w,h);
-
- return c;
-}
-
-function cropCanvas(img,x,y,w,h){
+ const img=await loadImage(src);
 
  const c=document.createElement("canvas");
 
@@ -847,277 +575,385 @@ function cropCanvas(img,x,y,w,h){
 
  const ctx=c.getContext("2d");
 
- ctx.fillStyle="#fff";
+ ctx.fillStyle="white";
  ctx.fillRect(0,0,320,320);
 
+ const scale=Math.min(
+   300/img.width,
+   300/img.height
+ );
+
+ const w=img.width*scale;
+ const h=img.height*scale;
+
  ctx.drawImage(
-   img,x,y,w,h,
-   0,0,320,320
+   img,
+   (320-w)/2,
+   (320-h)/2,
+   w,h
  );
 
  return c;
 }
 
-/* =====================
-   AI VEKTÖR
-===================== */
+/* ---------------------------
+   AI
+---------------------------- */
 
-function tensorToVectors(tensor,count){
+async function loadAI(){
 
- const data=Array.from(tensor.data);
+ if(extractor) return;
 
- const size=Math.floor(data.length/count);
+ statusEl.textContent=
+ "AI modeli hazırlanıyor… İlk açılış biraz sürebilir.";
 
- const vectors=[];
+ extractor=await pipeline(
+   "image-feature-extraction",
+   "Xenova/clip-vit-base-patch32"
+ );
 
- for(let i=0;i<count;i++){
-
-   vectors.push(
-     data.slice(
-       i*size,
-       (i+1)*size
-     )
-   );
- }
-
- return vectors;
+ statusEl.textContent="AI hazır.";
 }
 
-function cosineSimilarity(a,b){
+async function vector(canvas){
 
- const n=Math.min(a.length,b.length);
+ const output=await extractor(canvas);
+
+ return Array.from(output.data);
+}
+
+function cosine(a,b){
 
  let dot=0;
  let aa=0;
  let bb=0;
 
+ const n=Math.min(a.length,b.length);
+
  for(let i=0;i<n;i++){
+
    dot+=a[i]*b[i];
    aa+=a[i]*a[i];
    bb+=b[i]*b[i];
  }
 
- if(!aa||!bb)return 0;
-
- return dot/(Math.sqrt(aa)*Math.sqrt(bb));
+ return dot/
+ (Math.sqrt(aa)*Math.sqrt(bb)+1e-8);
 }
 
-/* =====================
-   SONUÇ ÇİZİMİ
-===================== */
+/* ---------------------------
+   RENK KARŞILAŞTIRMASI
+---------------------------- */
 
-function drawPlain(img){
-
- canvas.width=img.width;
- canvas.height=img.height;
+function colorSignature(canvas){
 
  const ctx=canvas.getContext("2d");
 
- ctx.drawImage(img,0,0);
+ const W=canvas.width;
+ const H=canvas.height;
 
- canvas.style.display="block";
-}
+ const data=
+ ctx.getImageData(0,0,W,H).data;
 
-function drawMatch(img,best){
+ const parts=12;
 
- canvas.width=img.width;
- canvas.height=img.height;
+ const sig=[];
 
- const ctx=canvas.getContext("2d");
+ for(let p=0;p<parts;p++){
 
- ctx.drawImage(img,0,0);
+   const x1=Math.floor(W*p/parts);
+   const x2=Math.floor(W*(p+1)/parts);
 
- const line=Math.max(
-   5,
-   Math.round(img.width*.009)
- );
+   let red=0;
+   let green=0;
 
- ctx.strokeStyle="#00d45a";
- ctx.lineWidth=line;
+   for(let y=0;y<H;y+=4){
 
- ctx.strokeRect(
-   best.x,
-   best.y,
-   best.w,
-   best.h
- );
+     for(let x=x1;x<x2;x+=3){
 
- const fontSize=Math.max(
-   22,
-   Math.round(img.width*.036)
- );
+       const i=(y*W+x)*4;
 
- ctx.font=
-   "bold "+fontSize+
-   "px -apple-system,Arial";
+       const r=data[i];
+       const g=data[i+1];
+       const b=data[i+2];
 
- const label=
-   best.name+
-   " %"+
-   Math.round(best.score);
+       if(r>g*1.18 && r>b*1.15 && r>80){
+         red++;
+       }
 
- const padding=10;
- const tw=ctx.measureText(label).width;
+       if(g>r*1.12 && g>b*1.05 && g>70){
+         green++;
+       }
+     }
+   }
 
- let labelY=
-   best.y-fontSize-padding*2;
-
- if(labelY<0){
-   labelY=best.y+padding;
+   if(red>green*1.15) sig.push("R");
+   else if(green>red*1.15) sig.push("G");
+   else sig.push("?");
  }
 
- ctx.fillStyle="#00b94f";
-
- ctx.fillRect(
-   best.x,
-   labelY,
-   tw+padding*2,
-   fontSize+padding*2
- );
-
- ctx.fillStyle="#fff";
-
- ctx.fillText(
-   label,
-   best.x+padding,
-   labelY+fontSize+padding/2
- );
-
- canvas.style.display="block";
+ return sig;
 }
 
-/* =====================
-   SONUÇ
-===================== */
+function colorMatch(a,b){
 
-function showBest(best){
+ let valid=0;
+ let same=0;
 
- statusDiv.textContent="✅ AI eşleşmesi bulundu";
+ const n=Math.min(a.length,b.length);
 
- answer.style.display="block";
+ for(let i=0;i<n;i++){
 
- answerName.textContent=best.name;
- answerScore.textContent="%"+Math.round(best.score);
+   if(a[i]=="?" || b[i]=="?") continue;
 
- answerInfo.innerHTML=
-   '<span class="badge">Gerçek mum kümesi</span>'+
-   '<span class="badge">Son mum öncelikli</span>';
+   valid++;
+
+   if(a[i]===b[i]) same++;
+ }
+
+ if(valid<3) return 0.5;
+
+ return same/valid;
 }
 
-function noMatch(message){
+/* ---------------------------
+   AI TARAMA
+---------------------------- */
 
- statusDiv.innerHTML=
-   "⚠️ Formasyon bulunamadı<br>"+
-   '<span style="font-weight:400">'+
-   message+
-   "</span>";
+async function scan(){
 
- answer.style.display="none";
+ if(busy || !scanning) return;
+
+ if(!video.videoWidth) return;
+
+ if(!references.length){
+
+   statusEl.textContent=
+   "Önce en az bir formasyon ekle.";
+
+   return;
+ }
+
+ busy=true;
+
+ try{
+
+   await loadAI();
+
+   statusEl.textContent=
+   "🧠 Son mumlar taranıyor…";
+
+   const frame=captureLens();
+
+   if(!frame) return;
+
+   const windows=makeScanWindows(frame);
+
+   const refData=[];
+
+   for(const ref of references){
+
+     const canvas=
+     await referenceCanvas(ref.src);
+
+     const vec=await vector(canvas);
+
+     const colors=
+     colorSignature(canvas);
+
+     refData.push({
+       ref,
+       vec,
+       colors
+     });
+   }
+
+   let winner=null;
+
+   for(const win of windows){
+
+     const qVec=
+     await vector(win.canvas);
+
+     const qColors=
+     colorSignature(win.canvas);
+
+     for(const r of refData){
+
+       const visual=
+       cosine(qVec,r.vec);
+
+       const colors=
+       colorMatch(qColors,r.colors);
+
+       /*
+         Görsel yapı ana kriter.
+         Renk güçlü destek kriteri.
+       */
+
+       let finalScore=
+       (visual*0.78)+
+       (colors*0.22);
+
+       /*
+         Renk uyumu %80 üzerindeyse
+         küçük destek.
+       */
+
+       if(colors>=0.80){
+         finalScore+=0.025;
+       }
+
+       if(
+         !winner ||
+         finalScore>winner.finalScore
+       ){
+
+         winner={
+           name:r.ref.name,
+           visual,
+           colors,
+           finalScore,
+           cols:win.cols
+         };
+       }
+     }
+   }
+
+   if(winner){
+
+     /*
+       CLIP cosine değerini
+       kullanıcı için anlaşılır
+       benzerlik ölçeğine çevir.
+       Bu bir olasılık değildir.
+     */
+
+     const visualDisplay=
+     Math.max(
+       0,
+       Math.min(
+         100,
+         ((winner.visual-0.40)/0.45)*100
+       )
+     );
+
+     const colorDisplay=
+     winner.colors*100;
+
+     const displayScore=
+     Math.max(
+       0,
+       Math.min(
+         100,
+         visualDisplay*0.78+
+         colorDisplay*0.22
+       )
+     );
+
+     bestName.textContent=
+     winner.name;
+
+     bestScore.textContent=
+     "%"+displayScore.toFixed(0);
+
+     details.innerHTML=
+     "Görsel benzerlik: <b>%"+
+     visualDisplay.toFixed(0)+
+     "</b><br>"+
+     "Mum renk uyumu: <b>%"+
+     colorDisplay.toFixed(0)+
+     "</b><br>"+
+     "Tarama alanı: son <b>"+
+     winner.cols+
+     "</b> ızgara sütunu";
+
+     if(winner.colors>=0.80){
+
+       statusEl.textContent=
+       "🎯 Formasyon ve mum renkleri güçlü eşleşiyor.";
+
+       drawGrid(true);
+
+     }else{
+
+       statusEl.textContent=
+       "Formasyon benziyor ancak mum renkleri yeterince güçlü değil.";
+
+       drawGrid(false);
+     }
+   }
+
+ }catch(err){
+
+   console.error(err);
+
+   statusEl.textContent=
+   "AI taramasında hata oluştu.";
+
+ }finally{
+
+   busy=false;
+ }
 }
 
-function drawError(message){
+/* ---------------------------
+   CANLI TARAMA
+---------------------------- */
 
- statusDiv.innerHTML=
-   "⚠️ Hata<br>"+
-   '<span style="font-weight:400">'+
-   escapeHTML(message)+
-   "</span>";
+scanBtn.onclick=async()=>{
 
- answer.style.display="none";
-}
+ if(!video.srcObject){
 
-function showCandidates(results){
+   statusEl.textContent=
+   "Önce kamerayı aç.";
 
- topMatches.innerHTML="";
+   return;
+ }
 
- if(!results.length)return;
+ if(!references.length){
 
- const title=document.createElement("h3");
- title.textContent="En yakın AI eşleşmeleri";
+   statusEl.textContent=
+   "Önce formasyon kütüphanesine örnek ekle.";
 
- topMatches.appendChild(title);
+   return;
+ }
 
- results.slice(0,5).forEach(r=>{
+ scanning=!scanning;
 
-   const row=document.createElement("div");
-   row.className="match";
+ if(scanning){
 
-   const img=document.createElement("img");
-   img.src=r.src;
+   scanBtn.textContent=
+   "⏹ AI Taramayı Durdur";
 
-   const text=document.createElement("div");
-   text.className="matchText";
+   scanBtn.classList.add("active");
 
-   const score=Math.max(
-     0,
-     Math.min(99,Math.round(r.score))
-   );
+   statusEl.textContent=
+   "AI canlı tarama başlıyor…";
 
-   text.innerHTML=
-     "<b>"+escapeHTML(r.name)+"</b> — %"+score+
-     '<div class="bar">'+
-     '<div class="fill" style="width:'+score+'%"></div>'+
-     "</div>";
+   await scan();
 
-   row.append(img,text);
-   topMatches.appendChild(row);
- });
-}
+   timer=setInterval(scan,1800);
 
-/* =====================
-   RESET
-===================== */
+ }else{
 
-function reset(){
+   scanBtn.textContent=
+   "🧠 AI Taramayı Başlat";
 
- statusDiv.textContent="Hazırlanıyor...";
- answer.style.display="none";
- topMatches.innerHTML="";
- canvas.style.display="none";
-}
+   scanBtn.classList.remove("active");
 
-/* =====================
-   YARDIMCI
-===================== */
+   clearInterval(timer);
 
-function fileURL(file){
+   timer=null;
 
- return new Promise((resolve,reject)=>{
+   statusEl.textContent=
+   "AI tarama durduruldu.";
 
-   const reader=new FileReader();
+   drawGrid(false);
+ }
+};
 
-   reader.onload=()=>resolve(reader.result);
-   reader.onerror=reject;
-
-   reader.readAsDataURL(file);
- });
-}
-
-function loadImg(src){
-
- return new Promise((resolve,reject)=>{
-
-   const img=new Image();
-
-   img.onload=()=>resolve(img);
-
-   img.onerror=()=>reject(
-     new Error("Görüntü açılamadı.")
-   );
-
-   img.src=src;
- });
-}
-
-function escapeHTML(str){
-
- return String(str)
-   .replaceAll("&","&amp;")
-   .replaceAll("<","&lt;")
-   .replaceAll(">","&gt;")
-   .replaceAll('"',"&quot;")
-   .replaceAll("'","&#039;");
-}
+loadRefs();
 
 </script>
 </body>
