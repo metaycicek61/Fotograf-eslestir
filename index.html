@@ -5,192 +5,281 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-<title>Akıllı Formasyon AI</title>
+<title>Akıllı Formasyon Okuyucu AI</title>
 
 <style>
 *{box-sizing:border-box}
+
 body{
- margin:0;
- background:#111;
- color:#fff;
- font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+  margin:0;
+  background:#101010;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
-.wrap{max-width:720px;margin:auto;padding:14px}
-h1{text-align:center;font-size:21px;margin:8px 0 14px}
+
+.wrap{
+  max-width:720px;
+  margin:auto;
+  padding:14px;
+}
+
+h1{
+  text-align:center;
+  font-size:23px;
+  margin:12px 0 18px;
+}
 
 .cameraBox{
- position:relative;
- width:100%;
- aspect-ratio:15/12;
- background:#000;
- overflow:hidden;
- border-radius:14px;
- border:2px solid #555
+  position:relative;
+  width:100%;
+  aspect-ratio:15/12;
+  background:#000;
+  overflow:hidden;
+  border-radius:18px;
+  border:2px solid #555;
 }
 
 video{
- position:absolute;
- inset:0;
- width:100%;
- height:100%;
- object-fit:cover
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
 #overlay{
- position:absolute;
- inset:0;
- width:100%;
- height:100%;
- z-index:3;
- pointer-events:none
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:3;
+  pointer-events:none;
 }
 
-button,.fileBtn{
- width:100%;
- border:0;
- border-radius:12px;
- padding:14px;
- margin-top:10px;
- font-size:16px;
- font-weight:700
+button,.fileButton{
+  width:100%;
+  border:0;
+  border-radius:16px;
+  padding:17px 12px;
+  margin-top:12px;
+  color:white;
+  font-size:19px;
+  font-weight:800;
+  text-align:center;
+  display:block;
+  cursor:pointer;
 }
 
-#start{background:#28a745;color:white}
-#scanToggle{background:#0d6efd;color:white}
-#scanToggle.active{background:#dc3545}
-
-.fileBtn{
- display:block;
- text-align:center;
- background:#6f42c1;
- color:white
+#startBtn{
+  background:#3478f6;
 }
-.fileBtn input{display:none}
 
-.card{
- margin-top:12px;
- padding:13px;
- border-radius:14px;
- background:#1d1d1d;
- border:1px solid #333
+#scanBtn{
+  background:#14a86b;
+}
+
+#scanBtn:disabled{
+  background:#345448;
+  opacity:.6;
+}
+
+.fileButton{
+  background:#794bd8;
+}
+
+#refInput{
+  display:none;
 }
 
 #status{
- text-align:center;
- font-size:14px;
- color:#ccc
+  text-align:center;
+  font-size:18px;
+  font-weight:700;
+  padding:16px 5px 5px;
+  min-height:48px;
 }
 
-.resultTitle{
- font-size:13px;
- color:#aaa
+.card{
+  margin-top:15px;
+  background:#222;
+  border-radius:18px;
+  padding:16px;
+}
+
+.card h2{
+  margin:0 0 12px;
+  font-size:20px;
+}
+
+#bestResult{
+  display:none;
+  text-align:center;
 }
 
 #bestName{
- font-size:24px;
- font-weight:800;
- margin-top:5px
+  font-size:25px;
+  font-weight:900;
+  margin-top:8px;
 }
 
 #bestScore{
- font-size:34px;
- font-weight:900;
- margin-top:3px
-}
-
-#details{
- font-size:14px;
- line-height:1.6;
- color:#ddd;
- margin-top:8px
-}
-
-.refGrid{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:8px;
- margin-top:10px
-}
-
-.ref{
- background:#292929;
- border-radius:10px;
- overflow:hidden;
- text-align:center;
- font-size:12px
-}
-
-.ref img{
- width:100%;
- aspect-ratio:1/1;
- object-fit:contain;
- background:white
-}
-
-.ref div{
- padding:6px;
- overflow:hidden;
- text-overflow:ellipsis;
- white-space:nowrap
+  font-size:42px;
+  font-weight:900;
+  margin:8px 0;
 }
 
 .small{
- font-size:12px;
- color:#aaa;
- line-height:1.4
+  color:#bbb;
+  font-size:14px;
+  line-height:1.4;
 }
 
-#clear{
- background:#444;
- color:white;
- padding:10px
+.matchRow{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 0;
+  border-top:1px solid #3a3a3a;
 }
 
-canvas#capture{display:none}
+.matchRow:first-child{
+  border-top:0;
+}
+
+.matchRow img{
+  width:74px;
+  height:60px;
+  object-fit:contain;
+  background:white;
+  border-radius:10px;
+}
+
+.matchInfo{
+  flex:1;
+}
+
+.matchName{
+  font-weight:800;
+  font-size:16px;
+}
+
+.matchScore{
+  margin-top:4px;
+  color:#7dffb8;
+  font-weight:800;
+}
+
+#refs{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.ref{
+  background:#181818;
+  border:1px solid #444;
+  border-radius:13px;
+  overflow:hidden;
+}
+
+.ref img{
+  width:100%;
+  height:115px;
+  display:block;
+  object-fit:contain;
+  background:white;
+}
+
+.refName{
+  padding:9px;
+  font-size:14px;
+  font-weight:700;
+  word-break:break-word;
+}
+
+.refDelete{
+  width:auto;
+  margin:0 8px 8px;
+  padding:8px 10px;
+  border-radius:9px;
+  background:#8d2929;
+  font-size:13px;
+}
+
+#clearBtn{
+  background:#8d2929;
+  font-size:15px;
+  padding:12px;
+}
+
+#captureCanvas{
+  display:none;
+}
+
+.info{
+  margin-top:12px;
+  padding:12px;
+  border-radius:13px;
+  background:#171717;
+  color:#bbb;
+  font-size:14px;
+  line-height:1.45;
+}
 </style>
 </head>
 
 <body>
+
 <div class="wrap">
 
-<h1>📷 Akıllı Formasyon AI</h1>
+<h1>📷 Akıllı Formasyon Okuyucu AI</h1>
 
 <div class="cameraBox">
- <video id="video" autoplay playsinline muted></video>
- <canvas id="overlay"></canvas>
+  <video id="video" autoplay playsinline muted></video>
+  <canvas id="overlay"></canvas>
 </div>
 
-<button id="start">📷 Kamerayı Aç</button>
-<button id="scanToggle">🧠 AI Taramayı Başlat</button>
+<button id="startBtn">📷 Kamerayı Aç</button>
 
-<label class="fileBtn">
- ➕ Formasyon Ekle
- <input id="refInput" type="file" accept="image/*" multiple>
+<button id="scanBtn" disabled>🧠 AI ile Tara</button>
+
+<label class="fileButton">
+  🖼️ Referans Görsel Ekle
+  <input id="refInput" type="file" accept="image/*" multiple>
 </label>
 
-<div class="card">
- <div id="status">Kamera kapalı.</div>
+<div id="status">Hazır.</div>
+
+<div class="card" id="bestResult">
+  <h2>🎯 En Yakın Formasyon</h2>
+  <div id="bestName">-</div>
+  <div id="bestScore">-%</div>
+  <div class="small">
+    Gösterilen değer AI görsel benzerlik puanıdır.
+  </div>
 </div>
 
 <div class="card">
- <div class="resultTitle">EN İYİ EŞLEŞME</div>
- <div id="bestName">—</div>
- <div id="bestScore">—</div>
- <div id="details">
-   Kamera açıldığında AI sağdaki son mum bölgesini tarayacak.
- </div>
+  <h2>🏆 En Yakın Eşleşmeler</h2>
+  <div id="topMatches" class="small">
+    Henüz tarama yapılmadı.
+  </div>
 </div>
 
 <div class="card">
- <b>📚 Formasyon Kütüphanesi</b>
- <div class="small">
-   AI yalnızca buraya eklediğin formasyonları arar.
- </div>
- <div id="refs" class="refGrid"></div>
- <button id="clear">Tüm Formasyonları Sil</button>
+  <h2>🖼️ Formasyon Kütüphanesi</h2>
+  <div id="refs"></div>
+  <button id="clearBtn">🗑️ Tüm Referansları Sil</button>
 </div>
 
-<canvas id="capture" width="450" height="360"></canvas>
+<div class="info">
+  Grafiği 15×12 ızgaranın içine yerleştir.
+  Kamera açıkken <b>AI ile Tara</b> düğmesine bas.
+  AI, görüntünün tamamını ve sağ taraftaki sabit ızgara bölgelerini
+  referans görsellerinle karşılaştırır.
+</div>
+
+<canvas id="captureCanvas" width="450" height="360"></canvas>
 
 </div>
 
@@ -199,762 +288,1116 @@ canvas#capture{display:none}
 import { pipeline } from
 "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
 
-const video=document.getElementById("video");
-const overlay=document.getElementById("overlay");
-const capture=document.getElementById("capture");
+const video = document.getElementById("video");
+const overlay = document.getElementById("overlay");
+const captureCanvas = document.getElementById("captureCanvas");
 
-const startBtn=document.getElementById("start");
-const scanBtn=document.getElementById("scanToggle");
+const startBtn = document.getElementById("startBtn");
+const scanBtn = document.getElementById("scanBtn");
 
-const statusEl=document.getElementById("status");
-const bestName=document.getElementById("bestName");
-const bestScore=document.getElementById("bestScore");
-const details=document.getElementById("details");
+const refInput = document.getElementById("refInput");
+const refsEl = document.getElementById("refs");
 
-const refInput=document.getElementById("refInput");
-const refsEl=document.getElementById("refs");
-const clearBtn=document.getElementById("clear");
+const statusEl = document.getElementById("status");
 
-let references=[];
-let extractor=null;
-let scanning=false;
-let busy=false;
-let timer=null;
+const bestResult = document.getElementById("bestResult");
+const bestName = document.getElementById("bestName");
+const bestScore = document.getElementById("bestScore");
 
-const STORAGE="chartReferences";
+const topMatches = document.getElementById("topMatches");
+const clearBtn = document.getElementById("clearBtn");
 
-/* ---------------------------
-   KÜTÜPHANE
----------------------------- */
+const STORAGE_KEY = "chartReferences";
 
-function loadRefs(){
- try{
-   references=JSON.parse(localStorage.getItem(STORAGE)||"[]");
- }catch{
-   references=[];
- }
- renderRefs();
+let references = loadReferences();
+
+let extractor = null;
+let modelLoading = false;
+let cameraReady = false;
+
+let referenceVectorCache = new Map();
+
+let winningRegion = null;
+
+
+/* ------------------------------
+   REFERANS KÜTÜPHANESİ
+-------------------------------- */
+
+function loadReferences(){
+  try{
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(data) ? data : [];
+  }catch(e){
+    return [];
+  }
 }
 
-function saveRefs(){
- localStorage.setItem(STORAGE,JSON.stringify(references));
+function saveReferences(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(references));
 }
 
-function renderRefs(){
+function renderReferences(){
 
- refsEl.innerHTML="";
+  refsEl.innerHTML = "";
 
- if(!references.length){
-   refsEl.innerHTML=
-   '<div class="small">Henüz formasyon eklenmedi.</div>';
-   return;
- }
+  if(!references.length){
+    refsEl.innerHTML =
+      '<div class="small">Henüz referans görsel yok.</div>';
+    return;
+  }
 
- references.forEach((r,i)=>{
+  references.forEach((ref,index)=>{
 
-   const box=document.createElement("div");
-   box.className="ref";
+    const box = document.createElement("div");
+    box.className = "ref";
 
-   const img=document.createElement("img");
-   img.src=r.src;
+    const img = document.createElement("img");
+    img.src = ref.src;
 
-   const name=document.createElement("div");
-   name.textContent=r.name;
+    const name = document.createElement("div");
+    name.className = "refName";
+    name.textContent = ref.name;
 
-   box.appendChild(img);
-   box.appendChild(name);
+    const del = document.createElement("button");
+    del.className = "refDelete";
+    del.textContent = "Sil";
 
-   box.onclick=()=>{
+    del.onclick = ()=>{
 
-     const n=prompt("Formasyon adı:",r.name);
+      if(!confirm(ref.name + " silinsin mi?")) return;
 
-     if(n && n.trim()){
-       references[i].name=n.trim();
-       saveRefs();
-       renderRefs();
-     }
-   };
+      references.splice(index,1);
 
-   refsEl.appendChild(box);
- });
+      saveReferences();
+
+      referenceVectorCache.clear();
+
+      renderReferences();
+
+      statusEl.textContent = "Referans silindi.";
+    };
+
+    box.appendChild(img);
+    box.appendChild(name);
+    box.appendChild(del);
+
+    refsEl.appendChild(box);
+  });
 }
 
-refInput.onchange=async e=>{
 
- const files=[...e.target.files];
+refInput.addEventListener("change",async e=>{
 
- for(const file of files){
+  const files = Array.from(e.target.files || []);
 
-   const src=await fileToDataURL(file);
+  if(!files.length) return;
 
-   references.push({
-     name:file.name.replace(/\.[^.]+$/,""),
-     src
-   });
- }
+  statusEl.textContent = "Referanslar hazırlanıyor…";
 
- saveRefs();
- renderRefs();
+  for(const file of files){
 
- statusEl.textContent=
- `${files.length} formasyon eklendi.`;
+    try{
 
- refInput.value="";
-};
+      const src = await compressImage(file);
 
-function fileToDataURL(file){
+      let defaultName =
+        file.name.replace(/\.[^/.]+$/,"") ||
+        "Formasyon " + (references.length+1);
 
- return new Promise(resolve=>{
+      const name =
+        prompt("Bu formasyonun adı:",defaultName) ||
+        defaultName;
 
-   const reader=new FileReader();
+      references.push({
+        name:name,
+        src:src
+      });
 
-   reader.onload=()=>resolve(reader.result);
+    }catch(err){
+      console.error(err);
+    }
+  }
 
-   reader.readAsDataURL(file);
- });
+  try{
+    saveReferences();
+  }catch(err){
+    alert(
+      "Telefon depolama alanı dolmuş olabilir. " +
+      "Daha az veya daha küçük referans görsel kullan."
+    );
+  }
+
+  referenceVectorCache.clear();
+
+  renderReferences();
+
+  statusEl.textContent =
+    references.length + " referans hazır.";
+
+  refInput.value = "";
+});
+
+
+clearBtn.addEventListener("click",()=>{
+
+  if(!references.length) return;
+
+  if(!confirm("Tüm referans görseller silinsin mi?")) return;
+
+  references = [];
+
+  saveReferences();
+
+  referenceVectorCache.clear();
+
+  renderReferences();
+
+  bestResult.style.display = "none";
+
+  topMatches.textContent = "Henüz tarama yapılmadı.";
+
+  statusEl.textContent = "Referans kütüphanesi temizlendi.";
+});
+
+
+function compressImage(file){
+
+  return new Promise((resolve,reject)=>{
+
+    const reader = new FileReader();
+
+    reader.onerror = reject;
+
+    reader.onload = ()=>{
+
+      const img = new Image();
+
+      img.onload = ()=>{
+
+        const maxSize = 700;
+
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+
+        const scale = Math.min(
+          1,
+          maxSize / Math.max(w,h)
+        );
+
+        w = Math.round(w*scale);
+        h = Math.round(h*scale);
+
+        const c = document.createElement("canvas");
+
+        c.width = w;
+        c.height = h;
+
+        const ctx = c.getContext("2d");
+
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0,0,w,h);
+
+        ctx.drawImage(img,0,0,w,h);
+
+        resolve(c.toDataURL("image/jpeg",0.86));
+      };
+
+      img.onerror = reject;
+
+      img.src = reader.result;
+    };
+
+    reader.readAsDataURL(file);
+  });
 }
 
-clearBtn.onclick=()=>{
 
- if(!confirm("Tüm formasyonlar silinsin mi?")) return;
-
- references=[];
- saveRefs();
- renderRefs();
-
- bestName.textContent="—";
- bestScore.textContent="—";
-};
-
-/* ---------------------------
+/* ------------------------------
    KAMERA
----------------------------- */
+-------------------------------- */
 
-startBtn.onclick=async()=>{
+startBtn.addEventListener("click",openCamera);
 
- try{
+async function openCamera(){
 
-   const stream=await navigator.mediaDevices.getUserMedia({
-     video:{
-       facingMode:{ideal:"environment"},
-       width:{ideal:1280},
-       height:{ideal:720}
-     },
-     audio:false
-   });
+  try{
 
-   video.srcObject=stream;
+    statusEl.textContent = "Kamera açılıyor…";
 
-   await video.play();
+    if(video.srcObject){
 
-   drawGrid();
+      video.srcObject.getTracks().forEach(t=>t.stop());
 
-   statusEl.textContent=
-   "Kamera açık — son mumları sağ tarafa hizala.";
+      video.srcObject = null;
+    }
 
- }catch(err){
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
 
-   statusEl.textContent=
-   "Kamera açılamadı. Safari kamera iznini kontrol et.";
- }
-};
+        video:{
+          facingMode:{
+            ideal:"environment"
+          },
 
-/* ---------------------------
-   15 x 12 IZGARA
----------------------------- */
+          width:{
+            ideal:1920
+          },
 
-function drawGrid(highlight=false){
+          height:{
+            ideal:1080
+          }
+        },
 
- const rect=overlay.getBoundingClientRect();
+        audio:false
+      });
 
- const dpr=window.devicePixelRatio||1;
+    video.srcObject = stream;
 
- overlay.width=rect.width*dpr;
- overlay.height=rect.height*dpr;
+    await video.play();
 
- const ctx=overlay.getContext("2d");
+    cameraReady = true;
 
- ctx.setTransform(dpr,0,0,dpr,0,0);
+    scanBtn.disabled = false;
 
- const W=rect.width;
- const H=rect.height;
+    startBtn.textContent = "✅ Kamera Açık";
 
- ctx.clearRect(0,0,W,H);
+    statusEl.textContent =
+      "Grafiği ızgaraya hizala ve AI ile Tara.";
 
- ctx.lineWidth=1;
+    drawGrid();
 
- for(let i=1;i<15;i++){
+  }catch(err){
 
-   const x=W*i/15;
+    console.error(err);
 
-   ctx.strokeStyle="rgba(255,255,255,.23)";
+    cameraReady = false;
 
-   ctx.beginPath();
-   ctx.moveTo(x,0);
-   ctx.lineTo(x,H);
-   ctx.stroke();
- }
+    scanBtn.disabled = true;
 
- for(let i=1;i<12;i++){
-
-   const y=H*i/12;
-
-   ctx.strokeStyle="rgba(255,255,255,.23)";
-
-   ctx.beginPath();
-   ctx.moveTo(0,y);
-   ctx.lineTo(W,y);
-   ctx.stroke();
- }
-
- /* AI'nin esas baktığı son mum bölgesi */
- const x=W*6/15;
-
- ctx.fillStyle=
- highlight
- ? "rgba(0,255,120,.13)"
- : "rgba(255,255,255,.025)";
-
- ctx.fillRect(x,0,W-x,H);
-
- ctx.strokeStyle=
- highlight
- ? "rgba(0,255,120,.9)"
- : "rgba(255,255,255,.55)";
-
- ctx.lineWidth=2;
-
- ctx.strokeRect(x+1,1,W-x-2,H-2);
+    statusEl.textContent =
+      "Kamera açılamadı. Safari kamera iznini kontrol et.";
+  }
 }
 
-window.addEventListener("resize",()=>drawGrid(false));
 
-/* ---------------------------
-   KAMERA GÖRÜNTÜSÜ
----------------------------- */
+/* ------------------------------
+   15 × 12 IZGARA
+-------------------------------- */
+
+function drawGrid(region=null){
+
+  const rect = overlay.getBoundingClientRect();
+
+  const scale =
+    window.devicePixelRatio || 1;
+
+  overlay.width =
+    Math.round(rect.width*scale);
+
+  overlay.height =
+    Math.round(rect.height*scale);
+
+  const ctx = overlay.getContext("2d");
+
+  ctx.setTransform(scale,0,0,scale,0,0);
+
+  const w = rect.width;
+  const h = rect.height;
+
+  ctx.clearRect(0,0,w,h);
+
+  ctx.lineWidth = 1;
+
+  ctx.strokeStyle =
+    "rgba(255,255,255,.30)";
+
+  for(let i=1;i<15;i++){
+
+    const x = w*i/15;
+
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,h);
+    ctx.stroke();
+  }
+
+  for(let i=1;i<12;i++){
+
+    const y = h*i/12;
+
+    ctx.beginPath();
+    ctx.moveTo(0,y);
+    ctx.lineTo(w,y);
+    ctx.stroke();
+  }
+
+  if(region){
+
+    const x =
+      w * region.startCol / 15;
+
+    const width =
+      w * region.cols / 15;
+
+    ctx.fillStyle =
+      "rgba(0,255,130,.10)";
+
+    ctx.fillRect(
+      x,
+      0,
+      width,
+      h
+    );
+
+    ctx.strokeStyle =
+      "rgba(0,255,130,.95)";
+
+    ctx.lineWidth = 3;
+
+    ctx.strokeRect(
+      x+1.5,
+      1.5,
+      width-3,
+      h-3
+    );
+  }
+}
+
+window.addEventListener("resize",()=>{
+
+  drawGrid(winningRegion);
+});
+
+requestAnimationFrame(()=>drawGrid());
+
+
+/* ------------------------------
+   LENS GÖRÜNTÜSÜNÜ AL
+-------------------------------- */
 
 function captureLens(){
 
- const ctx=capture.getContext("2d");
+  const W = 450;
+  const H = 360;
 
- const W=450;
- const H=360;
+  captureCanvas.width = W;
+  captureCanvas.height = H;
 
- const vw=video.videoWidth;
- const vh=video.videoHeight;
+  const ctx =
+    captureCanvas.getContext("2d");
 
- if(!vw || !vh) return null;
+  const vw =
+    video.videoWidth;
 
- const ratio=15/12;
+  const vh =
+    video.videoHeight;
 
- let sx=0,sy=0,sw=vw,sh=vh;
+  if(!vw || !vh){
+    throw new Error("Kamera görüntüsü hazır değil.");
+  }
 
- if(vw/vh>ratio){
+  const targetRatio = 15/12;
 
-   sh=vh;
-   sw=vh*ratio;
+  let sx=0;
+  let sy=0;
+  let sw=vw;
+  let sh=vh;
 
-   sx=(vw-sw)/2;
-   sy=0;
+  if(vw/vh > targetRatio){
 
- }else{
+    sh = vh;
 
-   sw=vw;
-   sh=vw/ratio;
+    sw = vh*targetRatio;
 
-   sx=0;
-   sy=(vh-sh)/2;
- }
+    sx = (vw-sw)/2;
 
- ctx.drawImage(
-   video,
-   sx,sy,sw,sh,
-   0,0,W,H
- );
+    sy = 0;
 
- return capture;
+  }else{
+
+    sw = vw;
+
+    sh = vw/targetRatio;
+
+    sx = 0;
+
+    sy = (vh-sh)/2;
+  }
+
+  ctx.drawImage(
+    video,
+    sx,sy,sw,sh,
+    0,0,W,H
+  );
+
+  return captureCanvas;
 }
 
-/* ---------------------------
-   SABİT AI TARAMA ALANLARI
 
-   Tüm grafik yerine sağdaki
-   son mumlara giderek yaklaşır.
----------------------------- */
+/* ------------------------------
+   SABİT IZGARA BÖLGELERİ
+-------------------------------- */
 
-function makeScanWindows(source){
+function makeScanRegions(source){
 
- const result=[];
+  const regions = [
 
- const W=source.width;
- const H=source.height;
+    {
+      name:"Tam görüntü",
+      startCol:0,
+      cols:15
+    },
 
- /*
-   9 sütun
-   7 sütun
-   5 sütun
-   sağ taraf
- */
+    {
+      name:"Sağ 12 sütun",
+      startCol:3,
+      cols:12
+    },
 
- const columns=[9,7,5];
+    {
+      name:"Sağ 9 sütun",
+      startCol:6,
+      cols:9
+    },
 
- for(const cols of columns){
+    {
+      name:"Sağ 6 sütun",
+      startCol:9,
+      cols:6
+    }
 
-   const width=Math.round(W*(cols/15));
+  ];
 
-   const c=document.createElement("canvas");
+  return regions.map(region=>{
 
-   c.width=320;
-   c.height=320;
+    const c =
+      document.createElement("canvas");
 
-   const ctx=c.getContext("2d");
+    c.width = 450;
+    c.height = 360;
 
-   ctx.fillStyle="white";
-   ctx.fillRect(0,0,320,320);
+    const ctx =
+      c.getContext("2d");
 
-   const temp=document.createElement("canvas");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(
+      0,0,c.width,c.height
+    );
 
-   temp.width=width;
-   temp.height=H;
+    const sx =
+      source.width *
+      region.startCol/15;
 
-   temp.getContext("2d").drawImage(
-     source,
-     W-width,0,width,H,
-     0,0,width,H
-   );
+    const sw =
+      source.width *
+      region.cols/15;
 
-   const scale=Math.min(
-     320/width,
-     320/H
-   );
+    ctx.drawImage(
+      source,
 
-   const dw=width*scale;
-   const dh=H*scale;
+      sx,
+      0,
+      sw,
+      source.height,
 
-   ctx.drawImage(
-     temp,
-     (320-dw)/2,
-     (320-dh)/2,
-     dw,dh
-   );
+      0,
+      0,
+      c.width,
+      c.height
+    );
 
-   result.push({
-     canvas:c,
-     cols
-   });
- }
-
- return result;
+    return {
+      ...region,
+      canvas:c
+    };
+  });
 }
 
-/* ---------------------------
-   REFERANS GÖRÜNTÜ
----------------------------- */
 
-function loadImage(src){
-
- return new Promise((resolve,reject)=>{
-
-   const img=new Image();
-
-   img.onload=()=>resolve(img);
-   img.onerror=reject;
-
-   img.src=src;
- });
-}
-
-async function referenceCanvas(src){
-
- const img=await loadImage(src);
-
- const c=document.createElement("canvas");
-
- c.width=320;
- c.height=320;
-
- const ctx=c.getContext("2d");
-
- ctx.fillStyle="white";
- ctx.fillRect(0,0,320,320);
-
- const scale=Math.min(
-   300/img.width,
-   300/img.height
- );
-
- const w=img.width*scale;
- const h=img.height*scale;
-
- ctx.drawImage(
-   img,
-   (320-w)/2,
-   (320-h)/2,
-   w,h
- );
-
- return c;
-}
-
-/* ---------------------------
-   AI
----------------------------- */
+/* ------------------------------
+   AI MODELİ
+-------------------------------- */
 
 async function loadAI(){
 
- if(extractor) return;
+  if(extractor) return extractor;
 
- statusEl.textContent=
- "AI modeli hazırlanıyor… İlk açılış biraz sürebilir.";
+  if(modelLoading){
 
- extractor=await pipeline(
-   "image-feature-extraction",
-   "Xenova/clip-vit-base-patch32"
- );
+    while(modelLoading){
 
- statusEl.textContent="AI hazır.";
+      await new Promise(
+        r=>setTimeout(r,250)
+      );
+    }
+
+    return extractor;
+  }
+
+  modelLoading = true;
+
+  try{
+
+    statusEl.textContent =
+      "🧠 AI modeli hazırlanıyor… İlk açılış biraz sürebilir.";
+
+    extractor =
+      await pipeline(
+        "image-feature-extraction",
+        "Xenova/clip-vit-base-patch32"
+      );
+
+    statusEl.textContent =
+      "🧠 AI hazır.";
+
+    return extractor;
+
+  }catch(err){
+
+    console.error(err);
+
+    extractor = null;
+
+    throw err;
+
+  }finally{
+
+    modelLoading = false;
+  }
 }
 
-async function vector(canvas){
 
- const output=await extractor(canvas);
+/* ------------------------------
+   GÖRÜNTÜ YARDIMCILARI
+-------------------------------- */
 
- return Array.from(output.data);
+function loadImage(src){
+
+  return new Promise((resolve,reject)=>{
+
+    const img = new Image();
+
+    img.onload =
+      ()=>resolve(img);
+
+    img.onerror =
+      reject;
+
+    img.src = src;
+  });
 }
+
+
+async function normalizeReference(src){
+
+  const img =
+    await loadImage(src);
+
+  const c =
+    document.createElement("canvas");
+
+  c.width = 450;
+  c.height = 360;
+
+  const ctx =
+    c.getContext("2d");
+
+  ctx.fillStyle = "#fff";
+
+  ctx.fillRect(
+    0,0,c.width,c.height
+  );
+
+  const scale =
+    Math.min(
+      c.width/img.naturalWidth,
+      c.height/img.naturalHeight
+    );
+
+  const w =
+    img.naturalWidth*scale;
+
+  const h =
+    img.naturalHeight*scale;
+
+  const x =
+    (c.width-w)/2;
+
+  const y =
+    (c.height-h)/2;
+
+  ctx.drawImage(
+    img,
+    x,y,w,h
+  );
+
+  return c;
+}
+
+
+/* ------------------------------
+   AI VEKTÖRÜ
+-------------------------------- */
+
+async function getVector(canvas){
+
+  const ai =
+    await loadAI();
+
+  const output =
+    await ai(canvas);
+
+  const data =
+    Array.from(output.data || []);
+
+  if(!data.length){
+    throw new Error(
+      "AI vektörü oluşturulamadı."
+    );
+  }
+
+  /*
+    CLIP çıktısında birden fazla görüntü tokenı
+    bulunabilir.
+
+    Bunları ortalama havuzlama ile tek vektöre
+    dönüştürüyoruz.
+  */
+
+  const dims =
+    output.dims || [];
+
+  if(
+    dims.length >= 3 &&
+    dims[dims.length-1] > 0
+  ){
+
+    const featureSize =
+      dims[dims.length-1];
+
+    const tokenCount =
+      Math.floor(
+        data.length/featureSize
+      );
+
+    const vector =
+      new Array(featureSize).fill(0);
+
+    for(let t=0;t<tokenCount;t++){
+
+      const offset =
+        t*featureSize;
+
+      for(let i=0;i<featureSize;i++){
+
+        vector[i] +=
+          data[offset+i];
+      }
+    }
+
+    for(let i=0;i<featureSize;i++){
+
+      vector[i] /=
+        tokenCount;
+    }
+
+    return normalizeVector(vector);
+  }
+
+  return normalizeVector(data);
+}
+
+
+function normalizeVector(v){
+
+  let sum = 0;
+
+  for(let i=0;i<v.length;i++){
+
+    sum +=
+      v[i]*v[i];
+  }
+
+  const n =
+    Math.sqrt(sum) || 1;
+
+  return v.map(
+    x=>x/n
+  );
+}
+
 
 function cosine(a,b){
 
- let dot=0;
- let aa=0;
- let bb=0;
+  const len =
+    Math.min(a.length,b.length);
 
- const n=Math.min(a.length,b.length);
+  let dot = 0;
 
- for(let i=0;i<n;i++){
+  let aa = 0;
 
-   dot+=a[i]*b[i];
-   aa+=a[i]*a[i];
-   bb+=b[i]*b[i];
- }
+  let bb = 0;
 
- return dot/
- (Math.sqrt(aa)*Math.sqrt(bb)+1e-8);
+  for(let i=0;i<len;i++){
+
+    dot +=
+      a[i]*b[i];
+
+    aa +=
+      a[i]*a[i];
+
+    bb +=
+      b[i]*b[i];
+  }
+
+  const den =
+    Math.sqrt(aa) *
+    Math.sqrt(bb);
+
+  if(!den) return 0;
+
+  return dot/den;
 }
 
-/* ---------------------------
-   RENK KARŞILAŞTIRMASI
----------------------------- */
 
-function colorSignature(canvas){
+/* ------------------------------
+   REFERANS VEKTÖRLERİ
+-------------------------------- */
 
- const ctx=canvas.getContext("2d");
+async function getReferenceVector(ref,index){
 
- const W=canvas.width;
- const H=canvas.height;
+  const key =
+    index + "|" +
+    ref.name + "|" +
+    ref.src.length;
 
- const data=
- ctx.getImageData(0,0,W,H).data;
+  if(referenceVectorCache.has(key)){
 
- const parts=12;
+    return referenceVectorCache.get(key);
+  }
 
- const sig=[];
+  const canvas =
+    await normalizeReference(ref.src);
 
- for(let p=0;p<parts;p++){
+  const vector =
+    await getVector(canvas);
 
-   const x1=Math.floor(W*p/parts);
-   const x2=Math.floor(W*(p+1)/parts);
+  referenceVectorCache.set(
+    key,
+    vector
+  );
 
-   let red=0;
-   let green=0;
-
-   for(let y=0;y<H;y+=4){
-
-     for(let x=x1;x<x2;x+=3){
-
-       const i=(y*W+x)*4;
-
-       const r=data[i];
-       const g=data[i+1];
-       const b=data[i+2];
-
-       if(r>g*1.18 && r>b*1.15 && r>80){
-         red++;
-       }
-
-       if(g>r*1.12 && g>b*1.05 && g>70){
-         green++;
-       }
-     }
-   }
-
-   if(red>green*1.15) sig.push("R");
-   else if(green>red*1.15) sig.push("G");
-   else sig.push("?");
- }
-
- return sig;
+  return vector;
 }
 
-function colorMatch(a,b){
 
- let valid=0;
- let same=0;
+/* ------------------------------
+   PUAN
+-------------------------------- */
 
- const n=Math.min(a.length,b.length);
+function similarityPercent(score){
 
- for(let i=0;i<n;i++){
+  /*
+    Bu gerçek olasılık değildir.
+    Kullanıcıya okunabilir görsel benzerlik
+    göstermek için ölçeklenmiştir.
+  */
 
-   if(a[i]=="?" || b[i]=="?") continue;
+  const min = 0.35;
+  const max = 0.90;
 
-   valid++;
+  let p =
+    (score-min) /
+    (max-min) *
+    100;
 
-   if(a[i]===b[i]) same++;
- }
+  p =
+    Math.max(
+      0,
+      Math.min(100,p)
+    );
 
- if(valid<3) return 0.5;
-
- return same/valid;
+  return Math.round(p);
 }
 
-/* ---------------------------
+
+/* ------------------------------
    AI TARAMA
----------------------------- */
+-------------------------------- */
+
+scanBtn.addEventListener("click",scan);
+
 
 async function scan(){
 
- if(busy || !scanning) return;
+  if(!cameraReady){
 
- if(!video.videoWidth) return;
+    statusEl.textContent =
+      "Önce kamerayı aç.";
 
- if(!references.length){
+    return;
+  }
 
-   statusEl.textContent=
-   "Önce en az bir formasyon ekle.";
+  if(!references.length){
 
-   return;
- }
+    statusEl.textContent =
+      "Önce en az bir referans görsel ekle.";
 
- busy=true;
+    return;
+  }
 
- try{
+  scanBtn.disabled = true;
 
-   await loadAI();
+  winningRegion = null;
 
-   statusEl.textContent=
-   "🧠 Son mumlar taranıyor…";
+  drawGrid();
 
-   const frame=captureLens();
+  try{
 
-   if(!frame) return;
+    statusEl.textContent =
+      "📷 Lens görüntüsü alınıyor…";
 
-   const windows=makeScanWindows(frame);
+    const lens =
+      captureLens();
 
-   const refData=[];
+    await loadAI();
 
-   for(const ref of references){
+    statusEl.textContent =
+      "🧠 Referans formasyonlar hazırlanıyor…";
 
-     const canvas=
-     await referenceCanvas(ref.src);
+    const refVectors = [];
 
-     const vec=await vector(canvas);
+    for(let i=0;i<references.length;i++){
 
-     const colors=
-     colorSignature(canvas);
+      statusEl.textContent =
+        "🧠 Referans " +
+        (i+1) +
+        "/" +
+        references.length +
+        " hazırlanıyor…";
 
-     refData.push({
-       ref,
-       vec,
-       colors
-     });
-   }
+      const vector =
+        await getReferenceVector(
+          references[i],
+          i
+        );
 
-   let winner=null;
+      refVectors.push(vector);
+    }
 
-   for(const win of windows){
+    const scanRegions =
+      makeScanRegions(lens);
 
-     const qVec=
-     await vector(win.canvas);
+    const bestByReference =
+      references.map(
+        (ref,index)=>({
+          index:index,
+          ref:ref,
+          score:-Infinity,
+          region:null
+        })
+      );
 
-     const qColors=
-     colorSignature(win.canvas);
+    for(
+      let r=0;
+      r<scanRegions.length;
+      r++
+    ){
 
-     for(const r of refData){
+      const region =
+        scanRegions[r];
 
-       const visual=
-       cosine(qVec,r.vec);
+      statusEl.textContent =
+        "🔍 AI tarıyor " +
+        (r+1) +
+        "/" +
+        scanRegions.length +
+        "…";
 
-       const colors=
-       colorMatch(qColors,r.colors);
+      const queryVector =
+        await getVector(
+          region.canvas
+        );
 
-       /*
-         Görsel yapı ana kriter.
-         Renk güçlü destek kriteri.
-       */
+      for(
+        let i=0;
+        i<refVectors.length;
+        i++
+      ){
 
-       let finalScore=
-       (visual*0.78)+
-       (colors*0.22);
+        const score =
+          cosine(
+            queryVector,
+            refVectors[i]
+          );
 
-       /*
-         Renk uyumu %80 üzerindeyse
-         küçük destek.
-       */
+        if(
+          score >
+          bestByReference[i].score
+        ){
 
-       if(colors>=0.80){
-         finalScore+=0.025;
-       }
+          bestByReference[i].score =
+            score;
 
-       if(
-         !winner ||
-         finalScore>winner.finalScore
-       ){
+          bestByReference[i].region =
+            region;
+        }
+      }
+    }
 
-         winner={
-           name:r.ref.name,
-           visual,
-           colors,
-           finalScore,
-           cols:win.cols
-         };
-       }
-     }
-   }
+    bestByReference.sort(
+      (a,b)=>b.score-a.score
+    );
 
-   if(winner){
+    const best =
+      bestByReference[0];
 
-     /*
-       CLIP cosine değerini
-       kullanıcı için anlaşılır
-       benzerlik ölçeğine çevir.
-       Bu bir olasılık değildir.
-     */
+    winningRegion = {
+      startCol:
+        best.region.startCol,
 
-     const visualDisplay=
-     Math.max(
-       0,
-       Math.min(
-         100,
-         ((winner.visual-0.40)/0.45)*100
-       )
-     );
+      cols:
+        best.region.cols
+    };
 
-     const colorDisplay=
-     winner.colors*100;
+    drawGrid(
+      winningRegion
+    );
 
-     const displayScore=
-     Math.max(
-       0,
-       Math.min(
-         100,
-         visualDisplay*0.78+
-         colorDisplay*0.22
-       )
-     );
+    showResults(
+      bestByReference
+    );
 
-     bestName.textContent=
-     winner.name;
+    statusEl.textContent =
+      "✅ Eşleşme bulundu.";
 
-     bestScore.textContent=
-     "%"+displayScore.toFixed(0);
+  }catch(err){
 
-     details.innerHTML=
-     "Görsel benzerlik: <b>%"+
-     visualDisplay.toFixed(0)+
-     "</b><br>"+
-     "Mum renk uyumu: <b>%"+
-     colorDisplay.toFixed(0)+
-     "</b><br>"+
-     "Tarama alanı: son <b>"+
-     winner.cols+
-     "</b> ızgara sütunu";
+    console.error(err);
 
-     if(winner.colors>=0.80){
+    statusEl.textContent =
+      "AI taraması sırasında hata oluştu.";
 
-       statusEl.textContent=
-       "🎯 Formasyon ve mum renkleri güçlü eşleşiyor.";
+    alert(
+      "AI çalıştırılamadı.\n\n" +
+      (err.message || err)
+    );
 
-       drawGrid(true);
+  }finally{
 
-     }else{
-
-       statusEl.textContent=
-       "Formasyon benziyor ancak mum renkleri yeterince güçlü değil.";
-
-       drawGrid(false);
-     }
-   }
-
- }catch(err){
-
-   console.error(err);
-
-   statusEl.textContent=
-   "AI taramasında hata oluştu.";
-
- }finally{
-
-   busy=false;
- }
+    scanBtn.disabled =
+      !cameraReady;
+  }
 }
 
-/* ---------------------------
-   CANLI TARAMA
----------------------------- */
 
-scanBtn.onclick=async()=>{
+/* ------------------------------
+   SONUÇLARI GÖSTER
+-------------------------------- */
 
- if(!video.srcObject){
+function showResults(results){
 
-   statusEl.textContent=
-   "Önce kamerayı aç.";
+  if(!results.length) return;
 
-   return;
- }
+  const best =
+    results[0];
 
- if(!references.length){
+  const percent =
+    similarityPercent(
+      best.score
+    );
 
-   statusEl.textContent=
-   "Önce formasyon kütüphanesine örnek ekle.";
+  bestResult.style.display =
+    "block";
 
-   return;
- }
+  bestName.textContent =
+    best.ref.name;
 
- scanning=!scanning;
+  bestScore.textContent =
+    "%" + percent;
 
- if(scanning){
+  topMatches.innerHTML = "";
 
-   scanBtn.textContent=
-   "⏹ AI Taramayı Durdur";
+  const top =
+    results.slice(
+      0,
+      Math.min(5,results.length)
+    );
 
-   scanBtn.classList.add("active");
+  top.forEach(item=>{
 
-   statusEl.textContent=
-   "AI canlı tarama başlıyor…";
+    const row =
+      document.createElement("div");
 
-   await scan();
+    row.className =
+      "matchRow";
 
-   timer=setInterval(scan,1800);
+    const img =
+      document.createElement("img");
 
- }else{
+    img.src =
+      item.ref.src;
 
-   scanBtn.textContent=
-   "🧠 AI Taramayı Başlat";
+    const info =
+      document.createElement("div");
 
-   scanBtn.classList.remove("active");
+    info.className =
+      "matchInfo";
 
-   clearInterval(timer);
+    const name =
+      document.createElement("div");
 
-   timer=null;
+    name.className =
+      "matchName";
 
-   statusEl.textContent=
-   "AI tarama durduruldu.";
+    name.textContent =
+      item.ref.name;
 
-   drawGrid(false);
- }
-};
+    const score =
+      document.createElement("div");
 
-loadRefs();
+    score.className =
+      "matchScore";
+
+    score.textContent =
+      "%" +
+      similarityPercent(
+        item.score
+      ) +
+      " benzerlik";
+
+    const region =
+      document.createElement("div");
+
+    region.className =
+      "small";
+
+    region.textContent =
+      "Tarama alanı: " +
+      item.region.name;
+
+    info.appendChild(name);
+    info.appendChild(score);
+    info.appendChild(region);
+
+    row.appendChild(img);
+    row.appendChild(info);
+
+    topMatches.appendChild(row);
+  });
+}
+
+
+/* ------------------------------
+   BAŞLANGIÇ
+-------------------------------- */
+
+renderReferences();
+
+drawGrid();
 
 </script>
+
 </body>
 </html>
