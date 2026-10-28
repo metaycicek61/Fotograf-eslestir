@@ -29,7 +29,6 @@ h1{
   margin:12px 0 18px;
 }
 
-/* Kamera biraz daha dar ve biraz daha yüksek */
 .cameraBox{
   position:relative;
   width:91%;
@@ -284,13 +283,11 @@ import { pipeline } from
 const TARGET_W=502;
 const TARGET_H=277;
 
-/* DÜZELTİLDİ: Formasyon ana ölçüt, AI yalnızca destek */
 const SHAPE_WEIGHT=.95;
 const AI_WEIGHT=.05;
 
 const STORAGE_KEY="chartReferences";
 
-/* Yeşil SON HAREKET alanı biraz daha geniş */
 const SCAN_LEFT=.49;
 const SCAN_RIGHT=.93;
 const SCAN_TOP=.025;
@@ -342,8 +339,6 @@ function median(arr){
 
   return a.length%2?a[m]:(a[m-1]+a[m])/2;
 }
-
-/* REFERANSLAR */
 
 function loadReferences(){
   try{
@@ -528,8 +523,6 @@ function compressImage(file){
   });
 }
 
-/* KAMERA */
-
 startBtn.addEventListener("click",openCamera);
 
 async function openCamera(){
@@ -590,8 +583,6 @@ async function openCamera(){
   }
 }
 
-/* ÇERÇEVE */
-
 function prepareOverlay(){
 
   const rect=overlay.getBoundingClientRect();
@@ -623,7 +614,6 @@ function drawGrid(){
   ctx.strokeStyle="rgba(255,255,255,.22)";
   ctx.lineWidth=1;
 
-  /* 8 sütun */
   for(let i=1;i<8;i++){
 
     const x=w*i/8;
@@ -634,14 +624,13 @@ function drawGrid(){
     ctx.stroke();
   }
 
-  /* 6 satır */
   for(let i=1;i<6;i++){
 
     const y=h*i/6;
 
     ctx.beginPath();
     ctx.moveTo(0,y);
-    ctx.lineTo(0+w,y);
+    ctx.lineTo(w,y);
     ctx.stroke();
   }
 
@@ -673,8 +662,6 @@ function drawGrid(){
     y+19
   );
 }
-
-/* ALGILANAN MUMLARI İÇİ BOŞ KUTU OLARAK ÇİZ */
 
 function drawDetectedCandles(candles){
 
@@ -715,8 +702,8 @@ function drawDetectedCandles(candles){
 
     ctx.strokeStyle=
       c.direction>0
-      ? "#00ff88"
-      : "#ff3b4f";
+      ?"#00ff88"
+      :"#ff3b4f";
 
     ctx.lineWidth=2.4;
 
@@ -1651,6 +1638,8 @@ function sim(a,b,tolerance){
   );
 }
 
+/* DAHA KATI FORMASYON KARŞILAŞTIRMASI */
+
 function compareSequences(
   query,
   reference
@@ -1672,36 +1661,50 @@ function compareSequences(
   let total=0;
   let weightTotal=0;
 
+  let directionMatched=0;
+  let directionWeight=0;
+
+  let sizeMatched=0;
+  let sizeWeight=0;
+
   for(let i=0;i<14;i++){
 
     const w=
-      .70+(i/13)*.70;
+      .65+(i/13)*1.05;
 
     const high=
-      sim(q[i].high,r[i].high,.58);
+      sim(
+        q[i].high,
+        r[i].high,
+        .34
+      );
 
     const low=
-      sim(q[i].low,r[i].low,.58);
+      sim(
+        q[i].low,
+        r[i].low,
+        .34
+      );
 
     const center=
       sim(
         q[i].bodyCenter,
         r[i].bodyCenter,
-        .52
+        .30
       );
 
     const body=
       sim(
         q[i].bodyHeight,
         r[i].bodyHeight,
-        .48
+        .26
       );
 
     const height=
       sim(
         q[i].height,
         r[i].height,
-        .52
+        .30
       );
 
     const direction=
@@ -1711,19 +1714,193 @@ function compareSequences(
       :0;
 
     const score=
-      high*.18+
-      low*.16+
-      center*.22+
-      body*.14+
-      height*.12+
-      direction*.18;
+      high*.13+
+      low*.13+
+      center*.18+
+      body*.17+
+      height*.17+
+      direction*.22;
 
     total+=score*w;
     weightTotal+=w;
+
+    directionMatched+=
+      direction*w;
+
+    directionWeight+=w;
+
+    const importance=
+      Math.max(
+        q[i].height,
+        r[i].height
+      );
+
+    const sizeSim=
+      body*.45+
+      height*.55;
+
+    sizeMatched+=
+      sizeSim*
+      importance*
+      w;
+
+    sizeWeight+=
+      importance*w;
   }
 
   const structure=
-    total/Math.max(1,weightTotal);
+    total/
+    Math.max(
+      1,
+      weightTotal
+    );
+
+  const directionRatio=
+    directionMatched/
+    Math.max(
+      1,
+      directionWeight
+    );
+
+  const sizeRatio=
+    sizeWeight>0
+    ?sizeMatched/sizeWeight
+    :0;
+
+  function maxIndex(arr,key){
+
+    let index=0;
+    let value=-Infinity;
+
+    for(let i=0;i<arr.length;i++){
+
+      if(arr[i][key]>value){
+
+        value=arr[i][key];
+        index=i;
+      }
+    }
+
+    return index;
+  }
+
+  function minIndex(arr,key){
+
+    let index=0;
+    let value=Infinity;
+
+    for(let i=0;i<arr.length;i++){
+
+      if(arr[i][key]<value){
+
+        value=arr[i][key];
+        index=i;
+      }
+    }
+
+    return index;
+  }
+
+  const qHighIndex=
+    maxIndex(q,"high");
+
+  const rHighIndex=
+    maxIndex(r,"high");
+
+  const qLowIndex=
+    minIndex(q,"low");
+
+  const rLowIndex=
+    minIndex(r,"low");
+
+  const highPositionScore=
+    clamp(
+      1-
+      Math.abs(
+        qHighIndex-rHighIndex
+      )/6
+    );
+
+  const lowPositionScore=
+    clamp(
+      1-
+      Math.abs(
+        qLowIndex-rLowIndex
+      )/6
+    );
+
+  const turningScore=
+    (
+      highPositionScore+
+      lowPositionScore
+    )/2;
+
+  function biggestIndexes(arr){
+
+    return arr
+      .map(
+        (c,index)=>({
+          index,
+          height:c.height,
+          direction:c.direction
+        })
+      )
+      .sort(
+        (a,b)=>
+          b.height-a.height
+      )
+      .slice(0,3);
+  }
+
+  const qBig=
+    biggestIndexes(q);
+
+  const rBig=
+    biggestIndexes(r);
+
+  let bigScore=0;
+  let bigCount=0;
+
+  for(let i=0;i<3;i++){
+
+    const qa=qBig[i];
+    const ra=rBig[i];
+
+    if(!qa||!ra)continue;
+
+    const position=
+      clamp(
+        1-
+        Math.abs(
+          qa.index-ra.index
+        )/5
+      );
+
+    const direction=
+      qa.direction===
+      ra.direction
+      ?1
+      :0;
+
+    const height=
+      sim(
+        qa.height,
+        ra.height,
+        .25
+      );
+
+    bigScore+=
+      position*.35+
+      direction*.35+
+      height*.30;
+
+    bigCount++;
+  }
+
+  bigScore=
+    bigCount
+    ?bigScore/bigCount
+    :0;
 
   const countRatio=
     Math.min(
@@ -1735,10 +1912,55 @@ function compareSequences(
       reference.count
     );
 
-  return clamp(
-    structure*.94+
-    countRatio*.06
-  );
+  let finalScore=
+    structure*.48+
+    directionRatio*.20+
+    sizeRatio*.12+
+    turningScore*.10+
+    bigScore*.07+
+    countRatio*.03;
+
+  /* Yön dizisi farklıysa sert ceza */
+  if(directionRatio<.45){
+
+    finalScore*=.52;
+
+  }else if(directionRatio<.55){
+
+    finalScore*=.64;
+
+  }else if(directionRatio<.65){
+
+    finalScore*=.76;
+
+  }else if(directionRatio<.75){
+
+    finalScore*=.88;
+  }
+
+  /* Büyük mum yapısı farklıysa ceza */
+  if(bigScore<.40){
+
+    finalScore*=.68;
+
+  }else if(bigScore<.55){
+
+    finalScore*=.82;
+  }
+
+  /* Tepe/dip farklı yerdeyse ceza */
+  if(turningScore<.45){
+
+    finalScore*=.75;
+  }
+
+  /* Mum boyları farklıysa ceza */
+  if(sizeRatio<.50){
+
+    finalScore*=.78;
+  }
+
+  return clamp(finalScore);
 }
 
 function bestShapeMatch(
