@@ -2,8 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
 <title>Formasyon Okuyucu AI</title>
@@ -30,10 +29,11 @@ h1{
   margin:12px 0 18px;
 }
 
+/* Biraz daha yüksek kamera alanı */
 .cameraBox{
   position:relative;
   width:100%;
-  aspect-ratio:1.81/1;
+  aspect-ratio:1.70/1;
   background:#000;
   overflow:hidden;
   border-radius:18px;
@@ -80,7 +80,6 @@ button,.fileButton{
 }
 
 .fileButton{background:#794bd8}
-
 #refInput{display:none}
 
 #status{
@@ -252,9 +251,7 @@ button,.fileButton{
 
 <div class="card">
   <h2>🏆 En Yakın Eşleşmeler</h2>
-  <div id="topMatches" class="small">
-    Henüz tarama yapılmadı.
-  </div>
+  <div id="topMatches" class="small">Henüz tarama yapılmadı.</div>
 </div>
 
 <div class="card">
@@ -264,10 +261,9 @@ button,.fileButton{
 </div>
 
 <div class="info">
-  Okuyucu sağ taraftaki son mum hareketine öncelik verir.
-  Mumların sırasını, kırmızı/yeşil yönünü, göreceli yüksek ve
-  düşüklerini karşılaştırır. MA çizgileri, yazılar ve fiyat
-  rakamları mümkün olduğunca eşleştirme dışında bırakılır.
+  Okuyucu yeşil SON HAREKET alanındaki son mumlara öncelik verir.
+  Mumların sırasını, yönünü, gövde/fitil yapısını ve göreceli
+  yüksek-düşük hareketini referans formasyonlarla karşılaştırır.
 </div>
 
 <canvas id="captureCanvas" width="502" height="277"></canvas>
@@ -279,22 +275,31 @@ button,.fileButton{
 import { pipeline } from
 "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
 
-/* =========================================================
+/* =====================================================
    AYARLAR
-========================================================= */
+===================================================== */
 
 const TARGET_W = 502;
 const TARGET_H = 277;
-const TARGET_RATIO = TARGET_W / TARGET_H;
 
 const SHAPE_WEIGHT = 0.82;
 const AI_WEIGHT = 0.18;
 
 const STORAGE_KEY = "chartReferences";
 
-/* =========================================================
+/*
+  SON HAREKET:
+  Öncekinden biraz daha DAR.
+  Üst-alt boşluğu az olduğu için biraz daha YÜKSEK.
+*/
+const SCAN_LEFT   = 0.48;
+const SCAN_RIGHT  = 0.94;
+const SCAN_TOP    = 0.05;
+const SCAN_BOTTOM = 0.95;
+
+/* =====================================================
    ELEMENTLER
-========================================================= */
+===================================================== */
 
 const video = document.getElementById("video");
 const overlay = document.getElementById("overlay");
@@ -315,10 +320,6 @@ const bestDetail = document.getElementById("bestDetail");
 const topMatches = document.getElementById("topMatches");
 const clearBtn = document.getElementById("clearBtn");
 
-/* =========================================================
-   DURUM
-========================================================= */
-
 let references = loadReferences();
 
 let extractor = null;
@@ -327,23 +328,23 @@ let cameraReady = false;
 
 const referenceCache = new Map();
 
-/* =========================================================
-   YARDIMCILAR
-========================================================= */
+/* =====================================================
+   YARDIMCI
+===================================================== */
 
 function clamp(v,min=0,max=1){
   return Math.max(min,Math.min(max,v));
 }
 
-function percent(v){
+function pct(v){
   return Math.round(clamp(v)*100);
 }
 
-function median(values){
+function median(arr){
 
-  if(!values.length) return 0;
+  if(!arr.length) return 0;
 
-  const a = [...values].sort((x,y)=>x-y);
+  const a = [...arr].sort((x,y)=>x-y);
   const m = Math.floor(a.length/2);
 
   return a.length%2
@@ -351,22 +352,21 @@ function median(values){
     : (a[m-1]+a[m])/2;
 }
 
-/* =========================================================
-   REFERANS KÜTÜPHANESİ
-========================================================= */
+/* =====================================================
+   REFERANSLAR
+===================================================== */
 
 function loadReferences(){
 
   try{
 
-    const data = JSON.parse(
+    const x = JSON.parse(
       localStorage.getItem(STORAGE_KEY) || "[]"
     );
 
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(x) ? x : [];
 
-  }catch(e){
-
+  }catch{
     return [];
   }
 }
@@ -409,7 +409,7 @@ function renderReferences(){
 
     del.onclick = ()=>{
 
-      if(!confirm(ref.name + " silinsin mi?")){
+      if(!confirm(ref.name+" silinsin mi?")){
         return;
       }
 
@@ -420,7 +420,7 @@ function renderReferences(){
       renderReferences();
 
       statusEl.textContent =
-        references.length + " referans hazır.";
+        references.length+" referans hazır.";
     };
 
     box.appendChild(img);
@@ -448,7 +448,7 @@ refInput.addEventListener("change",async e=>{
 
       const defaultName =
         file.name.replace(/\.[^/.]+$/,"") ||
-        "Formasyon " + (references.length+1);
+        "Formasyon "+(references.length+1);
 
       const name =
         prompt(
@@ -456,35 +456,22 @@ refInput.addEventListener("change",async e=>{
           defaultName
         ) || defaultName;
 
-      references.push({
-        name,
-        src
-      });
+      references.push({name,src});
 
     }catch(err){
-
       console.error(err);
     }
   }
 
-  try{
-
-    saveReferences();
-
-  }catch(err){
-
-    alert(
-      "Telefon depolama alanı dolmuş olabilir."
-    );
-  }
+  saveReferences();
 
   referenceCache.clear();
   renderReferences();
 
   statusEl.textContent =
-    references.length + " referans hazır.";
+    references.length+" referans hazır.";
 
-  refInput.value = "";
+  refInput.value="";
 });
 
 clearBtn.addEventListener("click",()=>{
@@ -497,13 +484,13 @@ clearBtn.addEventListener("click",()=>{
     return;
   }
 
-  references = [];
+  references=[];
 
   saveReferences();
   referenceCache.clear();
   renderReferences();
 
-  bestResult.style.display = "none";
+  bestResult.style.display="none";
 
   topMatches.textContent =
     "Henüz tarama yapılmadı.";
@@ -512,10 +499,9 @@ clearBtn.addEventListener("click",()=>{
     "Referans kütüphanesi temizlendi.";
 });
 
-/* =========================================================
-   REFERANS RESMİNİ KAYDET
-   ORAN BOZULMAZ
-========================================================= */
+/* =====================================================
+   REFERANS RESMİ
+===================================================== */
 
 function compressImage(file){
 
@@ -523,43 +509,43 @@ function compressImage(file){
 
     const reader = new FileReader();
 
-    reader.onerror = reject;
+    reader.onerror=reject;
 
-    reader.onload = ()=>{
+    reader.onload=()=>{
 
-      const img = new Image();
+      const img=new Image();
 
-      img.onload = ()=>{
+      img.onload=()=>{
 
-        const maxSize = 1200;
+        const maxSize=1200;
 
-        const scale = Math.min(
+        const scale=Math.min(
           1,
-          maxSize /
+          maxSize/
           Math.max(
             img.naturalWidth,
             img.naturalHeight
           )
         );
 
-        const w = Math.max(
+        const w=Math.max(
           1,
           Math.round(img.naturalWidth*scale)
         );
 
-        const h = Math.max(
+        const h=Math.max(
           1,
           Math.round(img.naturalHeight*scale)
         );
 
-        const c = document.createElement("canvas");
+        const c=document.createElement("canvas");
 
-        c.width = w;
-        c.height = h;
+        c.width=w;
+        c.height=h;
 
-        const ctx = c.getContext("2d");
+        const ctx=c.getContext("2d");
 
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle="#fff";
         ctx.fillRect(0,0,w,h);
 
         ctx.drawImage(img,0,0,w,h);
@@ -569,37 +555,33 @@ function compressImage(file){
         );
       };
 
-      img.onerror = reject;
-      img.src = reader.result;
+      img.onerror=reject;
+      img.src=reader.result;
     };
 
     reader.readAsDataURL(file);
   });
 }
 
-/* =========================================================
+/* =====================================================
    KAMERA
-========================================================= */
+===================================================== */
 
-startBtn.addEventListener(
-  "click",
-  openCamera
-);
+startBtn.addEventListener("click",openCamera);
 
 async function openCamera(){
 
   try{
 
-    statusEl.textContent =
-      "Kamera açılıyor…";
+    statusEl.textContent="Kamera açılıyor…";
 
     if(video.srcObject){
 
       video.srcObject
         .getTracks()
-        .forEach(track=>track.stop());
+        .forEach(t=>t.stop());
 
-      video.srcObject = null;
+      video.srcObject=null;
     }
 
     const stream =
@@ -614,18 +596,17 @@ async function openCamera(){
         audio:false
       });
 
-    video.srcObject = stream;
+    video.srcObject=stream;
 
     await video.play();
 
-    cameraReady = true;
-    scanBtn.disabled = false;
+    cameraReady=true;
+    scanBtn.disabled=false;
 
-    startBtn.textContent =
-      "✅ Kamera Açık";
+    startBtn.textContent="✅ Kamera Açık";
 
-    statusEl.textContent =
-      "Grafiğin son mumlarını çerçeveye hizala.";
+    statusEl.textContent=
+      "Son mumları yeşil alana hizala.";
 
     drawGrid();
 
@@ -633,34 +614,27 @@ async function openCamera(){
 
     console.error(err);
 
-    cameraReady = false;
-    scanBtn.disabled = true;
+    cameraReady=false;
+    scanBtn.disabled=true;
 
-    statusEl.textContent =
+    statusEl.textContent=
       "Kamera açılamadı. Safari kamera iznini kontrol et.";
   }
 }
 
-/* =========================================================
-   KAMERA IZGARASI
-========================================================= */
+/* =====================================================
+   YENİ SON HAREKET ÇERÇEVESİ
+===================================================== */
 
 function drawGrid(){
 
-  const rect =
-    overlay.getBoundingClientRect();
+  const rect=overlay.getBoundingClientRect();
+  const dpr=window.devicePixelRatio || 1;
 
-  const dpr =
-    window.devicePixelRatio || 1;
+  overlay.width=Math.round(rect.width*dpr);
+  overlay.height=Math.round(rect.height*dpr);
 
-  overlay.width =
-    Math.round(rect.width*dpr);
-
-  overlay.height =
-    Math.round(rect.height*dpr);
-
-  const ctx =
-    overlay.getContext("2d");
+  const ctx=overlay.getContext("2d");
 
   ctx.setTransform(dpr,0,0,dpr,0,0);
 
@@ -670,34 +644,19 @@ function drawGrid(){
     rect.height
   );
 
-  const w = rect.width;
-  const h = rect.height;
+  const w=rect.width;
+  const h=rect.height;
 
   /*
-    Sağ taraf vurgusu.
-    Asıl eşleştirme son mumlarda.
+    Izgara
   */
 
-  const rightX = w*0.42;
-
-  ctx.fillStyle =
-    "rgba(0,180,100,.07)";
-
-  ctx.fillRect(
-    rightX,
-    0,
-    w-rightX,
-    h
-  );
-
-  ctx.strokeStyle =
-    "rgba(255,255,255,.35)";
-
-  ctx.lineWidth = 1;
+  ctx.strokeStyle="rgba(255,255,255,.27)";
+  ctx.lineWidth=1;
 
   for(let i=1;i<6;i++){
 
-    const x = w*i/6;
+    const x=w*i/6;
 
     ctx.beginPath();
     ctx.moveTo(x,0);
@@ -707,7 +666,7 @@ function drawGrid(){
 
   for(let i=1;i<4;i++){
 
-    const y = h*i/4;
+    const y=h*i/4;
 
     ctx.beginPath();
     ctx.moveTo(0,y);
@@ -715,207 +674,249 @@ function drawGrid(){
     ctx.stroke();
   }
 
-  ctx.strokeStyle =
-    "rgba(40,255,150,.9)";
+  /*
+    GERÇEK TARAMA ALANI
+  */
 
-  ctx.lineWidth = 2;
+  const x=SCAN_LEFT*w;
+  const y=SCAN_TOP*h;
+
+  const rw=(SCAN_RIGHT-SCAN_LEFT)*w;
+  const rh=(SCAN_BOTTOM-SCAN_TOP)*h;
+
+  ctx.fillStyle="rgba(0,200,110,.07)";
+  ctx.fillRect(x,y,rw,rh);
+
+  ctx.strokeStyle="rgba(40,255,150,.95)";
+  ctx.lineWidth=2;
 
   ctx.strokeRect(
-    rightX+2,
-    2,
-    w-rightX-4,
-    h-4
+    x+1,
+    y+1,
+    rw-2,
+    rh-2
   );
 
-  ctx.fillStyle =
-    "rgba(40,255,150,.95)";
-
-  ctx.font =
-    "bold 13px -apple-system";
+  ctx.fillStyle="rgba(40,255,150,.95)";
+  ctx.font="bold 13px -apple-system";
 
   ctx.fillText(
     "SON HAREKET",
-    rightX+9,
-    20
+    x+9,
+    y+19
   );
 }
 
-window.addEventListener(
-  "resize",
-  drawGrid
-);
+window.addEventListener("resize",drawGrid);
 
-/* =========================================================
-   KAMERA GÖRÜNTÜSÜNÜ AL
-========================================================= */
+/* =====================================================
+   KAMERA FOTOĞRAFI
+===================================================== */
 
-function captureLens(){
+function captureFullFrame(){
 
   if(
     !cameraReady ||
     !video.videoWidth ||
     !video.videoHeight
   ){
-    throw new Error(
-      "Kamera görüntüsü hazır değil."
-    );
+    throw new Error("Kamera hazır değil.");
   }
 
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
+  const vw=video.videoWidth;
+  const vh=video.videoHeight;
 
-  let sx = 0;
-  let sy = 0;
-  let sw = vw;
-  let sh = vh;
+  const c=document.createElement("canvas");
 
-  const videoRatio = vw/vh;
+  c.width=TARGET_W;
+  c.height=TARGET_H;
 
-  if(videoRatio > TARGET_RATIO){
+  const ctx=c.getContext(
+    "2d",
+    {willReadFrequently:true}
+  );
 
-    sw = vh*TARGET_RATIO;
-    sx = (vw-sw)/2;
+  /*
+    Ekranda object-fit cover olduğu için
+    aynı mantıkla merkez crop.
+  */
+
+  const targetRatio=TARGET_W/TARGET_H;
+  const sourceRatio=vw/vh;
+
+  let sx=0;
+  let sy=0;
+  let sw=vw;
+  let sh=vh;
+
+  if(sourceRatio>targetRatio){
+
+    sw=vh*targetRatio;
+    sx=(vw-sw)/2;
 
   }else{
 
-    sh = vw/TARGET_RATIO;
-    sy = (vh-sh)/2;
+    sh=vw/targetRatio;
+    sy=(vh-sh)/2;
   }
-
-  captureCanvas.width = TARGET_W;
-  captureCanvas.height = TARGET_H;
-
-  const ctx =
-    captureCanvas.getContext(
-      "2d",
-      {willReadFrequently:true}
-    );
-
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(
-    0,0,
-    TARGET_W,
-    TARGET_H
-  );
 
   ctx.drawImage(
     video,
     sx,sy,sw,sh,
     0,0,
-    TARGET_W,
-    TARGET_H
+    TARGET_W,TARGET_H
   );
-
-  return cloneCanvas(
-    captureCanvas
-  );
-}
-
-function cloneCanvas(source){
-
-  const c =
-    document.createElement("canvas");
-
-  c.width = source.width;
-  c.height = source.height;
-
-  c.getContext("2d")
-    .drawImage(source,0,0);
 
   return c;
 }
 
-/* =========================================================
-   GÖRSELİ CANVAS'A ÇEVİR
-========================================================= */
+/* =====================================================
+   YEŞİL ALANI GERÇEKTEN CROP ET
+
+   ÖNEMLİ:
+   Ekranda gördüğümüz SON HAREKET alanı ile
+   analiz edilen alan artık aynı.
+===================================================== */
+
+function captureScanRegion(){
+
+  const full=captureFullFrame();
+
+  const sx=Math.round(
+    full.width*SCAN_LEFT
+  );
+
+  const sy=Math.round(
+    full.height*SCAN_TOP
+  );
+
+  const sw=Math.round(
+    full.width*
+    (SCAN_RIGHT-SCAN_LEFT)
+  );
+
+  const sh=Math.round(
+    full.height*
+    (SCAN_BOTTOM-SCAN_TOP)
+  );
+
+  const out=document.createElement("canvas");
+
+  /*
+    Alanı büyütüyoruz.
+    Mum algılaması daha kolay.
+  */
+
+  out.width=TARGET_W;
+  out.height=TARGET_H;
+
+  const ctx=out.getContext(
+    "2d",
+    {willReadFrequently:true}
+  );
+
+  ctx.fillStyle="#fff";
+  ctx.fillRect(
+    0,0,
+    TARGET_W,TARGET_H
+  );
+
+  ctx.drawImage(
+    full,
+    sx,sy,sw,sh,
+    0,0,
+    TARGET_W,TARGET_H
+  );
+
+  return out;
+}
+
+/* =====================================================
+   REFERANS CANVAS
+===================================================== */
 
 function imageToCanvas(src){
 
   return new Promise((resolve,reject)=>{
 
-    const img = new Image();
+    const img=new Image();
 
-    img.onload = ()=>{
+    img.onload=()=>{
 
-      const c =
-        document.createElement("canvas");
+      const c=document.createElement("canvas");
 
-      c.width = TARGET_W;
-      c.height = TARGET_H;
+      c.width=TARGET_W;
+      c.height=TARGET_H;
 
-      const ctx =
-        c.getContext(
-          "2d",
-          {willReadFrequently:true}
-        );
-
-      ctx.fillStyle = "#fff";
-
-      ctx.fillRect(
-        0,0,
-        TARGET_W,
-        TARGET_H
+      const ctx=c.getContext(
+        "2d",
+        {willReadFrequently:true}
       );
 
-      const scale = Math.min(
+      ctx.fillStyle="#fff";
+      ctx.fillRect(
+        0,0,
+        TARGET_W,TARGET_H
+      );
+
+      const scale=Math.min(
         TARGET_W/img.naturalWidth,
         TARGET_H/img.naturalHeight
       );
 
-      const w =
-        img.naturalWidth*scale;
-
-      const h =
-        img.naturalHeight*scale;
-
-      const x =
-        (TARGET_W-w)/2;
-
-      const y =
-        (TARGET_H-h)/2;
+      const w=img.naturalWidth*scale;
+      const h=img.naturalHeight*scale;
 
       ctx.drawImage(
         img,
-        x,y,w,h
+        (TARGET_W-w)/2,
+        (TARGET_H-h)/2,
+        w,h
       );
 
       resolve(c);
     };
 
-    img.onerror = reject;
-    img.src = src;
+    img.onerror=reject;
+    img.src=src;
   });
 }
 
-/* =========================================================
-   RENK SINIFLANDIRMA
+/* =====================================================
+   DAHA TOLERANSLI MUM RENGİ
 
-   Sadece mumlara benzeyen kırmızı/yeşil tonları.
-   Sarı/pembe/mor MA çizgileri mümkün olduğunca dışarıda.
-========================================================= */
+   Gerçek kamera görüntüsündeki
+   soluk kırmızı/yeşil mumları kabul eder.
+===================================================== */
 
 function classifyPixel(r,g,b){
 
-  const max =
-    Math.max(r,g,b);
+  const max=Math.max(r,g,b);
+  const min=Math.min(r,g,b);
 
-  const min =
-    Math.min(r,g,b);
+  const sat=max-min;
 
-  const sat =
-    max-min;
+  /*
+    Kırmızı:
+    önceki sürümden daha toleranslı.
+  */
 
-  const red =
-    r > 100 &&
-    r > g*1.28 &&
-    r > b*1.12 &&
-    sat > 45;
+  const red=
+    r>72 &&
+    r>g*1.09 &&
+    r>b*1.04 &&
+    sat>18;
 
-  const green =
-    g > 70 &&
-    g > r*1.15 &&
-    g > b*1.02 &&
-    sat > 34;
+  /*
+    Yeşil:
+    gerçek ekrandaki soluk yeşiller dahil.
+  */
+
+  const green=
+    g>52 &&
+    g>r*1.06 &&
+    g>b*0.96 &&
+    sat>15;
 
   if(red) return 1;
   if(green) return 2;
@@ -923,107 +924,94 @@ function classifyPixel(r,g,b){
   return 0;
 }
 
-/* =========================================================
+/* =====================================================
    RENK MASKESİ
-========================================================= */
+===================================================== */
 
 function buildColorMask(canvas){
 
-  const ctx =
-    canvas.getContext(
-      "2d",
-      {willReadFrequently:true}
-    );
+  const ctx=canvas.getContext(
+    "2d",
+    {willReadFrequently:true}
+  );
 
-  const img =
-    ctx.getImageData(
-      0,0,
-      canvas.width,
-      canvas.height
-    );
+  const image=ctx.getImageData(
+    0,0,
+    canvas.width,
+    canvas.height
+  );
 
-  const width =
-    canvas.width;
+  const mask=new Uint8Array(
+    canvas.width*canvas.height
+  );
 
-  const height =
-    canvas.height;
+  const p=image.data;
 
-  const mask =
-    new Uint8Array(
-      width*height
-    );
+  for(let y=0;y<canvas.height;y++){
 
-  const p =
-    img.data;
+    for(let x=0;x<canvas.width;x++){
 
-  for(let y=0;y<height;y++){
+      const i=(y*canvas.width+x)*4;
 
-    for(let x=0;x<width;x++){
-
-      const i =
-        (y*width+x)*4;
-
-      mask[
-        y*width+x
-      ] = classifyPixel(
-        p[i],
-        p[i+1],
-        p[i+2]
-      );
+      mask[y*canvas.width+x]=
+        classifyPixel(
+          p[i],
+          p[i+1],
+          p[i+2]
+        );
     }
   }
 
   return {
     mask,
-    width,
-    height
+    width:canvas.width,
+    height:canvas.height
   };
 }
 
-/* =========================================================
-   X SÜTUNLARINDA RENK YOĞUNLUĞU
-========================================================= */
+/* =====================================================
+   SÜTUN BİLGİSİ
+===================================================== */
 
-function makeColumnStats(data){
+function columnStats(data){
 
   const {
     mask,
     width,
     height
-  } = data;
+  }=data;
 
-  const columns =
-    new Array(width);
+  const columns=[];
 
   for(let x=0;x<width;x++){
 
-    let red = 0;
-    let green = 0;
+    let red=0;
+    let green=0;
 
-    let top = height;
-    let bottom = -1;
+    let top=height;
+    let bottom=-1;
 
-    let longestRun = 0;
-    let run = 0;
+    let run=0;
+    let longestRun=0;
 
     for(let y=0;y<height;y++){
 
-      const type =
-        mask[y*width+x];
+      const type=mask[y*width+x];
 
       if(type){
 
         if(type===1) red++;
         else green++;
 
-        if(y<top) top=y;
-        if(y>bottom) bottom=y;
+        top=Math.min(top,y);
+        bottom=Math.max(bottom,y);
 
         run++;
 
-        if(run>longestRun){
-          longestRun=run;
-        }
+        longestRun=Math.max(
+          longestRun,
+          run
+        );
 
       }else{
 
@@ -1031,7 +1019,7 @@ function makeColumnStats(data){
       }
     }
 
-    columns[x] = {
+    columns.push({
       x,
       red,
       green,
@@ -1039,49 +1027,46 @@ function makeColumnStats(data){
       top,
       bottom,
       longestRun
-    };
+    });
   }
 
   return columns;
 }
 
-/* =========================================================
-   ADAY X BLOKLARINI BUL
-========================================================= */
+/* =====================================================
+   X BLOKLARI
+===================================================== */
 
-function findXBlocks(columns,height){
+function findBlocks(columns,height){
 
-  const minColumnPixels =
-    Math.max(
-      2,
-      Math.round(height*0.010)
-    );
+  /*
+    Önceki sürümde fazla sertti.
+  */
 
-  const blocks = [];
-  let current = null;
+  const minPixels=Math.max(
+    2,
+    Math.round(height*0.006)
+  );
+
+  const blocks=[];
+  let current=null;
 
   for(let x=0;x<columns.length;x++){
 
-    const c =
-      columns[x];
+    const c=columns[x];
 
-    /*
-      Mum gövdesi/fitili için dikey destek.
-      İnce eğik MA çizgilerini azaltır.
-    */
-
-    const active =
-      c.total >= minColumnPixels &&
+    const active=
+      c.total>=minPixels &&
       (
-        c.longestRun >= 2 ||
-        c.total >= minColumnPixels*2
+        c.longestRun>=2 ||
+        c.total>=minPixels*1.4
       );
 
     if(active){
 
       if(!current){
 
-        current = {
+        current={
           start:x,
           end:x
         };
@@ -1105,85 +1090,73 @@ function findXBlocks(columns,height){
   return blocks;
 }
 
-/* =========================================================
-   YAKIN X BLOKLARINI BİRLEŞTİR
-========================================================= */
+/* =====================================================
+   YAKIN BLOKLARI BİRLEŞTİR
+===================================================== */
 
-function mergeXBlocks(
-  blocks,
-  width
-){
+function mergeBlocks(blocks,width){
 
-  if(!blocks.length){
-    return [];
-  }
+  if(!blocks.length) return [];
 
-  const maxGap =
-    Math.max(
-      1,
-      Math.round(width*0.006)
-    );
+  const gap=Math.max(
+    1,
+    Math.round(width*0.004)
+  );
 
-  const merged = [
+  const out=[
     {...blocks[0]}
   ];
 
   for(let i=1;i<blocks.length;i++){
 
-    const b =
-      blocks[i];
+    const b=blocks[i];
+    const last=out[out.length-1];
 
-    const last =
-      merged[merged.length-1];
-
-    const gap =
-      b.start-last.end-1;
-
-    if(gap<=maxGap){
+    if(
+      b.start-last.end-1<=gap
+    ){
 
       last.end=b.end;
 
     }else{
 
-      merged.push({...b});
+      out.push({...b});
     }
   }
 
-  return merged;
+  return out;
 }
 
-/* =========================================================
-   BİR X BLOĞUNDAN MUM ÇIKAR
-========================================================= */
+/* =====================================================
+   BLOKTAN MUM
+===================================================== */
 
-function candleFromBlock(
-  block,
-  data
-){
+function candleFromBlock(block,data){
 
   const {
     mask,
     width,
     height
-  } = data;
+  }=data;
 
-  const blockWidth =
+  const bw=
     block.end-block.start+1;
 
-  if(
-    blockWidth >
-    width*0.065
-  ){
+  /*
+    Çok geniş yatay alanları dışla.
+  */
+
+  if(bw>width*0.085){
     return null;
   }
 
-  let top = height;
-  let bottom = -1;
+  let top=height;
+  let bottom=-1;
 
-  let red = 0;
-  let green = 0;
+  let red=0;
+  let green=0;
 
-  const rowCounts =
+  const rows=
     new Array(height).fill(0);
 
   for(
@@ -1194,18 +1167,18 @@ function candleFromBlock(
 
     for(let y=0;y<height;y++){
 
-      const type =
+      const type=
         mask[y*width+x];
 
       if(!type) continue;
 
-      rowCounts[y]++;
+      rows[y]++;
 
       if(type===1) red++;
       else green++;
 
-      if(y<top) top=y;
-      if(y>bottom) bottom=y;
+      top=Math.min(top,y);
+      bottom=Math.max(bottom,y);
     }
   }
 
@@ -1213,53 +1186,43 @@ function candleFromBlock(
     return null;
   }
 
-  const fullHeight =
+  const h=
     bottom-top+1;
 
-  /*
-    Aşırı yatay şekilleri at.
-  */
-
-  if(
-    blockWidth >
-    fullHeight*2.2
-  ){
-    return null;
-  }
-
-  const total =
-    red+green;
-
-  if(
-    total <
-    Math.max(
-      5,
-      fullHeight*0.8
-    )
-  ){
+  if(h<3){
     return null;
   }
 
   /*
-    Gövde satırları:
-    x bloğunun anlamlı kısmında renk bulunan satırlar.
+    MA çizgisi gibi yatay şekilleri ele.
   */
 
-  const bodyThreshold =
+  if(bw>h*2.8){
+    return null;
+  }
+
+  const total=red+green;
+
+  if(total<4){
+    return null;
+  }
+
+  /*
+    Gövde
+  */
+
+  const bodyThreshold=
     Math.max(
-      2,
-      Math.ceil(blockWidth*0.38)
+      1,
+      Math.ceil(bw*0.28)
     );
 
-  let bodyTop = null;
-  let bodyBottom = null;
+  let bodyTop=null;
+  let bodyBottom=null;
 
   for(let y=top;y<=bottom;y++){
 
-    if(
-      rowCounts[y] >=
-      bodyThreshold
-    ){
+    if(rows[y]>=bodyThreshold){
 
       if(bodyTop===null){
         bodyTop=y;
@@ -1269,36 +1232,18 @@ function candleFromBlock(
     }
   }
 
-  /*
-    Fitil algılandı ama gövde bulunamadıysa
-    orta bölgeyi yaklaşık gövde kabul et.
-  */
-
   if(bodyTop===null){
 
-    const mid =
-      (top+bottom)/2;
+    bodyTop=
+      top+h*0.35;
 
-    const approx =
-      Math.max(
-        2,
-        fullHeight*0.25
-      );
-
-    bodyTop =
-      mid-approx/2;
-
-    bodyBottom =
-      mid+approx/2;
+    bodyBottom=
+      top+h*0.65;
   }
-
-  const direction =
-    green>=red ? 1 : -1;
 
   return {
 
-    x:
-      (block.start+block.end)/2,
+    x:(block.start+block.end)/2,
 
     left:block.start,
     right:block.end,
@@ -1309,52 +1254,47 @@ function candleFromBlock(
     bodyTop,
     bodyBottom,
 
-    width:blockWidth,
-    height:fullHeight,
+    width:bw,
+    height:h,
 
-    direction,
+    direction:
+      green>=red ? 1 : -1,
 
     red,
-    green,
-
-    strength:
-      Math.abs(green-red)/
-      Math.max(1,total)
+    green
   };
 }
 
-/* =========================================================
-   MUM TESPİTİ
-========================================================= */
+/* =====================================================
+   MUMLARI BUL
+===================================================== */
 
 function detectCandles(canvas){
 
-  const data =
+  const data=
     buildColorMask(canvas);
 
-  const columns =
-    makeColumnStats(data);
+  const columns=
+    columnStats(data);
 
-  let blocks =
-    findXBlocks(
+  let blocks=
+    findBlocks(
       columns,
       data.height
     );
 
-  blocks =
-    mergeXBlocks(
+  blocks=
+    mergeBlocks(
       blocks,
       data.width
     );
 
-  let candles =
+  let candles=
     blocks
       .map(
-        block=>
-          candleFromBlock(
-            block,
-            data
-          )
+        b=>candleFromBlock(
+          b,data
+        )
       )
       .filter(Boolean)
       .sort(
@@ -1366,114 +1306,91 @@ function detectCandles(canvas){
   }
 
   /*
-    Gürültü filtresi.
+    Gürültü temizliği.
+    Çok küçük adayları tamamen yok etmek yerine
+    daha toleranslı bırakıyoruz.
   */
 
-  const medHeight =
+  const medH=
     median(
       candles.map(c=>c.height)
     ) || 1;
 
-  const medWidth =
-    median(
-      candles.map(c=>c.width)
-    ) || 1;
-
-  candles =
-    candles.filter(c=>{
-
-      const enoughHeight =
-        c.height >=
-        Math.max(
-          4,
-          medHeight*0.18
-        );
-
-      const notHuge =
-        c.width <=
-        Math.max(
-          medWidth*4,
-          canvas.width*0.045
-        );
-
-      return (
-        enoughHeight &&
-        notHuge
-      );
-    });
+  candles=
+    candles.filter(c=>
+      c.height>=Math.max(
+        3,
+        medH*0.12
+      )
+    );
 
   return candles;
 }
 
-/* =========================================================
-   MUM DİZİSİNİ NORMALLEŞTİR
-========================================================= */
+/* =====================================================
+   NORMALİZE MUM DİZİSİ
+===================================================== */
 
-function normalizeCandleWindow(candles){
+function normalizeSequence(raw){
 
-  if(!candles.length){
+  if(!raw.length){
     return [];
   }
 
-  let minX = Infinity;
-  let maxX = -Infinity;
+  let minY=Infinity;
+  let maxY=-Infinity;
 
-  let minY = Infinity;
-  let maxY = -Infinity;
+  raw.forEach(c=>{
 
-  for(const c of candles){
+    minY=Math.min(
+      minY,c.top
+    );
 
-    minX =
-      Math.min(minX,c.x);
+    maxY=Math.max(
+      maxY,c.bottom
+    );
+  });
 
-    maxX =
-      Math.max(maxX,c.x);
+  const rangeY=Math.max(
+    1,
+    maxY-minY
+  );
 
-    minY =
-      Math.min(minY,c.top);
-
-    maxY =
-      Math.max(maxY,c.bottom);
-  }
-
-  const rangeX =
-    Math.max(1,maxX-minX);
-
-  const rangeY =
-    Math.max(1,maxY-minY);
-
-  return candles.map(c=>({
-
-    x:
-      (c.x-minX)/rangeX,
+  return raw.map(c=>({
 
     high:
-      1-(c.top-minY)/rangeY,
+      1-
+      (c.top-minY)/
+      rangeY,
 
     low:
-      1-(c.bottom-minY)/rangeY,
+      1-
+      (c.bottom-minY)/
+      rangeY,
 
     bodyTop:
-      1-(c.bodyTop-minY)/rangeY,
+      1-
+      (c.bodyTop-minY)/
+      rangeY,
 
     bodyBottom:
-      1-(c.bodyBottom-minY)/rangeY,
+      1-
+      (c.bodyBottom-minY)/
+      rangeY,
 
     center:
       1-
       (
-        (
-          (c.top+c.bottom)/2
-        )-minY
-      )/rangeY,
+        ((c.top+c.bottom)/2)-minY
+      )/
+      rangeY,
 
     bodyCenter:
       1-
       (
-        (
-          (c.bodyTop+c.bodyBottom)/2
-        )-minY
-      )/rangeY,
+        ((c.bodyTop+c.bodyBottom)/2)-minY
+      )/
+      rangeY,
 
     height:
       c.height/rangeY,
@@ -1481,111 +1398,70 @@ function normalizeCandleWindow(candles){
     bodyHeight:
       Math.abs(
         c.bodyBottom-c.bodyTop
-      )/rangeY,
+      )/
+      rangeY,
 
     direction:
-      c.direction,
-
-    strength:
-      c.strength
+      c.direction
   }));
 }
 
-/* =========================================================
+/* =====================================================
    REFERANS DİZİSİ
-
-   Referans temiz olduğundan bütün gerçek mum dizisini kullanır.
-========================================================= */
+===================================================== */
 
 function referenceSequence(canvas){
 
-  const candles =
+  const raw=
     detectCandles(canvas);
 
   return {
-    raw:candles,
+    raw,
     candles:
-      normalizeCandleWindow(
-        candles
-      ),
-    count:candles.length
+      normalizeSequence(raw),
+    count:raw.length
   };
 }
 
-/* =========================================================
-   SORGUDAN ADAY PENCERELER
-
-   KRİTİK DEĞİŞİKLİK:
-   bütün grafiği referansla karşılaştırmıyoruz.
-
-   Her referansın mum sayısına yakın pencereler oluşturuyoruz.
-   Sağdaki son pencereler daha önemli.
-========================================================= */
+/* =====================================================
+   SORGUDAN PENCERELER
+===================================================== */
 
 function queryWindows(
-  canvas,
+  queryCanvas,
   refCount
 ){
 
-  const detected =
-    detectCandles(canvas);
+  const all=
+    detectCandles(queryCanvas);
 
-  if(!detected.length){
+  if(!all.length){
     return [];
-  }
-
-  const all =
-    [...detected].sort(
-      (a,b)=>a.x-b.x
-    );
-
-  /*
-    Çok eski mumları ele.
-    Grafiğin sağ %75'i içinde olanlar öncelikli.
-  */
-
-  let useful =
-    all.filter(
-      c=>c.x >= canvas.width*0.25
-    );
-
-  if(
-    useful.length <
-    Math.max(4,refCount)
-  ){
-    useful=all;
   }
 
   const windows=[];
 
-  const sizes =
-    new Set([
-      Math.max(3,refCount-2),
-      Math.max(3,refCount-1),
-      Math.max(3,refCount),
-      Math.max(3,refCount+1),
-      Math.max(3,refCount+2)
-    ]);
+  const sizes=new Set([
+    Math.max(3,refCount-2),
+    Math.max(3,refCount-1),
+    Math.max(3,refCount),
+    Math.max(3,refCount+1),
+    Math.max(3,refCount+2)
+  ]);
 
   for(const size of sizes){
 
-    if(
-      useful.length < size
-    ){
+    if(all.length<size){
       continue;
     }
 
-    /*
-      Son taraftaki en fazla 7 pencere.
-    */
+    const lastStart=
+      all.length-size;
 
-    const lastStart =
-      useful.length-size;
-
-    const firstStart =
+    const firstStart=
       Math.max(
         0,
-        lastStart-6
+        lastStart-7
       );
 
     for(
@@ -1594,29 +1470,26 @@ function queryWindows(
       start++
     ){
 
-      const raw =
-        useful.slice(
+      const raw=
+        all.slice(
           start,
           start+size
         );
 
-      const endIndex =
+      const end=
         start+size-1;
 
-      const rightness =
-        useful.length<=1
+      const rightness=
+        all.length<=1
         ? 1
-        : endIndex/
-          (useful.length-1);
+        : end/(all.length-1);
 
       windows.push({
 
         raw,
 
         candles:
-          normalizeCandleWindow(
-            raw
-          ),
+          normalizeSequence(raw),
 
         count:raw.length,
 
@@ -1625,30 +1498,21 @@ function queryWindows(
     }
   }
 
-  /*
-    Hiç pencere oluşmadıysa
-    mevcut son mumları kullan.
-  */
-
   if(!windows.length){
 
-    const size =
-      Math.min(
-        useful.length,
+    const raw=all.slice(
+      -Math.min(
+        all.length,
         Math.max(3,refCount)
-      );
-
-    const raw =
-      useful.slice(-size);
+      )
+    );
 
     windows.push({
 
       raw,
 
       candles:
-        normalizeCandleWindow(
-          raw
-        ),
+        normalizeSequence(raw),
 
       count:raw.length,
 
@@ -1659,21 +1523,15 @@ function queryWindows(
   return windows;
 }
 
-/* =========================================================
-   DİZİ RESAMPLE
-========================================================= */
+/* =====================================================
+   RESAMPLE
+===================================================== */
 
-function interpolateValue(
-  a,b,t
-){
-
+function lerp(a,b,t){
   return a*(1-t)+b*t;
 }
 
-function resampleSequence(
-  candles,
-  targetCount=14
-){
+function resample(candles,count=14){
 
   if(!candles.length){
     return [];
@@ -1682,83 +1540,77 @@ function resampleSequence(
   if(candles.length===1){
 
     return Array.from(
-      {length:targetCount},
+      {length:count},
       ()=>({...candles[0]})
     );
   }
 
   const result=[];
 
-  for(
-    let i=0;
-    i<targetCount;
-    i++
-  ){
+  for(let i=0;i<count;i++){
 
-    const position =
+    const pos=
       i*
       (candles.length-1)/
-      (targetCount-1);
+      (count-1);
 
-    const left =
-      Math.floor(position);
+    const aIndex=
+      Math.floor(pos);
 
-    const right =
+    const bIndex=
       Math.min(
         candles.length-1,
-        left+1
+        aIndex+1
       );
 
-    const t =
-      position-left;
+    const t=
+      pos-aIndex;
 
-    const a =
-      candles[left];
-
-    const b =
-      candles[right];
+    const a=candles[aIndex];
+    const b=candles[bIndex];
 
     result.push({
 
-      high:
-        interpolateValue(
-          a.high,b.high,t
-        ),
-
-      low:
-        interpolateValue(
-          a.low,b.low,t
-        ),
+      high:lerp(a.high,b.high,t),
+      low:lerp(a.low,b.low,t),
 
       bodyTop:
-        interpolateValue(
-          a.bodyTop,b.bodyTop,t
+        lerp(
+          a.bodyTop,
+          b.bodyTop,
+          t
         ),
 
       bodyBottom:
-        interpolateValue(
-          a.bodyBottom,b.bodyBottom,t
+        lerp(
+          a.bodyBottom,
+          b.bodyBottom,
+          t
         ),
 
       center:
-        interpolateValue(
-          a.center,b.center,t
+        lerp(
+          a.center,
+          b.center,
+          t
         ),
 
       bodyCenter:
-        interpolateValue(
+        lerp(
           a.bodyCenter,
           b.bodyCenter,
           t
         ),
 
       height:
-        interpolateValue(
-          a.height,b.height,t
+        lerp(
+          a.height,
+          b.height,
+          t
         ),
 
       bodyHeight:
-        interpolateValue(
+        lerp(
           a.bodyHeight,
           b.bodyHeight,
           t
@@ -1774,14 +1626,11 @@ function resampleSequence(
   return result;
 }
 
-/* =========================================================
-   SAYISAL BENZERLİK
-========================================================= */
+/* =====================================================
+   DİZİ BENZERLİĞİ
+===================================================== */
 
-function valueSimilarity(
-  a,b,
-  tolerance=1
-){
+function sim(a,b,tolerance){
 
   return clamp(
     1-
@@ -1789,10 +1638,6 @@ function valueSimilarity(
     tolerance
   );
 }
-
-/* =========================================================
-   MUM DİZİSİ BENZERLİĞİ
-========================================================= */
 
 function compareSequences(
   query,
@@ -1806,98 +1651,91 @@ function compareSequences(
     return 0;
   }
 
-  const q =
-    resampleSequence(
-      query.candles,
-      14
-    );
+  const q=resample(
+    query.candles,
+    14
+  );
 
-  const r =
-    resampleSequence(
-      reference.candles,
-      14
-    );
+  const r=resample(
+    reference.candles,
+    14
+  );
 
   let total=0;
-  let weights=0;
+  let weightTotal=0;
 
   for(let i=0;i<14;i++){
 
     /*
-      Son mumlara daha yüksek ağırlık.
+      Sağdaki son mumlara
+      daha yüksek önem.
     */
 
-    const lastWeight =
-      0.72+
-      (i/13)*0.68;
+    const w=
+      0.70+
+      (i/13)*0.70;
 
-    const high =
-      valueSimilarity(
+    const high=
+      sim(
         q[i].high,
         r[i].high,
-        0.55
+        0.58
       );
 
-    const low =
-      valueSimilarity(
+    const low=
+      sim(
         q[i].low,
         r[i].low,
-        0.55
+        0.58
       );
 
-    const bodyCenter =
-      valueSimilarity(
+    const center=
+      sim(
         q[i].bodyCenter,
         r[i].bodyCenter,
-        0.50
+        0.52
       );
 
-    const bodyHeight =
-      valueSimilarity(
+    const body=
+      sim(
         q[i].bodyHeight,
         r[i].bodyHeight,
-        0.45
+        0.48
       );
 
-    const fullHeight =
-      valueSimilarity(
+    const height=
+      sim(
         q[i].height,
         r[i].height,
-        0.50
+        0.52
       );
 
-    const direction =
-      q[i].direction ===
+    const direction=
+      q[i].direction===
       r[i].direction
       ? 1
       : 0;
 
-    const candleScore =
-      high*0.18 +
-      low*0.16 +
-      bodyCenter*0.22 +
-      bodyHeight*0.14 +
-      fullHeight*0.12 +
+    const score=
+      high*0.18+
+      low*0.16+
+      center*0.22+
+      body*0.14+
+      height*0.12+
       direction*0.18;
 
-    total +=
-      candleScore*
-      lastWeight;
-
-    weights +=
-      lastWeight;
+    total+=score*w;
+    weightTotal+=w;
   }
 
-  let structure =
-    weights
-    ? total/weights
-    : 0;
+  const structure=
+    total/
+    Math.max(
+      1,
+      weightTotal
+    );
 
-  /*
-    Mum sayısı farkı küçük ceza.
-  */
-
-  const countRatio =
+  const countRatio=
     Math.min(
       query.count,
       reference.count
@@ -1907,61 +1745,51 @@ function compareSequences(
       reference.count
     );
 
-  structure =
-    structure*0.94 +
-    countRatio*0.06;
-
-  return clamp(structure);
+  return clamp(
+    structure*0.94+
+    countRatio*0.06
+  );
 }
 
-/* =========================================================
-   EN İYİ MUM PENCERESİNİ BUL
-========================================================= */
+/* =====================================================
+   EN İYİ PENCERE
+===================================================== */
 
 function bestShapeMatch(
   queryCanvas,
-  refSequence
+  reference
 ){
 
-  const windows =
+  const detected=
+    detectCandles(queryCanvas);
+
+  const windows=
     queryWindows(
       queryCanvas,
-      refSequence.count
+      reference.count
     );
 
-  if(!windows.length){
-
-    return {
-      score:0,
-      window:null,
-      detected:0
-    };
-  }
-
-  let best = null;
+  let best=null;
 
   for(const window of windows){
 
-    const rawScore =
+    let score=
       compareSequences(
         window,
-        refSequence
+        reference
       );
 
     /*
-      Sağdaki pencerelere hafif öncelik.
-      Formasyon geometrisini bozmaz.
+      Sağdaki son pencereye
+      küçük öncelik.
     */
 
-    const rightBonus =
+    score*=(
       0.96+
-      0.04*window.rightness;
+      window.rightness*0.04
+    );
 
-    const score =
-      clamp(
-        rawScore*
-        rightBonus
-      );
+    score=clamp(score);
 
     if(
       !best ||
@@ -1971,49 +1799,40 @@ function bestShapeMatch(
       best={
         score,
         window,
-        detected:
-          detectCandles(
-            queryCanvas
-          ).length
+        detected:detected.length
       };
     }
   }
 
-  return best;
+  return best || {
+    score:0,
+    window:null,
+    detected:detected.length
+  };
 }
 
-/* =========================================================
-   TEMİZ MUM CANVASI
+/* =====================================================
+   TEMİZ MUM GÖRÜNTÜSÜ
+===================================================== */
 
-   CLIP'e bütün ekran yerine yalnızca
-   tespit edilen mum hareketi verilir.
-========================================================= */
+function drawCleanCandles(raw){
 
-function drawCleanCandles(
-  rawCandles
-){
-
-  const out =
+  const out=
     document.createElement("canvas");
 
-  out.width = TARGET_W;
-  out.height = TARGET_H;
+  out.width=TARGET_W;
+  out.height=TARGET_H;
 
-  const ctx =
-    out.getContext("2d");
+  const ctx=out.getContext("2d");
 
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle="#fff";
 
   ctx.fillRect(
     0,0,
-    TARGET_W,
-    TARGET_H
+    TARGET_W,TARGET_H
   );
 
-  if(
-    !rawCandles ||
-    !rawCandles.length
-  ){
+  if(!raw || !raw.length){
     return out;
   }
 
@@ -2023,7 +1842,7 @@ function drawCleanCandles(
   let minY=Infinity;
   let maxY=-Infinity;
 
-  rawCandles.forEach(c=>{
+  raw.forEach(c=>{
 
     minX=Math.min(minX,c.x);
     maxX=Math.max(maxX,c.x);
@@ -2032,56 +1851,54 @@ function drawCleanCandles(
     maxY=Math.max(maxY,c.bottom);
   });
 
-  const rangeX =
-    Math.max(1,maxX-minX);
+  const rangeX=Math.max(
+    1,
+    maxX-minX
+  );
 
-  const rangeY =
-    Math.max(1,maxY-minY);
+  const rangeY=Math.max(
+    1,
+    maxY-minY
+  );
 
-  const padX=28;
-  const padY=20;
+  const padX=30;
+  const padY=22;
 
-  const drawW =
-    TARGET_W-padX*2;
+  raw.forEach(c=>{
 
-  const drawH =
-    TARGET_H-padY*2;
-
-  rawCandles.forEach(c=>{
-
-    const x =
-      rawCandles.length===1
+    const x=
+      raw.length===1
       ? TARGET_W/2
       : padX+
         (c.x-minX)/
         rangeX*
-        drawW;
+        (TARGET_W-padX*2);
 
-    const top =
+    const top=
       padY+
       (c.top-minY)/
       rangeY*
-      drawH;
+      (TARGET_H-padY*2);
 
-    const bottom =
+    const bottom=
       padY+
       (c.bottom-minY)/
       rangeY*
-      drawH;
+      (TARGET_H-padY*2);
 
-    const bodyTop =
+    const bodyTop=
       padY+
       (c.bodyTop-minY)/
       rangeY*
-      drawH;
+      (TARGET_H-padY*2);
 
-    const bodyBottom =
+    const bodyBottom=
       padY+
       (c.bodyBottom-minY)/
       rangeY*
-      drawH;
+      (TARGET_H-padY*2);
 
-    const color =
+    const color=
       c.direction>0
       ? "#089c58"
       : "#e02b3b";
@@ -2091,59 +1908,46 @@ function drawCleanCandles(
 
     ctx.lineWidth=2;
 
-    /*
-      Fitil
-    */
-
     ctx.beginPath();
     ctx.moveTo(x,top);
     ctx.lineTo(x,bottom);
     ctx.stroke();
 
-    /*
-      Gövde
-    */
+    const bodyWidth=Math.max(
+      5,
+      Math.min(
+        15,
+        c.width/
+        Math.max(
+          1,rangeX
+        )*
+        (TARGET_W-padX*2)*
+        1.4
+      )
+    );
 
-    const bodyW =
-      Math.max(
-        5,
-        Math.min(
-          16,
-          c.width/
-          Math.max(
-            1,
-            rangeX
-          )*
-          drawW*
-          1.5
-        )
-      );
-
-    const bh =
+    ctx.fillRect(
+      x-bodyWidth/2,
+      Math.min(
+        bodyTop,
+        bodyBottom
+      ),
+      bodyWidth,
       Math.max(
         3,
         Math.abs(
           bodyBottom-bodyTop
         )
-      );
-
-    ctx.fillRect(
-      x-bodyW/2,
-      Math.min(
-        bodyTop,
-        bodyBottom
-      ),
-      bodyW,
-      bh
+      )
     );
   });
 
   return out;
 }
 
-/* =========================================================
-   AI MODEL
-========================================================= */
+/* =====================================================
+   AI
+===================================================== */
 
 async function loadAI(){
 
@@ -2156,8 +1960,7 @@ async function loadAI(){
     while(modelLoading){
 
       await new Promise(
-        resolve=>
-          setTimeout(resolve,250)
+        r=>setTimeout(r,200)
       );
     }
 
@@ -2168,23 +1971,19 @@ async function loadAI(){
 
   try{
 
-    statusEl.textContent =
-      "AI modeli hazırlanıyor… İlk açılış biraz sürebilir.";
+    statusEl.textContent=
+      "AI modeli hazırlanıyor…";
 
-    extractor =
-      await pipeline(
-        "image-feature-extraction",
-        "Xenova/clip-vit-base-patch32"
-      );
+    extractor=await pipeline(
+      "image-feature-extraction",
+      "Xenova/clip-vit-base-patch32"
+    );
 
     return extractor;
 
   }catch(err){
 
-    console.error(
-      "AI yüklenemedi:",
-      err
-    );
+    console.error(err);
 
     extractor=null;
 
@@ -2196,17 +1995,10 @@ async function loadAI(){
   }
 }
 
-/* =========================================================
-   CLIP FEATURE
-========================================================= */
+function meanPool(output){
 
-function meanPoolTensor(output){
-
-  let data =
-    output?.data;
-
-  let dims =
-    output?.dims;
+  let data=output?.data;
+  let dims=output?.dims;
 
   if(
     !data &&
@@ -2218,64 +2010,45 @@ function meanPoolTensor(output){
     dims=output[0].dims;
   }
 
-  if(
-    !data ||
-    !data.length
-  ){
+  if(!data || !data.length){
     return null;
   }
-
-  /*
-    [1,tokens,dim]
-  */
 
   if(
     dims &&
     dims.length===3
   ){
 
-    const tokens =
+    const tokens=
       dims[dims.length-2];
 
-    const dim =
+    const dim=
       dims[dims.length-1];
 
-    const vector =
+    const vector=
       new Float32Array(dim);
 
     for(let t=0;t<tokens;t++){
 
-      const offset =
-        t*dim;
-
       for(let d=0;d<dim;d++){
 
-        vector[d] +=
-          data[offset+d];
+        vector[d]+=
+          data[t*dim+d];
       }
     }
 
     for(let d=0;d<dim;d++){
 
-      vector[d] /=
-        tokens;
+      vector[d]/=tokens;
     }
 
     return vector;
   }
 
-  /*
-    [1,dim] veya düz vektör
-  */
-
-  return Float32Array.from(
-    data
-  );
+  return Float32Array.from(data);
 }
 
-async function getAIEmbedding(
-  canvas
-){
+async function getEmbedding(canvas){
 
   if(!extractor){
     return null;
@@ -2283,47 +2056,33 @@ async function getAIEmbedding(
 
   try{
 
-    const dataUrl =
-      canvas.toDataURL(
-        "image/png"
-      );
-
-    const output =
+    const output=
       await extractor(
-        dataUrl
+        canvas.toDataURL(
+          "image/png"
+        )
       );
 
-    return meanPoolTensor(
-      output
-    );
+    return meanPool(output);
 
   }catch(err){
 
-    console.error(
-      "AI feature hatası:",
-      err
-    );
+    console.error(err);
 
     return null;
   }
 }
 
-function cosineSimilarity(a,b){
+function cosine(a,b){
 
-  if(
-    !a ||
-    !b ||
-    !a.length ||
-    !b.length
-  ){
+  if(!a || !b){
     return null;
   }
 
-  const len =
-    Math.min(
-      a.length,
-      b.length
-    );
+  const len=Math.min(
+    a.length,
+    b.length
+  );
 
   let dot=0;
   let aa=0;
@@ -2331,35 +2090,30 @@ function cosineSimilarity(a,b){
 
   for(let i=0;i<len;i++){
 
-    dot += a[i]*b[i];
-    aa += a[i]*a[i];
-    bb += b[i]*b[i];
+    dot+=a[i]*b[i];
+    aa+=a[i]*a[i];
+    bb+=b[i]*b[i];
   }
 
   if(!aa || !bb){
     return null;
   }
 
-  const cosine =
-    dot/
-    (
-      Math.sqrt(aa)*
-      Math.sqrt(bb)
-    );
-
-  /*
-    CLIP benzerliğini 0..1
-    aralığına getir.
-  */
-
   return clamp(
-    (cosine+1)/2
+    (
+      dot/
+      (
+        Math.sqrt(aa)*
+        Math.sqrt(bb)
+      )+
+      1
+    )/2
   );
 }
 
-/* =========================================================
-   REFERANSI HAZIRLA
-========================================================= */
+/* =====================================================
+   REFERANS HAZIRLA
+===================================================== */
 
 async function prepareReference(
   ref,
@@ -2367,50 +2121,39 @@ async function prepareReference(
   useAI
 ){
 
-  const cacheKey =
+  const key=
     index+"|"+ref.src.length;
 
-  if(
-    referenceCache.has(
-      cacheKey
-    )
-  ){
+  if(referenceCache.has(key)){
 
-    const cached =
-      referenceCache.get(
-        cacheKey
-      );
-
-    /*
-      Önceden AI olmadan cache'e girdiyse,
-      gerekirse embedding ekle.
-    */
+    const cached=
+      referenceCache.get(key);
 
     if(
       useAI &&
       !cached.ai
     ){
 
-      cached.ai =
-        await getAIEmbedding(
-          cached.cleanCanvas
+      cached.ai=
+        await getEmbedding(
+          cached.clean
         );
     }
 
     return cached;
   }
 
-  const canvas =
+  const canvas=
     await imageToCanvas(
       ref.src
     );
 
-  const sequence =
+  const sequence=
     referenceSequence(
       canvas
     );
 
-  const cleanCanvas =
+  const clean=
     drawCleanCandles(
       sequence.raw
     );
@@ -2419,171 +2162,130 @@ async function prepareReference(
 
   if(useAI){
 
-    ai =
-      await getAIEmbedding(
-        cleanCanvas
-      );
+    ai=await getEmbedding(clean);
   }
 
-  const prepared={
+  const result={
     canvas,
     sequence,
-    cleanCanvas,
+    clean,
     ai
   };
 
   referenceCache.set(
-    cacheKey,
-    prepared
+    key,
+    result
   );
 
-  return prepared;
+  return result;
 }
 
-/* =========================================================
-   SONUÇLARI GÖSTER
-========================================================= */
+/* =====================================================
+   SONUÇ
+===================================================== */
 
 function renderResults(results){
 
   if(!results.length){
 
-    bestResult.style.display =
-      "none";
+    bestResult.style.display="none";
 
-    topMatches.textContent =
+    topMatches.textContent=
       "Eşleşme bulunamadı.";
 
     return;
   }
 
-  const best =
-    results[0];
+  const best=results[0];
 
-  bestResult.style.display =
-    "block";
+  bestResult.style.display="block";
 
-  bestName.textContent =
-    best.name;
+  bestName.textContent=best.name;
 
-  bestScore.textContent =
-    percent(best.finalScore) +
-    "%";
+  bestScore.textContent=
+    pct(best.finalScore)+"%";
 
-  bestDetail.innerHTML =
-    "Mum/Formasyon: <b>" +
-    percent(best.shapeScore) +
-    "%</b>" +
-    " &nbsp; • &nbsp; " +
-    "AI destek: <b>" +
+  bestDetail.innerHTML=
+    "Formasyon: <b>"+
+    pct(best.shapeScore)+
+    "%</b> • AI: <b>"+
     (
       best.aiScore===null
       ? "kapalı"
-      : percent(best.aiScore)+"%"
-    ) +
-    "</b>" +
-    "<br>" +
-    "Algılanan mum: <b>" +
-    best.detected +
-    "</b>" +
-    " &nbsp; • &nbsp; " +
-    "Karşılaştırılan: <b>" +
-    best.windowCount +
+      : pct(best.aiScore)+"%"
+    )+
+    "</b><br>"+
+    "Algılanan mum: <b>"+
+    best.detected+
+    "</b> • Karşılaştırılan: <b>"+
+    best.windowCount+
     "</b>";
 
   topMatches.innerHTML="";
 
-  results
-    .slice(0,5)
-    .forEach(result=>{
+  results.slice(0,5).forEach(result=>{
 
-      const row =
-        document.createElement(
-          "div"
-        );
+    const row=
+      document.createElement("div");
 
-      row.className =
-        "matchRow";
+    row.className="matchRow";
 
-      const img =
-        document.createElement(
-          "img"
-        );
+    const img=
+      document.createElement("img");
 
-      img.src =
-        result.src;
+    img.src=result.src;
 
-      const info =
-        document.createElement(
-          "div"
-        );
+    const info=
+      document.createElement("div");
 
-      info.className =
-        "matchInfo";
+    info.className="matchInfo";
 
-      const name =
-        document.createElement(
-          "div"
-        );
+    const name=
+      document.createElement("div");
 
-      name.className =
-        "matchName";
+    name.className="matchName";
+    name.textContent=result.name;
 
-      name.textContent =
-        result.name;
+    const score=
+      document.createElement("div");
 
-      const score =
-        document.createElement(
-          "div"
-        );
+    score.className="matchScore";
 
-      score.className =
-        "matchScore";
+    score.textContent=
+      pct(result.finalScore)+"%";
 
-      score.textContent =
-        percent(
-          result.finalScore
-        )+"%";
+    const detail=
+      document.createElement("div");
 
-      const detail =
-        document.createElement(
-          "div"
-        );
+    detail.className="detail";
 
-      detail.className =
-        "detail";
+    detail.textContent=
+      "Formasyon "+
+      pct(result.shapeScore)+
+      "% • AI "+
+      (
+        result.aiScore===null
+        ? "kapalı"
+        : pct(result.aiScore)+"%"
+      )+
+      " • "+
+      result.windowCount+
+      " mum";
 
-      detail.textContent =
-        "Formasyon " +
-        percent(
-          result.shapeScore
-        ) +
-        "% • AI " +
-        (
-          result.aiScore===null
-          ? "kapalı"
-          : percent(
-              result.aiScore
-            )+"%"
-        ) +
-        " • " +
-        result.windowCount +
-        " mum";
+    info.appendChild(name);
+    info.appendChild(score);
+    info.appendChild(detail);
 
-      info.appendChild(name);
-      info.appendChild(score);
-      info.appendChild(detail);
+    row.appendChild(img);
+    row.appendChild(info);
 
-      row.appendChild(img);
-      row.appendChild(info);
-
-      topMatches.appendChild(row);
-    });
+    topMatches.appendChild(row);
+  });
 }
 
-/* =========================================================
+/* =====================================================
    TARAMA
-========================================================= */
+===================================================== */
 
 scanBtn.addEventListener(
   "click",
@@ -2594,7 +2296,7 @@ async function scanFormation(){
 
   if(!cameraReady){
 
-    statusEl.textContent =
+    statusEl.textContent=
       "Önce kamerayı aç.";
 
     return;
@@ -2602,56 +2304,57 @@ async function scanFormation(){
 
   if(!references.length){
 
-    statusEl.textContent =
-      "Önce en az bir referans formasyon ekle.";
+    statusEl.textContent=
+      "Önce referans formasyon ekle.";
 
     return;
   }
 
   scanBtn.disabled=true;
 
-  bestResult.style.display =
-    "none";
+  bestResult.style.display="none";
 
-  topMatches.textContent =
-    "Formasyonlar karşılaştırılıyor…";
+  topMatches.textContent=
+    "Mumlar okunuyor…";
 
   try{
 
-    const queryCanvas =
-      captureLens();
+    /*
+      SADECE YEŞİL ALAN ANALİZ EDİLİYOR.
+    */
 
-    const queryDetected =
+    const queryCanvas=
+      captureScanRegion();
+
+    const detected=
       detectCandles(
         queryCanvas
       );
 
-    if(queryDetected.length<3){
+    /*
+      Önceki 3 mum zorunluluğu kaldırıldı.
+      2 gerçek mum bile algılansa sonucu gösterir.
+    */
 
-      statusEl.textContent =
-        "Yeterli mum algılanamadı. Grafiği biraz daha yaklaştır.";
+    if(detected.length<2){
 
-      topMatches.textContent =
-        "En az 3 belirgin kırmızı/yeşil mum gerekli.";
+      statusEl.textContent=
+        "Mumlar yeterince net algılanamadı.";
+
+      topMatches.textContent=
+        "Yeşil alandaki kırmızı/yeşil mumları biraz daha net hizala.";
 
       return;
     }
 
-    /*
-      AI yüklenemezse sistem yine
-      mum geometrisiyle çalışır.
-    */
+    statusEl.textContent=
+      detected.length+
+      " mum algılandı. Karşılaştırılıyor…";
 
-    const aiModel =
+    const model=
       await loadAI();
 
-    const useAI =
-      !!aiModel;
-
-    statusEl.textContent =
-      useAI
-      ? "Mum dizilimi + AI karşılaştırılıyor…"
-      : "Mum dizilimi karşılaştırılıyor…";
+    const useAI=!!model;
 
     const results=[];
 
@@ -2661,23 +2364,17 @@ async function scanFormation(){
       i++
     ){
 
-      const ref =
-        references[i];
+      const ref=references[i];
 
-      const prepared =
+      const prepared=
         await prepareReference(
           ref,
           i,
           useAI
         );
 
-      /*
-        Referansta yeterli mum bulunamazsa
-        sahte skor üretme.
-      */
-
       if(
-        prepared.sequence.count<3
+        prepared.sequence.count<2
       ){
 
         results.push({
@@ -2690,7 +2387,7 @@ async function scanFormation(){
           finalScore:0,
 
           detected:
-            queryDetected.length,
+            detected.length,
 
           windowCount:0
         });
@@ -2698,7 +2395,7 @@ async function scanFormation(){
         continue;
       }
 
-      const match =
+      const match=
         bestShapeMatch(
           queryCanvas,
           prepared.sequence
@@ -2711,43 +2408,34 @@ async function scanFormation(){
         match.window
       ){
 
-        const queryClean =
+        const cleanQuery=
           drawCleanCandles(
             match.window.raw
           );
 
-        const queryAI =
-          await getAIEmbedding(
-            queryClean
+        const queryAI=
+          await getEmbedding(
+            cleanQuery
           );
 
-        aiScore =
-          cosineSimilarity(
-            queryAI,
-            prepared.ai
-          );
+        aiScore=cosine(
+          queryAI,
+          prepared.ai
+        );
       }
-
-      /*
-        ANA KARAR:
-        %82 gerçek mum/formasyon yapısı.
-        %18 AI destek.
-
-        AI yoksa %100 formasyon yapısı.
-      */
 
       let finalScore;
 
       if(aiScore===null){
 
-        finalScore =
+        finalScore=
           match.score;
 
       }else{
 
-        finalScore =
+        finalScore=
           match.score*
-          SHAPE_WEIGHT +
+          SHAPE_WEIGHT+
           aiScore*
           AI_WEIGHT;
       }
@@ -2766,7 +2454,7 @@ async function scanFormation(){
           clamp(finalScore),
 
         detected:
-          queryDetected.length,
+          detected.length,
 
         windowCount:
           match.window
@@ -2781,48 +2469,44 @@ async function scanFormation(){
         a.finalScore
     );
 
-    renderResults(
-      results
-    );
+    renderResults(results);
 
-    statusEl.textContent =
-      "Tarama tamamlandı.";
+    statusEl.textContent=
+      detected.length+
+      " mum algılandı • Tarama tamamlandı.";
 
   }catch(err){
 
     console.error(err);
 
-    statusEl.textContent =
+    statusEl.textContent=
       "Tarama sırasında hata oluştu.";
 
-    topMatches.textContent =
+    topMatches.textContent=
       err?.message ||
       "Bilinmeyen hata.";
 
   }finally{
 
-    scanBtn.disabled =
+    scanBtn.disabled=
       !cameraReady;
   }
 }
 
-/* =========================================================
-   BAŞLANGIÇ
-========================================================= */
+/* =====================================================
+   BAŞLAT
+===================================================== */
 
 renderReferences();
 
-statusEl.textContent =
+statusEl.textContent=
   references.length
-  ? references.length +
+  ? references.length+
     " referans hazır."
   : "Hazır. Referans formasyonlarını ekle.";
 
-requestAnimationFrame(
-  drawGrid
-);
+requestAnimationFrame(drawGrid);
 
 </script>
-
 </body>
 </html>
