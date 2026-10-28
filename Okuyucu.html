@@ -284,8 +284,9 @@ import { pipeline } from
 const TARGET_W=502;
 const TARGET_H=277;
 
-const SHAPE_WEIGHT=.82;
-const AI_WEIGHT=.18;
+/* DÜZELTİLDİ: Formasyon ana ölçüt, AI yalnızca destek */
+const SHAPE_WEIGHT=.95;
+const AI_WEIGHT=.05;
 
 const STORAGE_KEY="chartReferences";
 
@@ -640,7 +641,7 @@ function drawGrid(){
 
     ctx.beginPath();
     ctx.moveTo(0,y);
-    ctx.lineTo(w,y);
+    ctx.lineTo(0+w,y);
     ctx.stroke();
   }
 
@@ -712,11 +713,6 @@ function drawDetectedCandles(candles){
       scanY+
       (c.bottom/TARGET_H)*scanH;
 
-    /*
-      Kutunun içi BOŞ.
-      Sadece sensör sınırı.
-    */
-
     ctx.strokeStyle=
       c.direction>0
       ? "#00ff88"
@@ -760,12 +756,6 @@ function drawDetectedCandles(candles){
 window.addEventListener("resize",()=>{
   drawGrid();
 });
-
-/* KAMERA GÖRÜNTÜSÜ
-   ÖNEMLİ:
-   Görünen kamera oranı ile analiz edilen
-   kamera oranı artık aynıdır.
-*/
 
 function captureFullFrame(){
 
@@ -872,8 +862,6 @@ function captureScanRegion(){
   return out;
 }
 
-/* REFERANS CANVAS */
-
 function imageToCanvas(src){
 
   return new Promise((resolve,reject)=>{
@@ -917,8 +905,6 @@ function imageToCanvas(src){
     img.src=src;
   });
 }
-
-/* RENK ALGILAMA */
 
 function classifyPixel(r,g,b){
 
@@ -1017,8 +1003,6 @@ function buildColorMask(canvas){
     height:canvas.height
   };
 }
-
-/* BAĞLI RENKLİ ALANLARI BUL */
 
 function connectedComponents(data,type){
 
@@ -1126,8 +1110,6 @@ function connectedComponents(data,type){
   return components;
 }
 
-/* GÖVDE ADAYLARI */
-
 function bodyCandidates(data){
 
   const all=[
@@ -1154,8 +1136,6 @@ function bodyCandidates(data){
     return true;
   });
 }
-
-/* AYNI MUMA AİT PARÇALARI BİRLEŞTİR */
 
 function mergeBodyCandidates(items){
 
@@ -1238,8 +1218,6 @@ function mergeBodyCandidates(items){
   return out;
 }
 
-/* GÖVDEDEN FİTİLİ BUL */
-
 function candleFromBody(body,data){
 
   const {
@@ -1315,8 +1293,6 @@ function candleFromBody(body,data){
   };
 }
 
-/* MUMLARI BUL */
-
 function detectCandles(canvas){
 
   const data=buildColorMask(canvas);
@@ -1382,8 +1358,6 @@ function detectCandles(canvas){
   return final;
 }
 
-/* CANLI ALGILAMA SENSÖRÜ */
-
 function startSensor(){
 
   stopSensor();
@@ -1442,8 +1416,6 @@ async function updateSensor(){
     sensorBusy=false;
   }
 }
-
-/* NORMALİZE DİZİ */
 
 function normalizeSequence(raw){
 
@@ -1819,8 +1791,6 @@ function bestShapeMatch(
   };
 }
 
-/* TEMİZ MUM GÖRÜNTÜSÜ */
-
 function drawCleanCandles(raw){
 
   const out=
@@ -1927,8 +1897,6 @@ function drawCleanCandles(raw){
 
   return out;
 }
-
-/* AI */
 
 async function loadAI(){
 
@@ -2134,8 +2102,6 @@ async function prepareReference(
   return result;
 }
 
-/* SONUÇ */
-
 function renderResults(results){
 
   if(!results.length){
@@ -2233,8 +2199,6 @@ function renderResults(results){
     topMatches.appendChild(row);
   });
 }
-
-/* TARAMA */
 
 scanBtn.addEventListener(
   "click",
@@ -2427,8 +2391,6 @@ async function scanFormation(){
       !cameraReady;
   }
 }
-
-/* BAŞLAT */
 
 renderReferences();
 
