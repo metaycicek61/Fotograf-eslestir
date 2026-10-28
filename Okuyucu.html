@@ -29,12 +29,12 @@ h1{
   margin:12px 0 18px;
 }
 
-/* Biraz daha dar ve daha yüksek kamera */
+/* Kamera biraz daha dar ve biraz daha yüksek */
 .cameraBox{
   position:relative;
-  width:94%;
+  width:91%;
   margin:0 auto;
-  aspect-ratio:1.58/1;
+  aspect-ratio:1.50/1;
   background:#000;
   overflow:hidden;
   border-radius:18px;
@@ -289,8 +289,8 @@ const AI_WEIGHT=.18;
 
 const STORAGE_KEY="chartReferences";
 
-/* Biraz daha dar ve yüksek SON HAREKET alanı */
-const SCAN_LEFT=.53;
+/* Yeşil SON HAREKET alanı biraz daha geniş */
+const SCAN_LEFT=.49;
 const SCAN_RIGHT=.93;
 const SCAN_TOP=.025;
 const SCAN_BOTTOM=.975;
@@ -622,9 +622,10 @@ function drawGrid(){
   ctx.strokeStyle="rgba(255,255,255,.22)";
   ctx.lineWidth=1;
 
-  for(let i=1;i<6;i++){
+  /* 8 sütun */
+  for(let i=1;i<8;i++){
 
-    const x=w*i/6;
+    const x=w*i/8;
 
     ctx.beginPath();
     ctx.moveTo(x,0);
@@ -632,9 +633,10 @@ function drawGrid(){
     ctx.stroke();
   }
 
-  for(let i=1;i<4;i++){
+  /* 6 satır */
+  for(let i=1;i<6;i++){
 
-    const y=h*i/4;
+    const y=h*i/6;
 
     ctx.beginPath();
     ctx.moveTo(0,y);
@@ -957,21 +959,12 @@ function classifyPixel(r,g,b){
 
   const sat=max===0?0:delta/max;
 
-  /*
-    Binance benzeri kırmızı mum.
-    Mor/magenta MA çizgilerini dışarıda bırakır.
-  */
-
   const red=
     sat>.22&&
     (
       hue<=18||
       hue>=342
     );
-
-  /*
-    Yeşil mum.
-  */
 
   const green=
     sat>.18&&
@@ -1150,25 +1143,12 @@ function bodyCandidates(data){
     const fill=
       c.area/Math.max(1,boxArea);
 
-    /*
-      Mum gövdesi:
-      - çok küçük nokta değil
-      - uzun MA çizgisi değil
-      - belirli yoğunluğu var
-    */
-
     if(c.area<8)return false;
-
     if(c.width<2)return false;
-
     if(c.height<2)return false;
-
     if(c.width>data.width*.10)return false;
-
     if(c.height>data.height*.94)return false;
-
     if(c.width>c.height*5.5)return false;
-
     if(fill<.20)return false;
 
     return true;
@@ -1292,11 +1272,6 @@ function candleFromBody(body,data){
 
       if(mask[y*width+x]===body.type){
 
-        /*
-          Fitili sadece gövde çevresinde kabul et.
-          Böylece uzaktaki yazı/çizgi muma bağlanmaz.
-        */
-
         const maxDistance=
           Math.max(
             body.height*4,
@@ -1362,11 +1337,6 @@ function detectCandles(canvas){
     return [];
   }
 
-  /*
-    Aşırı küçük gürültüleri temizle.
-    Küçük gerçek mumları korumak için toleranslı.
-  */
-
   const widths=
     candles.map(c=>c.width);
 
@@ -1387,11 +1357,6 @@ function detectCandles(canvas){
 
       return true;
     });
-
-  /*
-    Birbirinin içine giren aynı x konumlu
-    yanlış adayları azalt.
-  */
 
   const final=[];
 
