@@ -885,6 +885,13 @@ function imageToCanvas(src){
         w,h
       );
 
+      const m=6;
+      ctx.fillStyle="#fff";
+      ctx.fillRect(0,0,TARGET_W,m);
+      ctx.fillRect(0,TARGET_H-m,TARGET_W,m);
+      ctx.fillRect(0,0,m,TARGET_H);
+      ctx.fillRect(TARGET_W-m,0,m,TARGET_H);
+
       resolve(c);
     };
 
@@ -1224,6 +1231,10 @@ function candleFromBody(body,data){
       Math.round(body.width*.30)
     );
 
+  const maxDistance=
+    Math.max(body.height*4,height*.16);
+  const maxGap=5;
+
   let top=body.minY;
   let bottom=body.maxY;
 
@@ -1232,31 +1243,19 @@ function candleFromBody(body,data){
     x<=Math.min(width-1,centerX+band);
     x++
   ){
-
-    for(let y=0;y<height;y++){
-
+    let gap=0;
+    for(let y=body.minY-1;
+        y>=0&&body.minY-y<=maxDistance;y--){
       if(mask[y*width+x]===body.type){
-
-        const maxDistance=
-          Math.max(
-            body.height*4,
-            height*.16
-          );
-
-        if(
-          y<body.minY&&
-          body.minY-y<=maxDistance
-        ){
-          top=Math.min(top,y);
-        }
-
-        if(
-          y>body.maxY&&
-          y-body.maxY<=maxDistance
-        ){
-          bottom=Math.max(bottom,y);
-        }
-      }
+        top=Math.min(top,y);gap=0;
+      }else if(++gap>maxGap)break;
+    }
+    gap=0;
+    for(let y=body.maxY+1;
+        y<height&&y-body.maxY<=maxDistance;y++){
+      if(mask[y*width+x]===body.type){
+        bottom=Math.max(bottom,y);gap=0;
+      }else if(++gap>maxGap)break;
     }
   }
 
