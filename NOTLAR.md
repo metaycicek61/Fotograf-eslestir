@@ -36,8 +36,10 @@ Sağdan kesilen mumlar: F1 son 5 (22-26, kalan 21), F2 son 8 (25-32, kalan 24), 
 - [x] Sağdan kesilecek mum sayıları belirlendi, kesilmiş dosyalar hazır
 - [ ] Kesilmiş referansları siteye ekle (eski referansları sil)
 - [x] Koda iki düzeltme yapıldı (Okuyucu.html): candleFromBody (fitil uzatma, boşluk toleransı), imageToCanvas kenar temizliği. Kamerayla test bekliyor.
+- [x] Mum sayısı uyuşmazlığı düzeltildi: kamera referanstan az mum görürse referansın son k mumuyla da karşılaştırılır (bestShapeMatch / referenceTail).
+- [x] Sahte kutular: gövde yüksekliği tuvalin %55'inden büyükse elenir; kenara değen ve %35'ten uzun gövdeler elenir.
 - [ ] AI skorunu düzelt (ölçekle ya da kapat)
-- [ ] Tarama alanı oranı: ekranda dikey kutu, analiz tuvali yatay (mumlar yatayda ~2,6 kat gerilir)
+- [x] Tarama alanı oranı düzeltildi: kutu artık referansla aynı oranda (SCAN_LEFT .25, RIGHT .97, TOP .20, BOTTOM .795), mumlar gerilmiyor. Yakalama 2x çözünürlükte.
 - [ ] Tek kare yerine birkaç kareye bakıp tutarlı sonuç alma
 - [ ] Düşük skorda "eşleşme yok" eşiği
 - [ ] Test: referansı ekranda açıp kendi kendine taratma, sonra gerçek Binance grafiği

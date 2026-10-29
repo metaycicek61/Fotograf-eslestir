@@ -288,10 +288,13 @@ const AI_WEIGHT=.05;
 
 const STORAGE_KEY="chartReferences";
 
-const SCAN_LEFT=.49;
-const SCAN_RIGHT=.93;
-const SCAN_TOP=.025;
-const SCAN_BOTTOM=.975;
+/* Tarama kutusu referans tuvaliyle (502x277) aynı orandadır:
+   .72*1.5 / .595 = 1.815 ≈ 502/277. Böylece mumlar gerilmez. */
+const SCAN_LEFT=.25;
+const SCAN_RIGHT=.97;
+const SCAN_TOP=.20;
+const SCAN_BOTTOM=.795;
+const CAPTURE_SCALE=2;
 
 const video=document.getElementById("video");
 const overlay=document.getElementById("overlay");
@@ -745,6 +748,7 @@ window.addEventListener("resize",()=>{
 });
 
 function captureFullFrame(){
+  const CAP_W=TARGET_W*CAPTURE_SCALE;
 
   if(
     !cameraReady||
@@ -764,11 +768,11 @@ function captureFullFrame(){
 
   const c=document.createElement("canvas");
 
-  c.width=TARGET_W;
+  c.width=CAP_W;
 
   c.height=Math.max(
     1,
-    Math.round(TARGET_W/displayRatio)
+    Math.round(CAP_W/displayRatio)
   );
 
   const ctx=c.getContext(
@@ -1123,7 +1127,11 @@ function bodyCandidates(data){
     if(c.width<2)return false;
     if(c.height<2)return false;
     if(c.width>data.width*.10)return false;
-    if(c.height>data.height*.94)return false;
+    if(c.height>data.height*.55)return false;
+    if(
+      (c.minY<=1||c.maxY>=data.height-2)&&
+      c.height>data.height*.35
+    )return false;
     if(c.width>c.height*5.5)return false;
     if(fill<.20)return false;
 
@@ -1962,6 +1970,17 @@ function compareSequences(
   return clamp(finalScore);
 }
 
+function referenceTail(reference,n){
+
+  const raw=reference.raw.slice(-n);
+
+  return {
+    raw,
+    candles:normalizeSequence(raw),
+    count:raw.length
+  };
+}
+
 function bestShapeMatch(
   queryCanvas,
   reference
@@ -1970,38 +1989,72 @@ function bestShapeMatch(
   const detected=
     detectCandles(queryCanvas);
 
-  const windows=
-    queryWindows(
-      queryCanvas,
-      reference.count
-    );
+  /* Kamera referanstan az mum görüyorsa referansın
+     sadece son mumlarıyla da karşılaştır. */
+  const variants=[{ref:reference,factor:1}];
+
+  if(
+    reference.raw&&
+    detected.length<reference.count-1
+  ){
+
+    const sizes=new Set();
+
+    for(let d=-1;d<=1;d++){
+
+      const k=detected.length+d;
+
+      if(k>=6&&k<reference.count){
+        sizes.add(k);
+      }
+    }
+
+    for(const k of sizes){
+
+      variants.push({
+        ref:referenceTail(reference,k),
+        factor:.90+.10*(k/reference.count)
+      });
+    }
+  }
 
   let best=null;
 
-  for(const window of windows){
+  for(const variant of variants){
 
-    let score=
-      compareSequences(
-        window,
-        reference
+    const windows=
+      queryWindows(
+        queryCanvas,
+        variant.ref.count
       );
 
-    score*=
-      .96+
-      window.rightness*.04;
+    for(const window of windows){
 
-    score=clamp(score);
+      let score=
+        compareSequences(
+          window,
+          variant.ref
+        );
 
-    if(
-      !best||
-      score>best.score
-    ){
+      score*=
+        .96+
+        window.rightness*.04;
 
-      best={
-        score,
-        window,
-        detected:detected.length
-      };
+      score*=variant.factor;
+
+      score=clamp(score);
+
+      if(
+        !best||
+        score>best.score
+      ){
+
+        best={
+          score,
+          window,
+          detected:detected.length
+        };
+      }
     }
   }
 
