@@ -76,14 +76,24 @@ Sağdan kesilen mumlar: F1 son 5 (22-26, kalan 21), F2 son 8 (25-32, kalan 24), 
 ## Mum sayısı ölçütleri (VIEW_RULES, Okuyucu.html)
 Gözlem (iPhone, yakın ve paralel çekim): 17 mum ve üstü iyi, 25 mum civarı en iyi sonuç.
 Eşikler kütüphaneden otomatik hesaplanır, yeni formasyon eklenince kendiliğinden güncellenir:
-- iyi başlangıç = en kısa referansın %80'i (şu an 21 mum -> 17)
+- iyi başlangıç = en kısa referansın %95'i (şu an 21 mum -> 20). İlk değer %80 (17) idi, test sonuçlarına göre 20'ye çekildi
 - çok iyi = en uzun referansın %95'i (şu an 25 mum -> 24)
 - çok fazla = en uzun referansın %125'i
 - Ayar: VIEW_RULES içindeki goodRatio / bestRatio / manyRatio / minGoodFloor
-- Kütüphane okunamazsa varsayılanlar: 17 / 24 / 31
-Uyarı şeridi: 17'nin altı "formasyonun tamamı görünmüyor", 17-23 "iyi", 24 ve üstü "çok iyi".
+- Kütüphane okunamazsa varsayılanlar: 20 / 24 / 31
+Uyarı şeridi: 20'nin altı "formasyonun tamamı görünmüyor", 20-23 "iyi", 24 ve üstü "çok iyi".
 
 ## Mesafe gözlemi (iPhone, 06:41)
 - Orta mesafe, grafik kutunun ortasında: 24 mum, "çok iyi görüntü". En dengeli çekim bu.
 - Yakın mesafe: 15 mum, görüntü bulanık, formasyonun tamamı kutuya girmiyor. Uyarı şeridi bu durumda "formasyonun tamamı görünmüyor" demeli.
 - Hata düzeltildi: uyarı şeridi önceki karelerin ortalamasına bakıp geriden geliyordu (sensör 15, şerit 18 yazıyordu). Artık son 3 kareye bakıyor ve metinde o anki mum sayısını gösteriyor.
+
+## Mum sayısı - skor tablosu (fo2 kendi kendine test, iPhone)
+| Algılanan mum | Sonuç |
+|---|---|
+| 13 | YANLIŞ birinci (Fo1 %76, fo2 %60) |
+| 18 | doğru ama zayıf (fo2 %70, Fo1 %63, fark 7 puan) |
+| 20 | doğru, fark geniş (fo2 %93, Fo1 %51) |
+| 23 (orta mesafe) | fo2 %92, FO3 %38, fark 54 puan |
+| 25 (çok yakın, tam) | fo2 %99 |
+Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mesafe, ekrana paralel, grafik kutunun ortasında.

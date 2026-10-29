@@ -329,17 +329,17 @@ const hintEl=document.getElementById("hint");
 
 /* ===== MUM SAYISI ÖLÇÜTLERİ (kameranın gördüğü mum sayısı) =====
    Eşikler kütüphanedeki referanslardan otomatik hesaplanır:
-   - iyi başlangıç  = en kısa referansın %80'i  (21 mum -> 17)
+   - iyi başlangıç  = en kısa referansın %95'i  (21 mum -> 20)
    - çok iyi        = en uzun referansın %95'i  (25 mum -> 24)
    - çok fazla      = en uzun referansın %125'i
    Yeni formasyon eklenince eşikler kendiliğinden güncellenir.
    Kütüphane henüz okunmadıysa varsayılanlar kullanılır. */
 const VIEW_RULES={
-  goodRatio:.80,
+  goodRatio:.95,
   bestRatio:.95,
   manyRatio:1.25,
   minGoodFloor:8,
-  defaultGood:17,
+  defaultGood:20,
   defaultBest:24,
   defaultMany:31
 };
