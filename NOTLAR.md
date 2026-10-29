@@ -72,3 +72,13 @@ Sağdan kesilen mumlar: F1 son 5 (22-26, kalan 21), F2 son 8 (25-32, kalan 24), 
 - Kısmi görünüm (13 mum algılandı, grafik yakın): Fo1 %76, fo2 %60. YANLIŞ birinci. Sebep: sadece son ~13 mum görününce Fo1 ve fo2'nin sonu (yatay taban + büyük yeşil mum) birbirine benziyor.
 - Karar: kutuda en az 18 mum görünmeli (FULL_VIEW_MIN=18). Daha azsa canlı uyarı "Formasyonun tamamı görünmüyor, uzaklaş" der.
 - Binance gerçek ekran testlerinde sorunlar: bulanıklık, MA çizgileri ve filigran sahte kutu üretiyor. Binance'te gösterge ve ızgara kapatılmalı.
+
+## Mum sayısı ölçütleri (VIEW_RULES, Okuyucu.html)
+Gözlem (iPhone, yakın ve paralel çekim): 17 mum ve üstü iyi, 25 mum civarı en iyi sonuç.
+Eşikler kütüphaneden otomatik hesaplanır, yeni formasyon eklenince kendiliğinden güncellenir:
+- iyi başlangıç = en kısa referansın %80'i (şu an 21 mum -> 17)
+- çok iyi = en uzun referansın %95'i (şu an 25 mum -> 24)
+- çok fazla = en uzun referansın %125'i
+- Ayar: VIEW_RULES içindeki goodRatio / bestRatio / manyRatio / minGoodFloor
+- Kütüphane okunamazsa varsayılanlar: 17 / 24 / 31
+Uyarı şeridi: 17'nin altı "formasyonun tamamı görünmüyor", 17-23 "iyi", 24 ve üstü "çok iyi".

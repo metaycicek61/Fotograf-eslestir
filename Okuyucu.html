@@ -327,9 +327,80 @@ const statusEl=document.getElementById("status");
 const sensorStatus=document.getElementById("sensorStatus");
 const hintEl=document.getElementById("hint");
 
-/* Kütüphane referansları 21-25 mum içerir; ayırt etme gücü için
-   en az bu kadar mumun kutuda görünmesi istenir. */
-const FULL_VIEW_MIN=18;
+/* ===== MUM SAYISI ÖLÇÜTLERİ (kameranın gördüğü mum sayısı) =====
+   Eşikler kütüphanedeki referanslardan otomatik hesaplanır:
+   - iyi başlangıç  = en kısa referansın %80'i  (21 mum -> 17)
+   - çok iyi        = en uzun referansın %95'i  (25 mum -> 24)
+   - çok fazla      = en uzun referansın %125'i
+   Yeni formasyon eklenince eşikler kendiliğinden güncellenir.
+   Kütüphane henüz okunmadıysa varsayılanlar kullanılır. */
+const VIEW_RULES={
+  goodRatio:.80,
+  bestRatio:.95,
+  manyRatio:1.25,
+  minGoodFloor:8,
+  defaultGood:17,
+  defaultBest:24,
+  defaultMany:31
+};
+
+let refCounts=[];
+
+function viewThresholds(){
+
+  if(!refCounts.length){
+    return {
+      good:VIEW_RULES.defaultGood,
+      best:VIEW_RULES.defaultBest,
+      many:VIEW_RULES.defaultMany,
+      min:0,max:0
+    };
+  }
+
+  const mn=Math.min(...refCounts);
+  const mx=Math.max(...refCounts);
+
+  const good=Math.max(
+    VIEW_RULES.minGoodFloor,
+    Math.round(mn*VIEW_RULES.goodRatio)
+  );
+
+  const best=Math.max(
+    good+1,
+    Math.round(mx*VIEW_RULES.bestRatio)
+  );
+
+  return {
+    good,
+    best,
+    many:Math.max(
+      best+3,
+      Math.round(mx*VIEW_RULES.manyRatio)
+    ),
+    min:mn,
+    max:mx
+  };
+}
+
+async function updateReferenceCounts(){
+
+  const counts=[];
+
+  for(const ref of references){
+
+    try{
+
+      const c=await imageToCanvas(ref.src);
+
+      counts.push(detectCandles(c).length);
+
+    }catch(e){
+      console.error(e);
+    }
+  }
+
+  refCounts=counts.filter(n=>n>=2);
+}
 
 let hintLockUntil=0;
 let hintHistory=[];
@@ -358,9 +429,11 @@ function guidanceFor(candles,canvas){
 
   const span=(bottom-top)/H;
 
-  if(n>28){
+  const t=viewThresholds();
+
+  if(n>t.many){
     return {code:"many",level:"warn",text:
-      "Çok fazla mum var, küçük kalıyorlar. Biraz yaklaş ya da Binance'te grafiği iki parmakla büyüt."};
+      "Çok fazla mum var ("+n+"), küçük kalıyorlar. Biraz yaklaş ya da Binance'te grafiği iki parmakla büyüt."};
   }
 
   if(span>.93){
@@ -373,9 +446,9 @@ function guidanceFor(candles,canvas){
       "Az mum görünüyor. Biraz uzaklaş ya da Binance'te grafiği küçült (iki parmakla sıkıştır)."};
   }
 
-  if(n<FULL_VIEW_MIN){
+  if(n<t.good){
     return {code:"partial",level:"warn",text:
-      "Formasyonun tamamı kutuda görünmüyor ("+n+" mum). Kısa görüntüde formasyonlar birbirine benziyor. Biraz uzaklaş ya da Binance'te grafiği küçült; en az "+FULL_VIEW_MIN+" mum görünsün."};
+      "Formasyonun tamamı kutuda görünmüyor ("+n+" mum). Kısa görüntüde formasyonlar birbirine benziyor. Biraz uzaklaş ya da Binance'te grafiği küçült; en az "+t.good+" mum görünsün."};
   }
 
   if(span<.2){
@@ -383,8 +456,13 @@ function guidanceFor(candles,canvas){
       "Mumlar çok küçük görünüyor. Biraz yaklaş ya da grafiği büyüt."};
   }
 
+  if(n>=t.best){
+    return {code:"best",level:"good",text:
+      "✓✓ Çok iyi görüntü ("+n+" mum). Telefonu sabit tut ve “Formasyonu Tara”ya bas."};
+  }
+
   return {code:"ok",level:"good",text:
-    "✓ İyi görüntü. Telefonu sabit tut ve “Formasyonu Tara”ya bas."};
+    "✓ İyi görüntü ("+n+" mum). Daha çok mum görünürse sonuç daha güvenilir olur ("+t.best+"+ ideal). Telefonu sabit tut ve “Formasyonu Tara”ya bas."};
 }
 
 function updateHint(candles,canvas){
@@ -420,6 +498,7 @@ const topMatches=document.getElementById("topMatches");
 const clearBtn=document.getElementById("clearBtn");
 
 let references=loadReferences();
+updateReferenceCounts();
 
 let extractor=null;
 let modelLoading=false;
@@ -460,6 +539,7 @@ function loadReferences(){
 }
 
 function saveReferences(){
+  setTimeout(()=>{updateReferenceCounts();},0);
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify(references)
