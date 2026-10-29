@@ -1,6 +1,6 @@
 # Formasyon Okuyucu AI - Proje Notları
 
-Site: metaycicek61.github.io (tek dosyalık HTML/JS, kamerayla mum formasyonu okuma)
+Site: metaycicek61.github.io/Fotograf-eslestir/Okuyucu.html (canlı dosya: Okuyucu.html; tek dosyalık HTML/JS, kamerayla mum formasyonu okuma)
 
 ## Uygulama özeti
 - Kamera, ekrandaki yeşil "SON HAREKET" kutusunu okur.
@@ -34,7 +34,7 @@ Sağdan kesilecek mum sayıları: belirlenecek.
 
 ## Yapılacaklar
 - [ ] Sağdan kesilecek mum sayısını belirle, kesilmiş referansları siteye ekle (eski referansları sil)
-- [ ] Koda iki düzeltme: candleFromBody (fitil uzatma, boşluk toleransı), imageToCanvas kenar temizliği
+- [x] Koda iki düzeltme yapıldı (Okuyucu.html): candleFromBody (fitil uzatma, boşluk toleransı), imageToCanvas kenar temizliği. Kamerayla test bekliyor.
 - [ ] AI skorunu düzelt (ölçekle ya da kapat)
 - [ ] Tarama alanı oranı: ekranda dikey kutu, analiz tuvali yatay (mumlar yatayda ~2,6 kat gerilir)
 - [ ] Tek kare yerine birkaç kareye bakıp tutarlı sonuç alma
