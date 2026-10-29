@@ -82,3 +82,8 @@ Eşikler kütüphaneden otomatik hesaplanır, yeni formasyon eklenince kendiliğ
 - Ayar: VIEW_RULES içindeki goodRatio / bestRatio / manyRatio / minGoodFloor
 - Kütüphane okunamazsa varsayılanlar: 17 / 24 / 31
 Uyarı şeridi: 17'nin altı "formasyonun tamamı görünmüyor", 17-23 "iyi", 24 ve üstü "çok iyi".
+
+## Mesafe gözlemi (iPhone, 06:41)
+- Orta mesafe, grafik kutunun ortasında: 24 mum, "çok iyi görüntü". En dengeli çekim bu.
+- Yakın mesafe: 15 mum, görüntü bulanık, formasyonun tamamı kutuya girmiyor. Uyarı şeridi bu durumda "formasyonun tamamı görünmüyor" demeli.
+- Hata düzeltildi: uyarı şeridi önceki karelerin ortalamasına bakıp geriden geliyordu (sensör 15, şerit 18 yazıyordu). Artık son 3 kareye bakıyor ve metinde o anki mum sayısını gösteriyor.

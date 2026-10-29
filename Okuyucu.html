@@ -410,15 +410,43 @@ function setHint(text,level){
   hintEl.className=level||"";
 }
 
+function hintMessage(code,n,t){
+
+  switch(code){
+
+    case "none":
+      return "Mum okunamıyor. Grafiği yeşil kutunun içine getir, telefonu sabit tut ve netleşmesini bekle. Düzelmezse biraz yaklaş ya da uzaklaş.";
+
+    case "many":
+      return "Çok fazla mum var ("+n+"), küçük kalıyorlar. Biraz yaklaş ya da Binance'te grafiği iki parmakla büyüt.";
+
+    case "tall":
+      return "Grafik kutudan taşıyor. Biraz uzaklaş ya da Binance'te grafiği küçült.";
+
+    case "few":
+      return "Az mum görünüyor ("+n+"). Biraz uzaklaş ya da Binance'te grafiği küçült (iki parmakla sıkıştır).";
+
+    case "partial":
+      return "Formasyonun tamamı kutuda görünmüyor ("+n+" mum). Kısa görüntüde formasyonlar birbirine benziyor. Biraz uzaklaş ya da Binance'te grafiği küçült; en az "+t.good+" mum görünsün.";
+
+    case "flat":
+      return "Mumlar çok küçük görünüyor. Biraz yaklaş ya da grafiği büyüt.";
+
+    case "best":
+      return "✓✓ Çok iyi görüntü ("+n+" mum). Telefonu sabit tut ve “Formasyonu Tara”ya bas.";
+
+    default:
+      return "✓ İyi görüntü ("+n+" mum). Daha çok mum görünürse sonuç daha güvenilir olur ("+t.best+"+ ideal). Telefonu sabit tut ve “Formasyonu Tara”ya bas.";
+  }
+}
+
 function guidanceFor(candles,canvas){
 
   const n=candles.length;
   const H=canvas.height;
+  const t=viewThresholds();
 
-  if(n<3){
-    return {code:"none",level:"bad",text:
-      "Mum okunamıyor. Grafiği yeşil kutunun içine getir, telefonu sabit tut ve netleşmesini bekle. Düzelmezse biraz yaklaş ya da uzaklaş."};
-  }
+  if(n<3)return {code:"none",level:"bad"};
 
   let top=Infinity,bottom=-Infinity;
 
@@ -429,51 +457,27 @@ function guidanceFor(candles,canvas){
 
   const span=(bottom-top)/H;
 
-  const t=viewThresholds();
+  if(n>t.many)return {code:"many",level:"warn"};
+  if(span>.93)return {code:"tall",level:"warn"};
+  if(n<8)return {code:"few",level:"warn"};
+  if(n<t.good)return {code:"partial",level:"warn"};
+  if(span<.2)return {code:"flat",level:"warn"};
+  if(n>=t.best)return {code:"best",level:"good"};
 
-  if(n>t.many){
-    return {code:"many",level:"warn",text:
-      "Çok fazla mum var ("+n+"), küçük kalıyorlar. Biraz yaklaş ya da Binance'te grafiği iki parmakla büyüt."};
-  }
-
-  if(span>.93){
-    return {code:"tall",level:"warn",text:
-      "Grafik kutudan taşıyor. Biraz uzaklaş ya da Binance'te grafiği küçült."};
-  }
-
-  if(n<8){
-    return {code:"few",level:"warn",text:
-      "Az mum görünüyor. Biraz uzaklaş ya da Binance'te grafiği küçült (iki parmakla sıkıştır)."};
-  }
-
-  if(n<t.good){
-    return {code:"partial",level:"warn",text:
-      "Formasyonun tamamı kutuda görünmüyor ("+n+" mum). Kısa görüntüde formasyonlar birbirine benziyor. Biraz uzaklaş ya da Binance'te grafiği küçült; en az "+t.good+" mum görünsün."};
-  }
-
-  if(span<.2){
-    return {code:"flat",level:"warn",text:
-      "Mumlar çok küçük görünüyor. Biraz yaklaş ya da grafiği büyüt."};
-  }
-
-  if(n>=t.best){
-    return {code:"best",level:"good",text:
-      "✓✓ Çok iyi görüntü ("+n+" mum). Telefonu sabit tut ve “Formasyonu Tara”ya bas."};
-  }
-
-  return {code:"ok",level:"good",text:
-    "✓ İyi görüntü ("+n+" mum). Daha çok mum görünürse sonuç daha güvenilir olur ("+t.best+"+ ideal). Telefonu sabit tut ve “Formasyonu Tara”ya bas."};
+  return {code:"ok",level:"good"};
 }
 
 function updateHint(candles,canvas){
 
   if(Date.now()<hintLockUntil)return;
 
+  const n=candles.length;
+  const t=viewThresholds();
   const g=guidanceFor(candles,canvas);
 
   hintHistory.push(g);
 
-  if(hintHistory.length>5)hintHistory.shift();
+  if(hintHistory.length>3)hintHistory.shift();
 
   const counts={};
 
@@ -487,7 +491,9 @@ function updateHint(candles,canvas){
     if(counts[h.code]>counts[best.code])best=h;
   }
 
-  setHint(best.text,best.level);
+  /* Metin her zaman o anki karenin mum sayısını gösterir;
+     sensör satırıyla çelişmez. */
+  setHint(hintMessage(best.code,n,t),best.level);
 }
 
 const bestResult=document.getElementById("bestResult");
