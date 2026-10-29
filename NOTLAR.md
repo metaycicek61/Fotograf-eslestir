@@ -45,6 +45,9 @@ Sağdan kesilen mumlar: F1 son 5 (22-26, kalan 21), F2 son 8 (25-32, kalan 24), 
 - [ ] Düşük skorda "eşleşme yok" eşiği
 - [ ] Test: referansı ekranda açıp kendi kendine taratma, sonra gerçek Binance grafiği
 - [ ] Başka telefonda test (renk eşikleri ayarlanabilir olabilir)
+- [ ] Koyu temalı Binance ekranıyla test (renk eşikleri koyu zeminde bozulabilir)
+- [ ] Renk kalibrasyonu: kamera ilk karede grafiğin kırmızı/yeşil tonlarına bakıp HSV eşiklerini kendisi ayarlasın (farklı telefon kamerası ve ekran parlaklığı için)
+- [ ] Odak kontrolü: dokunarak odaklama ya da bulanıklık uyarısı (yakın mesafede odak kaçabiliyor)
 
 ## Bilinen riskler
 - Rengi belirsiz mumlar (kahverengi/zeytin doji): F1 #2, F2 #4 ve #17, F3 #2, #20, #28 kontrol edilecek.
