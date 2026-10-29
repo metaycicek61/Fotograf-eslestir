@@ -30,10 +30,11 @@ Betik, mumlar arasına en az 2 piksel boşluk bırakır (uygulama yan yana değe
 1. Liquidity Sweep + Bullish Reversal (26 mum)
 2. Bullish Order Block Retest (32 mum)
 3. Break of Structure - BOS (30 mum)
-Sağdan kesilecek mum sayıları: belirlenecek.
+Sağdan kesilen mumlar: F1 son 5 (22-26, kalan 21), F2 son 8 (25-32, kalan 24), F3 son 5 (26-30, kalan 25). Dosyalar: formasyonlar/kesilmis/
 
 ## Yapılacaklar
-- [ ] Sağdan kesilecek mum sayısını belirle, kesilmiş referansları siteye ekle (eski referansları sil)
+- [x] Sağdan kesilecek mum sayıları belirlendi, kesilmiş dosyalar hazır
+- [ ] Kesilmiş referansları siteye ekle (eski referansları sil)
 - [x] Koda iki düzeltme yapıldı (Okuyucu.html): candleFromBody (fitil uzatma, boşluk toleransı), imageToCanvas kenar temizliği. Kamerayla test bekliyor.
 - [ ] AI skorunu düzelt (ölçekle ya da kapat)
 - [ ] Tarama alanı oranı: ekranda dikey kutu, analiz tuvali yatay (mumlar yatayda ~2,6 kat gerilir)
