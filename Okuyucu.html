@@ -98,6 +98,23 @@ button,.fileButton{
   margin-top:5px;
 }
 
+#hint{
+  text-align:center;
+  font-size:15px;
+  font-weight:700;
+  line-height:1.35;
+  min-height:42px;
+  margin:6px 4px 0;
+  padding:8px 10px;
+  border-radius:12px;
+  background:#1b1b1b;
+  color:#ddd;
+}
+
+#hint.good{background:#10331f;color:#7dffb8;}
+#hint.warn{background:#3a2d10;color:#ffd27d;}
+#hint.bad{background:#3a1519;color:#ff9aa5;}
+
 .card{
   margin-top:15px;
   background:#222;
@@ -239,6 +256,7 @@ button,.fileButton{
 </div>
 
 <div id="sensorStatus">Sensör bekliyor.</div>
+<div id="hint">Kamerayı aç, grafiği yeşil kutunun içine getir.</div>
 
 <button id="startBtn">📷 Kamerayı Aç</button>
 <button id="scanBtn" disabled>🧠 Formasyonu Tara</button>
@@ -307,6 +325,83 @@ const refInput=document.getElementById("refInput");
 const refsEl=document.getElementById("refs");
 const statusEl=document.getElementById("status");
 const sensorStatus=document.getElementById("sensorStatus");
+const hintEl=document.getElementById("hint");
+
+let hintLockUntil=0;
+let hintHistory=[];
+
+function setHint(text,level){
+  hintEl.textContent=text;
+  hintEl.className=level||"";
+}
+
+function guidanceFor(candles,canvas){
+
+  const n=candles.length;
+  const H=canvas.height;
+
+  if(n<3){
+    return {code:"none",level:"bad",text:
+      "Mum okunamıyor. Grafiği yeşil kutunun içine getir, telefonu sabit tut ve netleşmesini bekle. Düzelmezse biraz yaklaş ya da uzaklaş."};
+  }
+
+  let top=Infinity,bottom=-Infinity;
+
+  for(const c of candles){
+    top=Math.min(top,c.top);
+    bottom=Math.max(bottom,c.bottom);
+  }
+
+  const span=(bottom-top)/H;
+
+  if(n>28){
+    return {code:"many",level:"warn",text:
+      "Çok fazla mum var, küçük kalıyorlar. Biraz yaklaş ya da Binance'te grafiği iki parmakla büyüt."};
+  }
+
+  if(span>.93){
+    return {code:"tall",level:"warn",text:
+      "Grafik kutudan taşıyor. Biraz uzaklaş ya da Binance'te grafiği küçült."};
+  }
+
+  if(n<8){
+    return {code:"few",level:"warn",text:
+      "Az mum görünüyor. Biraz uzaklaş ya da Binance'te grafiği küçült (iki parmakla sıkıştır)."};
+  }
+
+  if(span<.2){
+    return {code:"flat",level:"warn",text:
+      "Mumlar çok küçük görünüyor. Biraz yaklaş ya da grafiği büyüt."};
+  }
+
+  return {code:"ok",level:"good",text:
+    "✓ İyi görüntü. Telefonu sabit tut ve “Formasyonu Tara”ya bas."};
+}
+
+function updateHint(candles,canvas){
+
+  if(Date.now()<hintLockUntil)return;
+
+  const g=guidanceFor(candles,canvas);
+
+  hintHistory.push(g);
+
+  if(hintHistory.length>5)hintHistory.shift();
+
+  const counts={};
+
+  for(const h of hintHistory){
+    counts[h.code]=(counts[h.code]||0)+1;
+  }
+
+  let best=g;
+
+  for(const h of hintHistory){
+    if(counts[h.code]>counts[best.code])best=h;
+  }
+
+  setHint(best.text,best.level);
+}
 
 const bestResult=document.getElementById("bestResult");
 const bestName=document.getElementById("bestName");
@@ -1399,6 +1494,8 @@ async function updateSensor(){
       "Sensör: "+
       candles.length+
       " mum algılıyor";
+
+    updateHint(candles,canvas);
 
   }catch(err){
 
@@ -2647,6 +2744,25 @@ async function scanFormation(){
     statusEl.textContent=
       detected.length+
       " mum algılandı • Tarama tamamlandı.";
+
+    {
+      const top=results[0];
+      const pct=Math.round(top.finalScore*100);
+
+      const second=results[1];
+
+      if(second&&top.finalScore-second.finalScore<.08){
+        setHint("İlk iki sonuç çok yakın ("+top.name+" %"+pct+", "+second.name+" %"+Math.round(second.finalScore*100)+"). Net bir görüntüyle tekrar tara; mumların çoğu kutuda görünsün.","warn");
+      }else if(top.finalScore>=.8){
+        setHint("Güçlü eşleşme: "+top.name+" (%"+pct+").","good");
+      }else if(top.finalScore>=.5){
+        setHint("Orta eşleşme: "+top.name+" (%"+pct+"). Daha net bir görüntüyle tekrar tara.","warn");
+      }else{
+        setHint("Eşleşme zayıf (%"+pct+"). Görüntü net değilse yaklaş ya da uzaklaş, mumları yeşil kutuya oturtup tekrar tara.","bad");
+      }
+
+      hintLockUntil=Date.now()+8000;
+    }
 
   }catch(err){
 
