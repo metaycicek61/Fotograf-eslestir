@@ -327,6 +327,10 @@ const statusEl=document.getElementById("status");
 const sensorStatus=document.getElementById("sensorStatus");
 const hintEl=document.getElementById("hint");
 
+/* Kütüphane referansları 21-25 mum içerir; ayırt etme gücü için
+   en az bu kadar mumun kutuda görünmesi istenir. */
+const FULL_VIEW_MIN=18;
+
 let hintLockUntil=0;
 let hintHistory=[];
 
@@ -367,6 +371,11 @@ function guidanceFor(candles,canvas){
   if(n<8){
     return {code:"few",level:"warn",text:
       "Az mum görünüyor. Biraz uzaklaş ya da Binance'te grafiği küçült (iki parmakla sıkıştır)."};
+  }
+
+  if(n<FULL_VIEW_MIN){
+    return {code:"partial",level:"warn",text:
+      "Formasyonun tamamı kutuda görünmüyor ("+n+" mum). Kısa görüntüde formasyonlar birbirine benziyor. Biraz uzaklaş ya da Binance'te grafiği küçült; en az "+FULL_VIEW_MIN+" mum görünsün."};
   }
 
   if(span<.2){
