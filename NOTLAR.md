@@ -97,3 +97,9 @@ Uyarı şeridi: 20'nin altı "formasyonun tamamı görünmüyor", 20-23 "iyi", 2
 | 23 (orta mesafe) | fo2 %92, FO3 %38, fark 54 puan |
 | 25 (çok yakın, tam) | fo2 %99 |
 Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mesafe, ekrana paralel, grafik kutunun ortasında.
+
+## Binance fotoğraf testi (30 Ekim, PARTIUSDT, açık tema)
+- Sorun: üstteki kırmızı fiyat yazısı (0.05808 -2.02%) harf harf kırmızı mum sayılıyor, üstelik altındaki gerçek mumlarla birleşip boylarını bozuyordu. Kesikli fiyat çizgisi de aynı türden gürültü.
+- Mobilde MA/fiyat çizgisi kapatılamadı, bu yüzden kodda süzme eklendi (removeAlignedNoise): üst ve alt hizası aynı (±2 px), fitilsiz, küçük parçalar 4 ve daha fazlaysa elenir. Birleştirmede dikey boşluk sınırı eklendi (uzaktaki parçalar tek mum olmuyor).
+- Sonuç (aynı fotoğraf): 36 mumdan 30'a; sahte mumların çoğu gitti, gerçek mumlar korundu. Eksi işaretleri ve parantez gibi 2-3 parça hâlâ kalabiliyor: en iyisi fiyat yazısını kutunun dışında tutmak.
+- Kütüphanedeki 3 referansın mum sayıları değişmedi (21 / 24 / 25).

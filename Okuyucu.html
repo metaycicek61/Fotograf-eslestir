@@ -1329,6 +1329,42 @@ function bodyCandidates(data){
   });
 }
 
+// Fiyat yazısı ve kesikli fiyat çizgisi gibi aynı hizada dizilmiş,
+// fitilsiz küçük parçaları eler (mum değiller).
+function removeAlignedNoise(items,data){
+
+  const maxH=data.height*.12;
+
+  const info=items.map(c=>{
+    const ext=candleFromBody(c,data);
+    const wickless=
+      ext.top>=c.minY-1&&
+      ext.bottom<=c.maxY+1;
+    return {
+      c,
+      flat:c.height<=maxH&&wickless
+    };
+  });
+
+  const noise=new Set();
+
+  for(const a of info){
+    if(!a.flat)continue;
+    // Yazı harfleri ve çizgi parçaları aynı üst ve alt hizayı paylaşır;
+    // yatay seyirdeki gerçek mumlar bu kadar düzgün hizalanmaz.
+    const row=info.filter(b=>
+      b.flat&&
+      Math.abs(b.c.minY-a.c.minY)<=2&&
+      Math.abs(b.c.maxY-a.c.maxY)<=2
+    );
+    if(row.length>=4){
+      row.forEach(b=>noise.add(b.c));
+    }
+  }
+
+  return items.filter(c=>!noise.has(c));
+}
+
 function mergeBodyCandidates(items){
 
   if(!items.length)return [];
@@ -1368,9 +1404,19 @@ function mergeBodyCandidates(items){
           )*.7
         );
 
+      const vGap=
+        Math.max(
+          item.minY-other.maxY,
+          other.minY-item.maxY
+        );
+
       if(
         distance<=tolerance&&
-        item.type===other.type
+        item.type===other.type&&
+        vGap<=Math.max(
+          6,
+          Math.min(item.height,other.height)
+        )
       ){
 
         other.minX=
@@ -1483,6 +1529,9 @@ function detectCandles(canvas){
 
   let bodies=
     bodyCandidates(data);
+
+  bodies=
+    removeAlignedNoise(bodies,data);
 
   bodies=
     mergeBodyCandidates(bodies);
