@@ -103,3 +103,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Mobilde MA/fiyat çizgisi kapatılamadı, bu yüzden kodda süzme eklendi (removeAlignedNoise): üst ve alt hizası aynı (±2 px), fitilsiz, küçük parçalar 4 ve daha fazlaysa elenir. Birleştirmede dikey boşluk sınırı eklendi (uzaktaki parçalar tek mum olmuyor).
 - Sonuç (aynı fotoğraf): 36 mumdan 30'a; sahte mumların çoğu gitti, gerçek mumlar korundu. Eksi işaretleri ve parantez gibi 2-3 parça hâlâ kalabiliyor: en iyisi fiyat yazısını kutunun dışında tutmak.
 - Kütüphanedeki 3 referansın mum sayıları değişmedi (21 / 24 / 25).
+
+## İlgisiz grafik testi (30 Ekim 04:24, iPhone, kütüphanede olmayan Binance grafiği)
+- Sonuç: fo2 %33 (Formasyon %30, AI %98), FO3 %32, Fo1 %23. Algılanan 27, karşılaştırılan 23 mum.
+- Bilgisayardaki aynı koşullu deneme de %29-35 verdi; telefon ve bilgisayar tutarlı.
+- İlgisiz grafiklerde görülen en yüksek skor: %55. Doğru eşleşmeler (20+ mum): %92-99.
+- Eşik önerisi: %70 altı "eşleşme yok". AI yine %97-99 sabit, ayırt etmiyor.
