@@ -141,3 +141,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Sebep 2: Grafik canlı (kısa zaman dilimi); fotoğraf 04:57, tarama 05:04. Yeni mumlar oluştuğu için sağ baş kaydı. Test için 4 saatlik/günlük grafik kullanılmalı.
 - Düzeltme (splitWick): her parça satır satır taranıyor; en geniş satırın %60'ından geniş satırlar gövde, inceler fitil sayılıyor. Uzun fitilli doji'ler de artık kaybolmuyor.
 - Bilgisayar sonucu: 3 referans kendileriyle yine %100; fotoğraf kendi referansıyla %99; kutu kesik çekimde %71 -> %79.
+
+## Fotoğraftan referans üretme (önemli karar, 30 Ekim)
+- Zincir testinin 2. adımında eski betik (formasyon_betik.py) kullanılmadı, çünkü telefonla çekilmiş fotoğrafta çalışmadı.
+- Bunun yerine uygulamanın kendi okuma kodu (detectCandles) kullanıldı: fotoğraf okundu, en sağdaki 25 mum kütüphane biçiminde temiz çizildi (beyaz zemin, kırmızı/yeşil mum, fitil mum renginde).
+- Amaç aynı: fotoğrafı kütüphane formasyonlarıyla aynı biçime getirmek. Yani bu yöntem fiilen FOTOĞRAF İÇİN YENİ BİR BETİK gibi çalıştı.
+- Faydası: kamera ve referans aynı okuma kodundan geçtiği için iki taraf aynı dili konuşuyor.
