@@ -1320,7 +1320,11 @@ function bodyCandidates(data){
     ...connectedComponents(data,2)
   ];
 
-  return all.filter(c=>{
+  /* Fitil ile gövde birbirine değdiği için tek parça bulunur.
+     Önce gövdeyi (geniş kısım) fitilden (ince kısım) ayır;
+     ölçütler gövdeye uygulanır, fitil candleFromBody içinde
+     yine bulunur. */
+  return all.map(c=>splitWick(c,data)).filter(c=>{
 
     const boxArea=
       c.width*c.height;
@@ -1346,6 +1350,46 @@ function bodyCandidates(data){
 
 // Fiyat yazısı ve kesikli fiyat çizgisi gibi aynı hizada dizilmiş,
 // fitilsiz küçük parçaları eler (mum değiller).
+function splitWick(c,data){
+
+  const {mask,width}=data;
+  const rows=[];
+  let maxW=0;
+
+  for(let y=c.minY;y<=c.maxY;y++){
+    let w=0;
+    for(let x=c.minX;x<=c.maxX;x++){
+      if(mask[y*width+x]===c.type)w++;
+    }
+    rows.push(w);
+    if(w>maxW)maxW=w;
+  }
+
+  /* Çok ince adaylarda ayırma yapma (doji, küçük mum). */
+  if(maxW<4)return c;
+
+  const limit=Math.max(2,maxW*.6);
+
+  let first=-1,last=-1;
+  rows.forEach((w,i)=>{
+    if(w>=limit){
+      if(first<0)first=i;
+      last=i;
+    }
+  });
+
+  if(first<0)return c;
+
+  const out={...c};
+  out.area=rows
+    .slice(first,last+1)
+    .reduce((a,w)=>a+w,0);
+  out.minY=c.minY+first;
+  out.maxY=c.minY+last;
+  out.height=out.maxY-out.minY+1;
+  return out;
+}
+
 function removeAlignedNoise(items,data){
 
   const maxH=data.height*.12;
