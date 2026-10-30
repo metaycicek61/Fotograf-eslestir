@@ -268,6 +268,15 @@ button,.fileButton{
 
 <div id="status">Hazır.</div>
 
+<!-- GEÇİCİ TEST BÖLÜMÜ: testler bitince kaldırılacak -->
+<div class="card" id="testCard">
+  <h2>🧪 Çekilen Resim (geçici test)</h2>
+  <div class="small">Kamera açıkken grafiği yeşil alana getir ve düğmeye bas. Üç görüntü oluşur. Her birinin altındaki "İndir" ile ya da resme basılı tutup "Fotoğraflara Ekle" ile kaydet, sonra Claude'a gönder.</div>
+  <button id="testBtn" style="background:#c2410c">📸 Test Görüntüsü Kaydet</button>
+  <button id="testShareBtn" style="background:#6b7280;display:none">📤 Üçünü Birden Paylaş</button>
+  <div id="testShots" class="small"></div>
+</div>
+
 <div class="card" id="bestResult">
   <h2>🎯 En Yakın Formasyon</h2>
   <div id="bestName">-</div>
@@ -754,6 +763,133 @@ function compressImage(file){
 }
 
 startBtn.addEventListener("click",openCamera);
+
+/* ---- GEÇİCİ TEST BÖLÜMÜ: sitenin gördüğü görüntüyü kaydetmek için ---- */
+const testBtn=document.getElementById("testBtn");
+const testShareBtn=document.getElementById("testShareBtn");
+const testShots=document.getElementById("testShots");
+let testFiles=[];
+
+function drawNumberedTest(scan,candles){
+  const k=2;
+  const c=document.createElement("canvas");
+  c.width=scan.width*k;
+  c.height=scan.height*k;
+  const ctx=c.getContext("2d");
+  ctx.drawImage(scan,0,0,c.width,c.height);
+  ctx.lineWidth=2;
+  ctx.font="bold 16px sans-serif";
+  ctx.textAlign="center";
+  candles.forEach((m,i)=>{
+    const col=m.direction>0?"#00b050":"#e00020";
+    ctx.strokeStyle=col;
+    ctx.beginPath();
+    ctx.moveTo(m.x*k,m.top*k);
+    ctx.lineTo(m.x*k,m.bottom*k);
+    ctx.stroke();
+    ctx.strokeRect(
+      m.left*k,m.bodyTop*k,
+      Math.max(2,(m.right-m.left+1)*k),
+      Math.max(2,(m.bodyBottom-m.bodyTop+1)*k)
+    );
+    const ty=Math.max(16,m.top*k-4);
+    ctx.fillStyle="#fff";
+    ctx.fillRect(m.x*k-11,ty-14,22,17);
+    ctx.fillStyle="#1d4ed8";
+    ctx.fillText(String(i+1),m.x*k,ty);
+  });
+  return c;
+}
+
+function canvasToFile(canvas,name){
+  return new Promise(res=>{
+    canvas.toBlob(b=>res(new File([b],name,{type:"image/png"})),"image/png");
+  });
+}
+
+testBtn.addEventListener("click",async()=>{
+  testShots.textContent="Hazırlanıyor...";
+  testShareBtn.style.display="none";
+  try{
+    updateScanBox();
+    const full=captureFullFrame();
+    const scan=captureScanRegion();
+    const candles=detectCandles(scan);
+    const numbered=drawNumberedTest(scan,candles);
+
+    const d=new Date();
+    const p2=n=>String(n).padStart(2,"0");
+    const stamp=p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds());
+
+    const shots=[
+      ["1_tam_kare",full,"Kameranın tam karesi"],
+      ["2_yesil_alan",scan,"Yeşil alanın taradığı kısım"],
+      ["3_numarali",numbered,"Okunan mumlar (numaralı)"]
+    ];
+
+    testShots.innerHTML="";
+
+    const info=document.createElement("div");
+    info.style.margin="10px 0";
+    info.textContent=
+      "Saat "+p2(d.getHours())+":"+p2(d.getMinutes())+":"+p2(d.getSeconds())+
+      " • Okunan mum: "+candles.length+
+      " • Kamera: "+video.videoWidth+"x"+video.videoHeight+
+      " • Alan: "+Math.round((SCAN_RIGHT-SCAN_LEFT)*100)+"% x "+
+      Math.round((SCAN_BOTTOM-SCAN_TOP)*100)+"%";
+    testShots.appendChild(info);
+
+    testFiles=[];
+
+    for(const [name,canvas,label] of shots){
+      const fileName="test_"+stamp+"_"+name+".png";
+      const url=canvas.toDataURL("image/png");
+
+      const box=document.createElement("div");
+      box.style.margin="12px 0";
+
+      const t=document.createElement("div");
+      t.textContent=label+" ("+canvas.width+"x"+canvas.height+")";
+      box.appendChild(t);
+
+      const img=document.createElement("img");
+      img.src=url;
+      img.style.width="100%";
+      img.style.borderRadius="10px";
+      img.style.marginTop="6px";
+      box.appendChild(img);
+
+      const a=document.createElement("a");
+      a.href=url;
+      a.download=fileName;
+      a.textContent="⬇️ İndir: "+fileName;
+      a.style.display="block";
+      a.style.color="#7dd3fc";
+      a.style.marginTop="6px";
+      box.appendChild(a);
+
+      testShots.appendChild(box);
+
+      testFiles.push(await canvasToFile(canvas,fileName));
+    }
+
+    if(
+      navigator.canShare&&
+      navigator.canShare({files:testFiles})
+    ){
+      testShareBtn.style.display="block";
+    }
+  }catch(e){
+    testShots.textContent="Görüntü alınamadı: "+(e&&e.message||e)+" (önce kamerayı aç)";
+  }
+});
+
+testShareBtn.addEventListener("click",async()=>{
+  try{
+    await navigator.share({files:testFiles,title:"Okuyucu test görüntüleri"});
+  }catch(e){}
+});
+/* ---- GEÇİCİ TEST BÖLÜMÜ SONU ---- */
 
 async function openCamera(){
 

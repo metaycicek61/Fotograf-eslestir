@@ -182,3 +182,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 ## Not: BINANCE_TEST referansı
 - formasyonlar/test/BINANCE_TEST_temiz.png sadece zincir testi için üretildi. Kütüphane formasyonu DEĞİL, kütüphaneye eklenmeyecek.
 - Uygulamaya test için yüklendi; sonuç zaman aşımı (grafik akmaya devam etti) yüzünden tutarsız çıktı. Uygulamadan silinebilir.
+
+## GEÇİCİ test bölümü (30 Ekim 06:45) — testler bitince KALDIRILACAK
+- Okuyucu.html'de "🧪 Çekilen Resim (geçici test)" kartı ve "Test Görüntüsü Kaydet" düğmesi.
+- Üç görüntü üretir: 1) kameranın tam karesi, 2) yeşil alanın taradığı kısım (502x277), 3) okunan mumların numaralı çizimi. Ayrıca okunan mum sayısı, kamera çözünürlüğü ve alan oranı yazılır.
+- Amaç: sitenin gördüğü görüntüyü telefonun kendi kamerasıyla çekilen fotoğrafla karşılaştırmak (sorun sitede mi, sahnede mi) ve bulanıklık eşiğini gerçek görüntülerle ayarlamak.
+- Kaldırmak için: HTML'deki "GEÇİCİ TEST BÖLÜMÜ" yorumu ile işaretli kart ve JS'deki "GEÇİCİ TEST BÖLÜMÜ" bloğu silinir.
