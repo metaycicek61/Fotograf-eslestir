@@ -306,12 +306,34 @@ const AI_WEIGHT=.05;
 
 const STORAGE_KEY="chartReferences";
 
-/* Tarama kutusu referans tuvaliyle (502x277) aynı orandadır:
-   .72*1.5 / .595 = 1.815 ≈ 502/277. Böylece mumlar gerilmez. */
-const SCAN_LEFT=.25;
-const SCAN_RIGHT=.97;
-const SCAN_TOP=.20;
-const SCAN_BOTTOM=.795;
+/* Tarama kutusu referans tuvaliyle (502x277) aynı orandadır,
+   böylece mumlar gerilmez. Kutu sabit değil: kamera alanının
+   ölçüsüne göre bu oranı koruyan EN BÜYÜK kutu hesaplanır
+   (kenarlarda %3 pay). Böylece her telefonda grafiğin tam boyu
+   ve daha çok mum sığar, mumlar daha büyük okunur. */
+let SCAN_LEFT=.25;
+let SCAN_RIGHT=.97;
+let SCAN_TOP=.20;
+let SCAN_BOTTOM=.795;
+const SCAN_MARGIN=.03;
+
+function updateScanBox(){
+  const rect=cameraBox.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  const ratio=rect.width/rect.height;
+  const target=TARGET_W/TARGET_H;
+  const max=1-2*SCAN_MARGIN;
+  let wf=max;
+  let hf=wf*ratio/target;
+  if(hf>max){
+    hf=max;
+    wf=hf*target/ratio;
+  }
+  SCAN_LEFT=(1-wf)/2;
+  SCAN_RIGHT=SCAN_LEFT+wf;
+  SCAN_TOP=(1-hf)/2;
+  SCAN_BOTTOM=SCAN_TOP+hf;
+}
 const CAPTURE_SCALE=2;
 
 const video=document.getElementById("video");
@@ -793,6 +815,8 @@ async function openCamera(){
 
 function prepareOverlay(){
 
+  updateScanBox();
+
   const rect=overlay.getBoundingClientRect();
   const dpr=window.devicePixelRatio||1;
 
@@ -1014,6 +1038,8 @@ function captureFullFrame(){
 }
 
 function captureScanRegion(){
+
+  updateScanBox();
 
   const full=captureFullFrame();
 

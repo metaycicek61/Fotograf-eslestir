@@ -40,7 +40,7 @@ Sağdan kesilen mumlar: F1 son 5 (22-26, kalan 21), F2 son 8 (25-32, kalan 24), 
 - [x] Sahte kutular: gövde yüksekliği tuvalin %55'inden büyükse elenir; kenara değen ve %35'ten uzun gövdeler elenir.
 - [x] Canlı kullanıcı ipuçları eklendi (#hint): mum okunamıyor / az mum / çok mum / taşıyor / iyi görüntü; tarama sonrası güçlü-orta-zayıf eşleşme ve yakın skor uyarısı.
 - [ ] AI skorunu düzelt (ölçekle ya da kapat)
-- [x] Tarama alanı oranı düzeltildi: kutu artık referansla aynı oranda (SCAN_LEFT .25, RIGHT .97, TOP .20, BOTTOM .795), mumlar gerilmiyor. Yakalama 2x çözünürlükte.
+- [x] Tarama alanı oranı düzeltildi: kutu artık referansla aynı oranda (önce sabit SCAN_LEFT .25, RIGHT .97, TOP .20, BOTTOM .795; artık otomatik, aşağıya bak), mumlar gerilmiyor. Yakalama 2x çözünürlükte.
 - [ ] Tek kare yerine birkaç kareye bakıp tutarlı sonuç alma
 - [ ] Düşük skorda "eşleşme yok" eşiği
 - [ ] Test: referansı ekranda açıp kendi kendine taratma, sonra gerçek Binance grafiği
@@ -55,6 +55,7 @@ Adımlar bu sırayla yapılacak; bir adım bitmeden sonrakine geçilmez.
 **ADIM 1: Kaliteli çekim ve tüm mumları tam tanıma**
 - [ ] Kullanıcıya daha net bilgi: ne yapması gerektiğini tek cümleyle söyleyen uyarılar
 - [ ] Bulanıklık kontrolü: bulanık görüntüye "iyi" denmesin, "netleşmesini bekle" desin
+- [x] Yeşil tarama alanı büyütüldü (30 Ekim 06:25): aynı en-boy oranında (502x277) kamera alanına sığan en büyük kutu, kenarlarda %3 pay. Ölçü telefona göre otomatik hesaplanır (updateScanBox). iPhone'da yaklaşık genişlik %72 -> %94, yükseklik %60 -> %79 (~1,7 kat alan). Sebep: grafiğin üstü/altı kutudan taşıyor, sadece ~28 mum giriyordu.
 - [ ] Kütüphanedeki mum sayısına göre çekim: kutuda kütüphane formasyonları kadar mum görünsün
 - [ ] Birkaç kareye bak (3-5), hepsinde aynı okunan mumları al
 - [ ] Kutunun kenarında yarım kalan mumları alma
@@ -172,3 +173,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Bunun yerine uygulamanın kendi okuma kodu (detectCandles) kullanıldı: fotoğraf okundu, en sağdaki 25 mum kütüphane biçiminde temiz çizildi (beyaz zemin, kırmızı/yeşil mum, fitil mum renginde).
 - Amaç aynı: fotoğrafı kütüphane formasyonlarıyla aynı biçime getirmek. Yani bu yöntem fiilen FOTOĞRAF İÇİN YENİ BİR BETİK gibi çalıştı.
 - Faydası: kamera ve referans aynı okuma kodundan geçtiği için iki taraf aynı dili konuşuyor.
+
+## Karar (30 Ekim 06:23)
+- Büyük tarama alanı: daha net çekim, tüm mumlar tek görüntüde; başka telefonda da en geniş alan kullanılır.
+- Fotoğrafı kütüphane biçimine getirmek orijinal okumayı bozmaz.
+- Karşılaştırma (zaman ve mum etkisi) en son ele alınacak.
