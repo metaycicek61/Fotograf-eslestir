@@ -410,7 +410,7 @@ function setHint(text,level){
   hintEl.className=level||"";
 }
 
-function hintMessage(code,n,t){
+function hintMessage(code,n,t,side){
 
   switch(code){
 
@@ -422,6 +422,9 @@ function hintMessage(code,n,t){
 
     case "tall":
       return "Grafik kutudan taşıyor. Biraz uzaklaş ya da Binance'te grafiği küçült.";
+
+    case "center":
+      return "Mum sayısı iyi ("+n+"), uzaklaşmana gerek yok. Bazı mumlar kutunun "+(side||"üst")+" kenarında kesiliyor: telefonu hafifçe kaydırıp grafiği kutunun ortasına getir.";
 
     case "few":
       return "Az mum görünüyor ("+n+"). Biraz uzaklaş ya da Binance'te grafiği küçült (iki parmakla sıkıştır).";
@@ -457,8 +460,20 @@ function guidanceFor(candles,canvas){
 
   const span=(bottom-top)/H;
 
+  /* Taşma: tek bir uzun fitilin kenara değmesi sorun değil
+     (eşleştirme bunu sorunsuz okuyor). Ancak mum gövdeleri
+     kenarda kesiliyorsa grafik gerçekten taşıyor demektir. */
+  const cutTop=candles.filter(c=>c.bodyTop<=1).length;
+  const cutBottom=candles.filter(c=>c.bodyBottom>=H-2).length;
+  const cut=cutTop+cutBottom;
+  const side=cutTop>=cutBottom?"üst":"alt";
+
   if(n>t.many)return {code:"many",level:"warn"};
-  if(span>.93)return {code:"tall",level:"warn"};
+
+  /* Mum sayısı yeterliyse "uzaklaş" demek çelişkili olur
+     (uzaklaşınca sayı da değişir). Sadece ortalamasını iste. */
+  if(cut>=2&&n>=t.good)return {code:"center",level:"warn",side};
+  if(cut>=2)return {code:"tall",level:"warn"};
   if(n<8)return {code:"few",level:"warn"};
   if(n<t.good)return {code:"partial",level:"warn"};
   if(span<.2)return {code:"flat",level:"warn"};
@@ -493,7 +508,7 @@ function updateHint(candles,canvas){
 
   /* Metin her zaman o anki karenin mum sayısını gösterir;
      sensör satırıyla çelişmez. */
-  setHint(hintMessage(best.code,n,t),best.level);
+  setHint(hintMessage(best.code,n,t,best.side||g.side),best.level);
 }
 
 const bestResult=document.getElementById("bestResult");

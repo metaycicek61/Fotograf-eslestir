@@ -109,3 +109,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Bilgisayardaki aynı koşullu deneme de %29-35 verdi; telefon ve bilgisayar tutarlı.
 - İlgisiz grafiklerde görülen en yüksek skor: %55. Doğru eşleşmeler (20+ mum): %92-99.
 - Eşik önerisi: %70 altı "eşleşme yok". AI yine %97-99 sabit, ayırt etmiyor.
+- Uyarı tutarsızlığı düzeltildi: 27 mum (çok iyi) görürken "taşıyor, uzaklaş" diyordu. Artık taşma, tek fitil değil kenarda kesilen mum gövdeleriyle ölçülüyor. Mum sayısı yeterliyse "uzaklaş" yerine "uzaklaşmana gerek yok, grafiği kutunun ortasına getir (üst/alt kenar)" diyor. Sayı azsa eskisi gibi uzaklaş der.
