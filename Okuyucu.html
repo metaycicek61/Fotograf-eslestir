@@ -1754,17 +1754,14 @@ function queryWindows(
 
     if(all.length<size)continue;
 
+    /* Pencere her zaman en sağdaki (en son) mumda biter:
+       sağ baştan itibaren referansın mum sayısı kadar mum alınır.
+       Boyut ±2 esner (algılamada bir-iki mum kaçabilir). */
     const lastStart=
       all.length-size;
 
-    const firstStart=
-      Math.max(
-        0,
-        lastStart-7
-      );
-
     for(
-      let start=firstStart;
+      let start=lastStart;
       start<=lastStart;
       start++
     ){
