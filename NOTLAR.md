@@ -127,3 +127,10 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 | Tarih | Coin | Algılanan mum | 1. sonuç | 2. sonuç | Görüntü notu |
 |---|---|---|---|---|---|
 | 30 Ekim | PARTIUSDT (ilgisiz) | 27 | fo2 %33 | FO3 %32 | eski kod (sağdan tarama öncesi) |
+
+## Zincir testi: Binance fotoğrafı -> referans -> kamera (30 Ekim 04:57)
+- formasyon_betik.py telefonla çekilmiş fotoğrafta ÇALIŞMIYOR: ~34 mumluk grafikte 45 mum buldu, ızgara çizgilerini fitil sandı (fitiller tüm yüksekliğe uzadı). Betik temiz dijital görseller için yazılmış. İleride fotoğraf modu eklenmeli.
+- Bunun yerine referans, uygulamanın kendi okuma koduyla (detectCandles) üretildi: fotoğraftan 31 mum okundu, en sağdaki 25 mum temiz çizildi -> formasyonlar/test/BINANCE_TEST_temiz.png (okununca 25 mum, 13 yeşil 12 kırmızı).
+- Bilgisayar sonuçları: grafiğin tamamı görününce %99 (diğer formasyonlar %32-48). Kutu grafiğin üstünü/altını kesince %47-71'e düşüyor. Ders: mumların tam boyu kutuda görünmeli.
+- Zayıf nokta: bulanık fotoğrafta ince fitiller ile gövde karışıyor (doji'lerin fitili gövde sanılıyor).
+- Sıradaki: kullanıcı bu referansı uygulamaya yükleyip aynı Binance ekranını canlı tarayacak.
