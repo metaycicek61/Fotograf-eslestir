@@ -63,7 +63,7 @@ Adımlar bu sırayla yapılacak; bir adım bitmeden sonrakine geçilmez.
 **ADIM 2: Fotoğrafı kütüphane biçimine getirme (sitenin kendi betiği)**
 - [ ] Tüm mumlar okununca site, Claude'un elle yaptığı gibi temiz çizim üretsin (beyaz zemin, kırmızı/yeşil, fitil mum renginde)
 - [ ] Kontrol ekranı: temiz çizim numaralı gösterilsin, kullanıcı onaylasın
-- [ ] Karşılaştırma bu temiz çizim üzerinden yapılsın; istenirse "Kütüphaneye ekle" düğmesi
+- [ ] Karşılaştırma bu temiz çizim üzerinden yapılsın (amaç kameradan çekilen görüntüyü karşılaştırmaya hazırlamak; kütüphaneye ekleme değil)
 
 **ADIM 3: Karşılaştırmada zaman ve mum etkisini çözme**
 - Aşağıdaki "Aşama takibi" maddeleri (hayalet çizim en son)
@@ -178,3 +178,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Büyük tarama alanı: daha net çekim, tüm mumlar tek görüntüde; başka telefonda da en geniş alan kullanılır.
 - Fotoğrafı kütüphane biçimine getirmek orijinal okumayı bozmaz.
 - Karşılaştırma (zaman ve mum etkisi) en son ele alınacak.
+
+## Not: BINANCE_TEST referansı
+- formasyonlar/test/BINANCE_TEST_temiz.png sadece zincir testi için üretildi. Kütüphane formasyonu DEĞİL, kütüphaneye eklenmeyecek.
+- Uygulamaya test için yüklendi; sonuç zaman aşımı (grafik akmaya devam etti) yüzünden tutarsız çıktı. Uygulamadan silinebilir.
