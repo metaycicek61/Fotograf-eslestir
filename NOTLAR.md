@@ -49,6 +49,24 @@ Sağdan kesilen mumlar: F1 son 5 (22-26, kalan 21), F2 son 8 (25-32, kalan 24), 
 - [ ] Renk kalibrasyonu: kamera ilk karede grafiğin kırmızı/yeşil tonlarına bakıp HSV eşiklerini kendisi ayarlasın (farklı telefon kamerası ve ekran parlaklığı için)
 - [ ] Odak kontrolü: dokunarak odaklama ya da bulanıklık uyarısı (yakın mesafede odak kaçabiliyor)
 
+### SIRALI YOL HARİTASI (kullanıcı kararı, 30 Ekim 06:13)
+Adımlar bu sırayla yapılacak; bir adım bitmeden sonrakine geçilmez.
+
+**ADIM 1: Kaliteli çekim ve tüm mumları tam tanıma**
+- [ ] Kullanıcıya daha net bilgi: ne yapması gerektiğini tek cümleyle söyleyen uyarılar
+- [ ] Bulanıklık kontrolü: bulanık görüntüye "iyi" denmesin, "netleşmesini bekle" desin
+- [ ] Kütüphanedeki mum sayısına göre çekim: kutuda kütüphane formasyonları kadar mum görünsün
+- [ ] Birkaç kareye bak (3-5), hepsinde aynı okunan mumları al
+- [ ] Kutunun kenarında yarım kalan mumları alma
+
+**ADIM 2: Fotoğrafı kütüphane biçimine getirme (sitenin kendi betiği)**
+- [ ] Tüm mumlar okununca site, Claude'un elle yaptığı gibi temiz çizim üretsin (beyaz zemin, kırmızı/yeşil, fitil mum renginde)
+- [ ] Kontrol ekranı: temiz çizim numaralı gösterilsin, kullanıcı onaylasın
+- [ ] Karşılaştırma bu temiz çizim üzerinden yapılsın; istenirse "Kütüphaneye ekle" düğmesi
+
+**ADIM 3: Karşılaştırmada zaman ve mum etkisini çözme**
+- Aşağıdaki "Aşama takibi" maddeleri (hayalet çizim en son)
+
 ### Aşama takibi (asıl hedef: zamanla oluşacak formasyonu yakalamak)
 Kütüphanedeki formasyonların sağı kesildi; kesilen kısım formasyonun devamı. Canlı grafiğin sağ başı "şu an". Formasyon zamanla oluşur, canlı grafik formasyonun ortasında olabilir. Akan zaman engel değil, doğrulama.
 - [ ] 1. Aşama karşılaştırması: canlı grafiğin son mumlarını formasyonun farklı aşamalarıyla karşılaştır (ilk 12, 15, 18 ... sonuna kadar mum)
