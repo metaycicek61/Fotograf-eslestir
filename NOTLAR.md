@@ -116,3 +116,14 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Önceden pencere 7 mum sola kayabiliyordu (grafiğin ortasında benzer bir parça bulup yüksek skor verebiliyordu). Kaldırıldı (queryWindows).
 - Test (bilgisayar, aynı fotoğraflar): referanslar kendileriyle yine %100. İlgisiz grafiklerin en yüksek skoru %55'ten %33'e düştü; doğru ile ilgisiz arasındaki fark büyüdü.
 - Not: F1 ile F2 birbirine benziyor (çapraz skor %73-76).
+
+## Yol haritası (30 Ekim)
+- İlk adım ve öncelik: Binance fotoğraflarından TEMİZ ÖLÇÜM (mum sayısı ve şekli doğru okunsun).
+- Farklı coinlerde test yapılacak; sonuçlar aşağıdaki tabloya yazılacak, eşik ve ayarlar bu verilere göre güncellenecek.
+- İleride: daha net kamera (yeni telefon), daha iyi ekran parlaklığı, daha büyük mumlar (grafiği büyüterek). Bunlar gelince eşikler yeniden ölçülecek.
+- Eşleşme yok eşiği (%70 önerisi) farklı coin testleri bitince kesinleşecek.
+
+## Coin test tablosu
+| Tarih | Coin | Algılanan mum | 1. sonuç | 2. sonuç | Görüntü notu |
+|---|---|---|---|---|---|
+| 30 Ekim | PARTIUSDT (ilgisiz) | 27 | fo2 %33 | FO3 %32 | eski kod (sağdan tarama öncesi) |
