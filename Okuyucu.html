@@ -1834,7 +1834,20 @@ function bodyCandidates(data){
      Önce gövdeyi (geniş kısım) fitilden (ince kısım) ayır;
      ölçütler gövdeye uygulanır, fitil candleFromBody içinde
      yine bulunur. */
+  data.wide=[];
+
   return all.map(c=>splitWick(c,data)).filter(c=>{
+
+    /* bulanıklıkta ardışık aynı renk mumlar merdiven gibi birleşir:
+       çok geniş parçaları sonra bölmek için ayır */
+    if(
+      c.width>data.width*.10&&
+      c.width<=data.width*.40&&
+      c.area>=40
+    ){
+      data.wide.push(c);
+      return false;
+    }
 
     const boxArea=
       c.width*c.height;
@@ -2118,6 +2131,26 @@ function detectCandles(canvas){
   bodies=
     splitWideBodies(bodies,data);
 
+  /* merdiven gibi birleşmiş geniş parçaları ortanca gövde genişliğine göre böl */
+  if(data.wide&&data.wide.length&&bodies.length>=5){
+    const medBW=median(
+      bodies.filter(b=>b.width>=3&&b.height>=3).map(b=>b.width)
+    );
+    if(medBW>=4){
+      const pieces=splitWideBodies(data.wide,data,medBW)
+        .filter(p=>
+          p.width<=medBW*1.6&&
+          p.height>=2&&
+          p.height<=data.height*.55&&
+          !bodies.some(b=>
+            p.maxX>=b.minX&&p.minX<=b.maxX&&
+            p.maxY>=b.minY&&p.minY<=b.maxY
+          )
+        );
+      bodies=[...bodies,...pieces];
+    }
+  }
+
   let candles=
     bodies
       .map(b=>candleFromBody(b,data))
@@ -2214,11 +2247,11 @@ function partBody(data,type,a,b,y0,y1){
   };
 }
 
-function splitWideBodies(bodies,data){
+function splitWideBodies(bodies,data,medOverride){
   const ws=bodies
     .filter(b=>b.width>=3&&b.height>=3)
     .map(b=>b.width);
-  const medBW=median(ws);
+  const medBW=medOverride||median(ws);
   if(!medBW||medBW<3)return bodies;
 
   const {mask,width}=data;

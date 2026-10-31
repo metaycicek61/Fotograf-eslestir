@@ -220,3 +220,10 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Çözüm: kameranın hemen altına tek sıra kontrol çubuğu: [1x] [2x] [📸 Kaydet] [🧠 Tara]. Kaydırmadan erişilir.
 - "📸 Kaydet" test görüntülerini kaydeder (sonuçlar aşağıdaki test kartında), düğmede kısa süre "✅ N mum" görünür.
 - Testlerden ders: netlik mum boyutundan önemli. Keskin 2x çekim 35/35 doğru; bulanık yakın çekimde 26'dan 25 ve fitil gövde sanıldı. Sıradaki iş adayı: bulanıklık uyarısı.
+
+## 31 Ekim 04:20 — Bulanıklıkta merdiven birleşmesi
+- Sorun: el sarsıntısıyla bulanık karede ardışık aynı renk mumlar (örneğin 5 kırmızı düşüş mumu) çapraz olarak birbirine değip tek dev parça oluyordu; parça çok geniş olduğu için tamamen eleniyordu (5 mum birden kayıp).
+- Çözüm: genişliği tuvalin %10–40'ı arasındaki parçalar atılmıyor, ortanca gövde genişliğine göre bölünüyor (splitWideBodies + medOverride).
+- Sonuç: bulanık test 21 -> 25; diğer testler ve kütüphane referansları değişmedi.
+- Denenip GERİ ALINAN: yeşil ton sınırını 178 -> 195 genişletmek (çok ince "T" camgöbeği görünüyor). Diğer testlerde hata artırdı.
+- Gözlem: çerçeve sık sık sağ üste kayıyor; son mumun üstünde/sağında boşluk bırakmak gerekiyor.
