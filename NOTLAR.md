@@ -331,3 +331,11 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kütüphane çizimleri ŞEMATİK: belirli bir zaman dilimine bağlı değiller, mum sayısıyla tanımlı. SMC/Wyckoff ve Cup and Handle tanımları her zaman diliminde kullanılıyor (fraktal kabul).
 - Ancak klasik tanımlar (O'Neil Cup and Handle: fincan 1–6 ay, kulp 1–4 hafta) GÜNLÜK/HAFTALIK grafiklerden geliyor; düşük zaman diliminde gürültü daha fazla, güvenilirliği bağımsız olarak kanıtlanmış değil.
 - Kullanıcı tercihi: 15 dk. Bilimsel yaklaşım: her testte zaman dilimini kaydet (coin test tablosuna sütun), ileride 5/15/30 dk ve 1 sa için sonuçları karşılaştır.
+
+## ▶ YARIN (1 Kasım) — SH (short) formasyonları
+- Kullanıcı kararı: SH formasyonları LO'dan DAHA FAZLA olacak. Gerekçe (kullanıcı): düşenin çıkması uzun sürer; çıkanın düşüşü daha net ve sert olur; manipülasyon ve volatiliteden daha uzak bir yaklaşım.
+- SH formasyonları AYNALANMAYACAK; kendi tanımlarıyla araştırılıp ayrı çizilecek (düşüşler daha hızlı/sert, tepeler daha geniş/dalgalı). Mevcut SH 01 (aynalama ile yapıldı) yeniden çizilecek.
+- Araştırılacak/çizilecek aday liste: Wyckoff Dağıtım (UTAD'lı, UTAD'sız), düşüş Order Block Retest, düşüş CHoCH, düşüş BOS devamı, Ters Kahve Fincanı, İkili Tepe, Omuz-Baş-Omuz, likidite alımı (tepe üstü iğne) + düşüş.
+- Kesim kuralı aynı: düşüşün başladığı yer + 2 mum; kesilen kısım = hareket alanı.
+- Kullanıcıdan istenen: düşüş yaşanmış 2–3 Binance grafiğinden site test görüntüleri (2x, 15 dk), düşüş mumlarının istatistiğini ölçmek için.
+- Sonra: kanal dışına taşma sınırını (%20 gövde) koda eklemek; sonuçta "yön özeti" (ilk 5 eşleşmede LO/SH sayısı).
