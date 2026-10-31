@@ -294,3 +294,22 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 5. Sonuçta aşama + kesilen kısmı beklenen hareket olarak göster; hayalet çizim en son.
 
 **Çekim ipuçları**: 2x, grafik ortada, son mumun üstünde/sağında boşluk, fare imleci grafik dışında, ✅ görünce telefonu indir.
+
+## KARAR (31 Ekim 06:45): Kanal dışına taşma sınırı — TÜM kanallar için
+- Kanal içi serbest: mumlar çizgiye değebilir, ortada kalabilir, aşağı yukarı oynayabilir.
+- SINIR: kanal dışına taşma. Gövde taşması en fazla %20 (kullanıcı kararı). Fitil taşması daha serbest (~%35 önerisi; Spring/likidite alımı fitil taşmasıdır). Kanal genişliğinin yarısından fazla taşma = kırılım (yeni kanal başlar).
+- Uygulama için kanal çizgileri uç mumlara göre değil çoğunluğa göre çizilecek (şu an uç mumlara göre, taşma hep %0 çıkıyor). HENÜZ KODA EKLENMEDİ.
+- Ölçülen kanal içi sapma (gövde ortası / kanal yarı genişliği): eski F1–F3 %17–19 (fazla temiz), gerçek BTC çekimleri %26–36.
+
+## 31 Ekim 06:50 — 6 yeni formasyon taslağı (kütüphaneye EKLENMEDİ, onay bekliyor)
+- W1 Wyckoff Birikim Spring'li (31/kesim 7), W2 Spring'siz (30/6), OB Retest (26/6), CHoCH Dönüşü (25/5), BOS Devamı (26/6), W1d Dağıtım UTAD'lı (31/7, W1'in aynası). Kesim kuralı: yükselişin başı + 2 mum.
+- Çizimler sitenin kamerayla okuduğu gerçek grafiklerin mum istatistiklerine göre ayarlandı (kanallardan bağımsız):
+  | ölçü | gerçek çekim | yeni çizim |
+  | gövde/aralık medyan | %8,8 | %8,6 |
+  | doji oranı | %19 | %13 |
+  | fitil medyan / p90 | %1,4 / %6,5 | %1,9 / %6,3 |
+  | trend içinde ters renkli mum | %33 | %33 |
+  | gövde genişliği/aralık | 0,84 | 0,76 |
+  Çizim düzeni sitenin temiz çizimiyle aynı (kenar payı 30/22 px, gövde ≤15 px).
+- Okuyucu her çizimde mum sayısını doğru okuyor. Benzerlik uyarıları: CHoCH ↔ F1 %91, W2 ↔ eski F2 %91, BOS ↔ Dağıtım %79.
+- Üretici: scratchpad yeni/uret.py (depoya alınmadı).
