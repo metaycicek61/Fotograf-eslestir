@@ -886,7 +886,7 @@ async function saveTestShots(){
   testShareBtn.style.display="none";
   try{
     updateScanBox();
-    testShots.textContent="Sabit tut… en net kare seçiliyor";
+    testShots.textContent="En net kare seçiliyor…";
     const best=await captureBest();
     const full=best.full;
     const scan=best.scan;
@@ -1544,7 +1544,46 @@ function sharpness(canvas){
   return n?sum/n:0;
 }
 
+/* Önceki yöntem (bekle + sonra çek) kullanıcı telefonu indirince
+   yanlış yeri çekiyordu. Artık kamera sürekli son ~1 saniyenin karelerini
+   tutar; düğmeye DOKUNULDUĞU andan ÖNCEKİ karelerin en neti kullanılır.
+   Yani nişan aldığın an çekilir, dokunuş ve sonrası etkilemez. */
+const frameBuf=[];
+let tapTime=0;
+setInterval(()=>{
+  if(!cameraReady||stillMode)return;
+  try{
+    frameBuf.push({t:performance.now(),full:captureFullFrame()});
+    while(frameBuf.length>9)frameBuf.shift();
+  }catch(e){}
+},120);
+
+/* dokunma anı (parmak ekrana değdiği an, bırakmadan önce) */
+document.addEventListener("pointerdown",e=>{
+  if(e.target.closest&&e.target.closest("#controlBar,#testBtn"))
+    tapTime=performance.now();
+},true);
+
 async function captureBest(frames=6,delay=450,gap=110){
+  const now=performance.now();
+  const t0=(tapTime&&now-tapTime<3000)?tapTime:now;
+  const pre=stillMode?[]:frameBuf.filter(f=>
+    f.t<=t0-40&&f.t>=t0-1000
+  );
+  if(stillMode){
+    const full=captureFullFrame();
+    const scan=captureScanRegion(full);
+    return{full,scan,sharp:sharpness(scan),pre:0};
+  }
+  if(pre.length>=2){
+    let best=null;
+    for(const f of pre){
+      const scan=captureScanRegion(f.full);
+      const sh=sharpness(scan);
+      if(!best||sh>best.sharp)best={full:f.full,scan,sharp:sh,pre:pre.length};
+    }
+    return best;
+  }
   await sleep(delay);
   let best=null;
   for(let k=0;k<frames;k++){
@@ -3597,7 +3636,7 @@ async function scanFormation(){
   try{
 
     statusEl.textContent=
-      "Sabit tut… en net kare seçiliyor";
+      "En net kare seçiliyor…";
 
     const queryCanvas=
       (await captureBest()).scan;

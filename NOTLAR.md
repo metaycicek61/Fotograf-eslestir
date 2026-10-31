@@ -233,3 +233,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kontrol (bilgisayar, sahte kamera deseni, iPhone ekran boyutu): önizleme ile kaydedilen kare arasında kod kaynaklı kayma YOK (merkez farkı ~%0,2).
 - Sebep: düğmeler ekranın alt yarısında; basmak telefonu eğiyor, site tam o anki kareyi alıyordu (kayma + hareket bulanıklığı).
 - Çözüm (captureBest): basınca 0,45 sn beklenir, sonra ~0,6 sn içinde 6 kare alınır, en net olan (gradyan enerjisi) kullanılır. Kaydet ve Tara ikisi de bunu kullanıyor. Test bilgisinde "Netlik" değeri yazıyor (bulanıklık eşiği ayarı için veri).
+
+## 31 Ekim 04:32 — Dokunmadan ÖNCEKİ kareyi kullan
+- 04:25 yöntemi (basınca 0,45 sn bekle, sonra çek) ters tepti: kullanıcı dokununca telefonu indiriyor, site grafiğin altını (VOL/MACD yazıları, -1,90%) çekti.
+- Yeni yöntem: kamera açıkken son ~1 sn'nin kareleri sürekli tutuluyor (120 ms'de bir, 9 kare). Kaydet/Tara'ya parmak DEĞDİĞİ andan önceki karelerin en neti kullanılıyor. Sonuç anında; dokunuş ve sonrasındaki hareket etkilemiyor.
+- Not: kırmızı "-1,90%" yazısı kırmızı mum sayıldı (12 sahte mum); yazıları alan dışında tutmak gerekiyor.
