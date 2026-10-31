@@ -188,3 +188,18 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Üç görüntü üretir: 1) kameranın tam karesi, 2) yeşil alanın taradığı kısım (502x277), 3) okunan mumların numaralı çizimi. Ayrıca okunan mum sayısı, kamera çözünürlüğü ve alan oranı yazılır.
 - Amaç: sitenin gördüğü görüntüyü telefonun kendi kamerasıyla çekilen fotoğrafla karşılaştırmak (sorun sitede mi, sahnede mi) ve bulanıklık eşiğini gerçek görüntülerle ayarlamak.
 - Kaldırmak için: HTML'deki "GEÇİCİ TEST BÖLÜMÜ" yorumu ile işaretli kart ve JS'deki "GEÇİCİ TEST BÖLÜMÜ" bloğu silinir.
+
+## 30 Ekim gece testi (PARTIUSDT 15m) — özet
+- Telefon fotoğrafı keskin, okuyucunun karesi bulanık. Gerçekte ~33 mum, okuyucu 23 buldu (önceki testte 25).
+- 19. bölgede birkaç küçük mum tek kutuya birleşti (en büyük hata). 6–18 arası yapı iyi okunuyor. Eşleştirme yüzdesine dokunulmayacak.
+- Sebep: bulanıklık mumlar arasındaki boşluğu siliyor. Çözüm: keskin girdi + akıllı ayırma.
+
+## 31 Ekim: yeni büyük ekran, 1x/2x karşılaştırma, fotoğraf modu
+- Artık daha büyük ve net bir ekran kullanılıyor. Binance'te MA/EMA ve VOL kapalı.
+- Telefonun kendi kamerasıyla 2x çekim 1x'ten çok daha iyi: mumlar büyük, aralar açık (~36-38 mum ekranda).
+- Okuyucu.html'e eklendi:
+  - Canlı kamerada 1x/2x düğmeleri (yalnızca tarayıcı zoom desteği verirse görünür; desteklenmiyorsa not çıkar).
+  - "📸 Fotoğraf Çek / Seç ve Oku": iPhone kamerası ya da galeriden fotoğraf. Grafik alanı otomatik bulunur (kırmızı/yeşil piksel içeren en uzun dikey bölge), sağda boşluk bırakılır, yeşil kutuya yerleştirilir; aynı okuma kodu çalışır. Test bölümü 3 görüntüyü otomatik üretir.
+- Geçici test bölümü kullanıcı isteğiyle KORUNUYOR.
+- Bilgisayar sonucu (aynı fotoğraflar, fotoğraf modu): 2x fotoğraf 41 mum, VOL kapalı 2x fotoğraf 34 mum. Büyük mumlar doğru ayrılıyor.
+- Kalan hatalar (sıradaki iş = ayırma düzeltmesi): (1) gövdesi neredeyse olmayan çok küçük doji'ler ("+" / "T") kaçıyor; (2) yan yana iki yeşil mum bazen tek kutu oluyor. İkisi de en sağ (en önemli) bölgede görüldü.
