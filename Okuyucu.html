@@ -80,6 +80,23 @@ button,.fileButton{
 
 .fileButton{background:#794bd8}
 #refInput{display:none}
+#photoInput{display:none}
+#photoBtn{background:#0e7490}
+
+#zoomRow{display:none;gap:10px;margin-top:12px}
+#zoomRow .zoomBtn{margin-top:0;flex:1;background:#374151;padding:12px}
+#zoomRow .zoomBtn.on{background:#f59e0b;color:#111}
+#zoomNote{text-align:center;margin-top:6px}
+
+#still{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:2;
+  background:#fff;
+  display:none;
+}
 
 #status{
   text-align:center;
@@ -252,6 +269,7 @@ button,.fileButton{
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
+  <canvas id="still"></canvas>
   <canvas id="overlay"></canvas>
 </div>
 
@@ -259,7 +277,21 @@ button,.fileButton{
 <div id="hint">Kamerayı aç, grafiği yeşil kutunun içine getir.</div>
 
 <button id="startBtn">📷 Kamerayı Aç</button>
+
+<!-- Canlı kamera zoom (destekleniyorsa görünür) -->
+<div id="zoomRow">
+  <button class="zoomBtn" data-z="1">1x</button>
+  <button class="zoomBtn" data-z="2">2x</button>
+</div>
+<div id="zoomNote" class="small"></div>
+
 <button id="scanBtn" disabled>🧠 Formasyonu Tara</button>
+
+<!-- iPhone'un kendi kamerasıyla (2x, otomatik odak) çek ya da galeriden seç -->
+<label class="fileButton" id="photoBtn">
+  📸 Fotoğraf Çek / Seç ve Oku
+  <input id="photoInput" type="file" accept="image/*">
+</label>
 
 <label class="fileButton">
   🖼️ Referans Formasyon Ekle
@@ -834,7 +866,10 @@ testBtn.addEventListener("click",async()=>{
     info.textContent=
       "Saat "+p2(d.getHours())+":"+p2(d.getMinutes())+":"+p2(d.getSeconds())+
       " • Okunan mum: "+candles.length+
-      " • Kamera: "+video.videoWidth+"x"+video.videoHeight+
+      (stillMode
+        ?" • Kaynak: FOTOĞRAF "+stillInfo
+        :" • Kaynak: canlı kamera "+video.videoWidth+"x"+video.videoHeight+
+          (currentZoom?" • Zoom: "+currentZoom:""))+
       " • Alan: "+Math.round((SCAN_RIGHT-SCAN_LEFT)*100)+"% x "+
       Math.round((SCAN_BOTTOM-SCAN_TOP)*100)+"%";
     testShots.appendChild(info);
@@ -891,11 +926,270 @@ testShareBtn.addEventListener("click",async()=>{
 });
 /* ---- GEÇİCİ TEST BÖLÜMÜ SONU ---- */
 
+/* ==== ZOOM VE FOTOĞRAF MODU (31 Ekim) ====
+   1) Canlı kamerada 1x/2x: tarayıcı zoom desteği veriyorsa düğmeler görünür.
+   2) Fotoğraf modu: iPhone'un kendi kamerasıyla (2x, otomatik odak) çekilen
+      ya da galeriden seçilen fotoğraf okunur. Grafik alanı (kırmızı/yeşil
+      mumların bulunduğu en uzun dikey bölge) otomatik bulunur, sağda boşluk
+      bırakılarak yeşil kutuya yerleştirilir; sonra aynı okuma kodu çalışır. */
+const stillCanvas=document.getElementById("still");
+const photoInput=document.getElementById("photoInput");
+const zoomRow=document.getElementById("zoomRow");
+const zoomNote=document.getElementById("zoomNote");
+
+let stillMode=false;
+let stillInfo="";
+let videoTrack=null;
+let currentZoom=null;
+
+function leaveStillMode(){
+  stillMode=false;
+  stillInfo="";
+  stillCanvas.style.display="none";
+}
+
+function markZoom(z){
+  document.querySelectorAll(".zoomBtn").forEach(b=>{
+    b.classList.toggle("on",Number(b.dataset.z)===z);
+  });
+}
+
+async function setZoom(z){
+  if(!videoTrack)return;
+  try{
+    const caps=videoTrack.getCapabilities();
+    const v=Math.min(caps.zoom.max,Math.max(caps.zoom.min,z));
+    await videoTrack.applyConstraints({advanced:[{zoom:v}]});
+    currentZoom=v;
+    markZoom(z);
+    zoomNote.textContent=
+      "Zoom: "+v+" (aralık "+caps.zoom.min+"–"+caps.zoom.max+")";
+  }catch(e){
+    zoomNote.textContent="Zoom ayarlanamadı: "+(e&&e.message||e);
+  }
+}
+
+function setupZoom(stream){
+  videoTrack=stream.getVideoTracks()[0]||null;
+  currentZoom=null;
+  zoomRow.style.display="none";
+
+  let caps={};
+  try{
+    caps=videoTrack&&videoTrack.getCapabilities
+      ?videoTrack.getCapabilities():{};
+  }catch(e){}
+
+  if(caps.zoom&&caps.zoom.max>=2){
+    zoomRow.style.display="flex";
+    const s=videoTrack.getSettings?videoTrack.getSettings():{};
+    currentZoom=s.zoom||caps.zoom.min;
+    markZoom(Math.round(currentZoom));
+    zoomNote.textContent=
+      "Zoom: "+currentZoom+" (aralık "+caps.zoom.min+"–"+caps.zoom.max+")";
+  }else{
+    zoomNote.textContent=
+      "Bu tarayıcıda canlı zoom yok. 2x için \"📸 Fotoğraf Çek / Seç ve Oku\" düğmesini kullan.";
+  }
+}
+
+document.querySelectorAll(".zoomBtn").forEach(b=>{
+  b.addEventListener("click",()=>setZoom(Number(b.dataset.z)));
+});
+
+function loadImageFromUrl(url){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>res(img);
+    img.onerror=()=>rej(new Error("Fotoğraf açılamadı."));
+    img.src=url;
+  });
+}
+
+/* Fotoğrafta grafiğin yerini bulur (fotoğraf pikseli cinsinden kutu).
+   Kırmızı/yeşil piksel içeren satırlar gruplanır (küçük boşluklar birleşir);
+   EN UZUN grup grafiktir. Kırmızı fiyat yazısı ve hacim çubukları daha kısa
+   gruplar olduğu için seçilmez. */
+function findChartBox(img){
+  const nw=img.naturalWidth||img.width;
+  const nh=img.naturalHeight||img.height;
+  const s=Math.min(1,600/nw);
+  const w=Math.max(1,Math.round(nw*s));
+  const h=Math.max(1,Math.round(nh*s));
+
+  const c=document.createElement("canvas");
+  c.width=w;
+  c.height=h;
+  const ctx=c.getContext("2d",{willReadFrequently:true});
+  ctx.drawImage(img,0,0,w,h);
+  const d=ctx.getImageData(0,0,w,h).data;
+
+  const mask=new Uint8Array(w*h);
+  const rowCnt=new Int32Array(h);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      if(classifyPixel(d[i],d[i+1],d[i+2])){
+        mask[y*w+x]=1;
+        rowCnt[y]++;
+      }
+    }
+  }
+
+  const gap=Math.max(3,Math.round(h*.04));
+  let best=null;
+  let start=-1,last=-1;
+  for(let y=0;y<=h;y++){
+    const on=y<h&&rowCnt[y]>=2;
+    if(on){
+      if(start<0)start=y;
+      last=y;
+    }else if(start>=0&&(y-last>gap||y===h)){
+      if(!best||last-start>best.b-best.t)best={t:start,b:last};
+      start=-1;
+    }
+  }
+  if(!best||best.b-best.t<h*.08)return null;
+
+  const colCnt=new Int32Array(w);
+  let total=0;
+  for(let y=best.t;y<=best.b;y++){
+    for(let x=0;x<w;x++){
+      if(mask[y*w+x]){colCnt[x]++;total++;}
+    }
+  }
+  let acc=0,left=0,right=w-1;
+  const lo=total*.002,hi=total*.998;
+  for(let x=0;x<w;x++){
+    acc+=colCnt[x];
+    if(acc<=lo)left=x+1;
+    if(acc<hi)right=x+1;
+  }
+  right=Math.min(w-1,right);
+
+  return{
+    x:left/s,
+    y:best.t/s,
+    w:(right-left+1)/s,
+    h:(best.b-best.t+1)/s
+  };
+}
+
+/* Bulunan grafik kutusunu yeşil tarama alanına yerleştiren görüntüyü üretir:
+   üstte/altta pay, sağda son mumdan sonra boşluk; oran referansla aynı
+   (502x277). Eksik kalan yerler beyaz. */
+function buildStill(img,box){
+  updateScanBox();
+
+  const padY=box.h*.06;
+  const padL=box.w*.01;
+  const padR=box.w*.06;
+
+  let right=box.x+box.w+padR;
+  let x=box.x-padL;
+  let y=box.y-padY;
+  let w=right-x;
+  let h=box.h+2*padY;
+
+  const T=TARGET_W/TARGET_H;
+  if(w/h<T){
+    w=h*T;
+    x=right-w;
+  }else{
+    const nh2=w/T;
+    y-=(nh2-h)/2;
+    h=nh2;
+  }
+
+  const wf=SCAN_RIGHT-SCAN_LEFT;
+  const hf=SCAN_BOTTOM-SCAN_TOP;
+  const fullW=w/wf;
+  const fullH=h/hf;
+  const k=Math.min(1,2400/fullW);
+
+  stillCanvas.width=Math.max(1,Math.round(fullW*k));
+  stillCanvas.height=Math.max(1,Math.round(fullH*k));
+
+  const ctx=stillCanvas.getContext("2d",{willReadFrequently:true});
+  ctx.fillStyle="#fff";
+  ctx.fillRect(0,0,stillCanvas.width,stillCanvas.height);
+
+  const nw=img.naturalWidth||img.width;
+  const nh=img.naturalHeight||img.height;
+  ctx.drawImage(
+    img,
+    (SCAN_LEFT*fullW-x)*k,
+    (SCAN_TOP*fullH-y)*k,
+    nw*k,
+    nh*k
+  );
+
+  stillInfo=nw+"x"+nh;
+}
+
+function stopCameraStream(){
+  stopSensor();
+  if(video.srcObject){
+    video.srcObject.getTracks().forEach(t=>t.stop());
+    video.srcObject=null;
+  }
+  videoTrack=null;
+  currentZoom=null;
+  zoomRow.style.display="none";
+}
+
+photoInput.addEventListener("change",async e=>{
+  const file=e.target.files&&e.target.files[0];
+  e.target.value="";
+  if(!file)return;
+
+  statusEl.textContent="Fotoğraf okunuyor…";
+  const url=URL.createObjectURL(file);
+
+  try{
+    const img=await loadImageFromUrl(url);
+    const box=findChartBox(img);
+
+    if(!box){
+      statusEl.textContent=
+        "Fotoğrafta grafik bulunamadı (kırmızı/yeşil mum yok).";
+      return;
+    }
+
+    stopCameraStream();
+    buildStill(img,box);
+
+    stillMode=true;
+    stillCanvas.style.display="block";
+    cameraReady=true;
+    scanBtn.disabled=false;
+    startBtn.textContent="📷 Canlı Kameraya Dön";
+    zoomNote.textContent="Fotoğraf modu: "+stillInfo;
+
+    await updateSensor();
+    testBtn.click();
+
+    if(references.length){
+      await scanFormation();
+    }else{
+      statusEl.textContent="Fotoğraf okundu. Karşılaştırma için referans ekle.";
+    }
+  }catch(err){
+    console.error(err);
+    statusEl.textContent="Fotoğraf okunamadı: "+(err&&err.message||err);
+  }finally{
+    URL.revokeObjectURL(url);
+  }
+});
+/* ==== ZOOM VE FOTOĞRAF MODU SONU ==== */
+
 async function openCamera(){
 
   try{
 
     statusEl.textContent="Kamera açılıyor…";
+
+    leaveStillMode();
 
     stopSensor();
 
@@ -923,6 +1217,8 @@ async function openCamera(){
     video.srcObject=stream;
 
     await video.play();
+
+    setupZoom(stream);
 
     cameraReady=true;
     scanBtn.disabled=false;
@@ -1115,16 +1411,14 @@ window.addEventListener("resize",()=>{
 function captureFullFrame(){
   const CAP_W=TARGET_W*CAPTURE_SCALE;
 
-  if(
-    !cameraReady||
-    !video.videoWidth||
-    !video.videoHeight
-  ){
+  /* Kaynak: fotoğraf modu açıksa hazırlanan fotoğraf, değilse canlı video */
+  const src=stillMode?stillCanvas:video;
+  const vw=stillMode?stillCanvas.width:video.videoWidth;
+  const vh=stillMode?stillCanvas.height:video.videoHeight;
+
+  if(!cameraReady||!vw||!vh){
     throw new Error("Kamera hazır değil.");
   }
-
-  const vw=video.videoWidth;
-  const vh=video.videoHeight;
 
   const rect=cameraBox.getBoundingClientRect();
 
@@ -1164,7 +1458,7 @@ function captureFullFrame(){
   }
 
   ctx.drawImage(
-    video,
+    src,
     sx,sy,sw,sh,
     0,0,
     c.width,c.height
