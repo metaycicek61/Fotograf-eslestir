@@ -214,3 +214,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   - mergeBodyCandidates: gövdenin üstünde/altında duran ince fitil parçası artık gövdeye eklenmiyor (gövdeler fitil boyunda uzuyordu).
   - Başka mumun gövde aralığındaki dar parça (fitil) ayrı mum sayılmıyor.
 - Sonuç: 2x test 25 -> 28 (kalan tek eksik kenarda yarım doji), 1x test 22 -> 23 (hepsi doğru). Kütüphane referansları değişmedi (21/24/25).
+
+## 31 Ekim 04:05 — Tek parmak kontrol çubuğu
+- Sorun: Tara ve Test Kaydet düğmeleri aşağıdaydı; kaydırınca kamera yukarı çıkıyor, görüntü yakalanırken telefon sabit tutulamıyordu.
+- Çözüm: kameranın hemen altına tek sıra kontrol çubuğu: [1x] [2x] [📸 Kaydet] [🧠 Tara]. Kaydırmadan erişilir.
+- "📸 Kaydet" test görüntülerini kaydeder (sonuçlar aşağıdaki test kartında), düğmede kısa süre "✅ N mum" görünür.
+- Testlerden ders: netlik mum boyutundan önemli. Keskin 2x çekim 35/35 doğru; bulanık yakın çekimde 26'dan 25 ve fitil gövde sanıldı. Sıradaki iş adayı: bulanıklık uyarısı.
