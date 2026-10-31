@@ -269,3 +269,28 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   - İlgisiz BTC grafikleri: %28–53.
   - Zayıf nokta: kesilmiş F1 ile F3 birbirine benziyor (%76–82); ikisi de kesimden sonra "inen → yükselen" görünüyor. Ayrım için ileride kanal eğimi/derinliği ağırlığı artırılabilir.
 - Sıradaki: kanalları kamera görüntüsüne/test görüntüsüne çizmek (drawChannels hazır), telefonda Tara ile test, eşik belirleme.
+
+## ▶ KALDIĞIMIZ YER (31 Ekim 05:15) — sonraki oturumda buradan başla
+**Bu gece tamamlananlar**
+- Yeni büyük/net ekran + Binance'te MA/EMA ve VOL kapalı.
+- Canlı kamerada 1x/2x (Safari gerçek zoom destekliyor, 1–10). 2x ana yöntem.
+- Yeşil alan tam ekran (kamera alanı 1,2:1). Kamera altında tek sıra: [1x][2x][📸 Kaydet][🧠 Tara]; altında [Kamerayı Aç][Fotoğraf Oku].
+- Okuma düzeltmeleri: birleşen mumları bölme, "+"/"T" doji bulma, fitilin gövdeye eklenmemesi, bulanıklıkta merdiven birleşmesini bölme.
+- Çekim: dokunmadan ÖNCEKİ son 1 sn'nin en net karesi kullanılıyor; yakalanan kare 2 sn donuyor ("⏸ Yakalanan kare: N mum").
+- Sonuç: keskin 2x çekimde 26/26 ve 24/24 doğru okuma.
+- Kanal tabanlı karşılaştırma ilk sürümü yayında (ana skor), mum mum skor yanında.
+
+**Kararlar**
+- Karşılaştırma büyük resimde, kanallarla (inen/yatay/yükselen); küçük farklar yok sayılır.
+- Kesim kuralı: yükselişin başlangıcı + 2 mum; kesilen kısım = hareket edeceğimiz alan. Mevcut kesimler aynen kalıyor.
+- 1x çalışması: önce uzun (40–60 mum) formasyonlar bulunacak.
+- Geçici test bölümü ve Fotoğraf Oku düğmesi kalıyor.
+
+**Sıradaki adımlar**
+1. Telefonda 2x'te 🧠 Tara testi: sonuç kartındaki "Kanal %", "Grafik: …" ve "Formasyon: …" satırlarını kontrol et (ilgisiz BTC grafiğinde düşük skor bekleniyor).
+2. Kanalları kamera görüntüsüne ve test görüntüsüne çiz (drawChannels hazır, bağlanmadı).
+3. F1 ile F3 ayrımını güçlendir (kesilmiş hâlleri benzer: %76–82).
+4. "Eşleşme yok" eşiğini kanal skoruyla belirle.
+5. Sonuçta aşama + kesilen kısmı beklenen hareket olarak göster; hayalet çizim en son.
+
+**Çekim ipuçları**: 2x, grafik ortada, son mumun üstünde/sağında boşluk, fare imleci grafik dışında, ✅ görünce telefonu indir.
