@@ -44,6 +44,7 @@ Sağdan kesilen mumlar: F1 son 5 (22-26, kalan 21), F2 son 8 (25-32, kalan 24), 
 - [ ] Tek kare yerine birkaç kareye bakıp tutarlı sonuç alma
 - [ ] Düşük skorda "eşleşme yok" eşiği
 - [ ] Test: referansı ekranda açıp kendi kendine taratma, sonra gerçek Binance grafiği
+- [ ] Uzun formasyonlar (40–60 mum) bul, sonra 1x çalışması (bkz. "Karar 31 Ekim 04:49")
 - [ ] Başka telefonda test (renk eşikleri ayarlanabilir olabilir)
 - [ ] Koyu temalı Binance ekranıyla test (renk eşikleri koyu zeminde bozulabilir)
 - [ ] Renk kalibrasyonu: kamera ilk karede grafiğin kırmızı/yeşil tonlarına bakıp HSV eşiklerini kendisi ayarlasın (farklı telefon kamerası ve ekran parlaklığı için)
@@ -242,3 +243,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 ## 31 Ekim 04:42 — Anında önizleme
 - Kaydet/Tara sonrası yakalanan kare, okunan mum kutularıyla kamera alanında 2 sn donuyor; sensör şeridinde "⏸ Yakalanan kare: N mum". Kaydırmadan kontrol için.
 - 04:39 ilk deneme testi: keskin, 23 mumdan 22 doğru. Tek hata: ekrandaki fare imleci yeşil mum sayıldı -> çekimden önce imleci grafik dışına al. Çerçeve hâlâ biraz yukarıda (son mumlar üst kenara değiyor).
+
+## Karar (31 Ekim 04:49): 1x çalışması
+- Şimdilik 2x ana yöntem (25–35 mum için ideal; kütüphane formasyonları 21–25 mum).
+- 1x ileride uzun formasyonlar (40–60 mum) için gerekecek. Sıra: ÖNCE uzun formasyonlar bulunacak, SONRA 1x çalışması yapılacak.
+- 1x çalışmasında yapılacaklar: o mum sayısıyla 1x test, okuma doğruluğunu ölç, gerekirse ayırma kodunu küçük mumlara göre ayarla; gerekirse 1,5x düğmesi ekle.
+- Bilinen sınır: 1x'te ~30 mum iyi (22/22), ~56 mumda kutular karışıyordu.
