@@ -98,6 +98,19 @@ button,.fileButton{
 #photoInput{display:none}
 #photoBtn{background:#0e7490}
 
+.yonTag{
+  display:inline-block;
+  padding:1px 7px;
+  margin-right:6px;
+  border-radius:7px;
+  font-weight:900;
+  color:#fff;
+}
+.yonTag.lo{background:#059669}
+.yonTag.sh{background:#e11d48}
+.nameLO{color:#34d399}
+.nameSH{color:#fb7185}
+
 #controlBar{
   display:grid;
   grid-template-columns:1fr 1fr 1.5fr 1.5fr;
@@ -355,6 +368,7 @@ button,.fileButton{
 <div class="card">
   <h2>🖼️ Formasyon Kütüphanesi</h2>
   <div id="refs"></div>
+  <button id="libBtn" style="background:#0f766e">📚 Hazır Kütüphaneyi Yükle</button>
   <button id="clearBtn">🗑️ Tüm Referansları Sil</button>
 </div>
 
@@ -657,6 +671,26 @@ function saveReferences(){
   );
 }
 
+/* 31 Ekim: LO (yukarı, yeşil) / SH (aşağı, kırmızı) etiketi */
+function yonOf(name){
+  const m=/^\s*(LO|SH)\b/i.exec(name||"");
+  return m?m[1].toUpperCase():null;
+}
+function setNameEl(el,name){
+  const y=yonOf(name);
+  el.textContent="";
+  el.classList.remove("nameLO","nameSH");
+  if(!y){el.textContent=name;return;}
+  const tag=document.createElement("span");
+  tag.className="yonTag "+y.toLowerCase();
+  tag.textContent=y==="LO"?"LO ▲":"SH ▼";
+  el.appendChild(tag);
+  el.appendChild(document.createTextNode(
+    name.replace(/^\s*(LO|SH)\s*[·:\-]?\s*/i,"")
+  ));
+  el.classList.add(y==="LO"?"nameLO":"nameSH");
+}
+
 function renderReferences(){
 
   refsEl.innerHTML="";
@@ -677,7 +711,7 @@ function renderReferences(){
 
     const name=document.createElement("div");
     name.className="refName";
-    name.textContent=ref.name;
+    setNameEl(name,ref.name);
 
     const del=document.createElement("button");
     del.className="refDelete";
@@ -744,6 +778,30 @@ refInput.addEventListener("change",async e=>{
     references.length+" referans hazır.";
 
   refInput.value="";
+});
+
+/* Hazır kütüphane: depodaki formasyonlar/kutuphane (kesilmiş hâller) */
+document.getElementById("libBtn").addEventListener("click",async()=>{
+  statusEl.textContent="Hazır kütüphane yükleniyor…";
+  try{
+    const base="formasyonlar/kutuphane/";
+    const list=await (await fetch(base+"liste.json",{cache:"no-store"})).json();
+    let added=0;
+    for(const it of list){
+      if(references.some(r=>r.name===it.ad))continue;
+      const blob=await (await fetch(base+it.dosya,{cache:"no-store"})).blob();
+      const src=await compressImage(new File([blob],it.dosya,{type:blob.type||"image/png"}));
+      references.push({name:it.ad,src});
+      added++;
+    }
+    saveReferences();
+    referenceCache.clear();
+    renderReferences();
+    statusEl.textContent=added+" formasyon eklendi • toplam "+references.length+" referans.";
+  }catch(err){
+    console.error(err);
+    statusEl.textContent="Kütüphane yüklenemedi: "+(err&&err.message||err);
+  }
 });
 
 clearBtn.addEventListener("click",()=>{
@@ -3694,7 +3752,7 @@ function renderResults(results){
 
   bestResult.style.display="block";
 
-  bestName.textContent=best.name;
+  setNameEl(bestName,best.name);
 
   bestScore.textContent=
     pct(best.finalScore)+"%";
@@ -3742,7 +3800,7 @@ function renderResults(results){
       document.createElement("div");
 
     name.className="matchName";
-    name.textContent=result.name;
+    setNameEl(name,result.name);
 
     const score=
       document.createElement("div");

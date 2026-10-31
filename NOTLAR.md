@@ -313,3 +313,11 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Çizim düzeni sitenin temiz çizimiyle aynı (kenar payı 30/22 px, gövde ≤15 px).
 - Okuyucu her çizimde mum sayısını doğru okuyor. Benzerlik uyarıları: CHoCH ↔ F1 %91, W2 ↔ eski F2 %91, BOS ↔ Dağıtım %79.
 - Üretici: scratchpad yeni/uret.py (depoya alınmadı).
+
+## 31 Ekim 06:58 — Hazır kütüphane + LO/SH etiketleri
+- Depoda formasyonlar/kutuphane/: karşılaştırmada kullanılan KESİLMİŞ hâller (hareket alanı çıkarılmış) + liste.json. Tam hâller formasyonlar/kutuphane/tam/.
+- Ad kuralı: yukarı yön = LO (yeşil ▲), aşağı yön = SH (kırmızı ▼). Sonuç kartında, eşleşme listesinde ve kütüphanede renkli etiket olarak görünüyor.
+- Sitede "📚 Hazır Kütüphaneyi Yükle" düğmesi: liste.json'daki formasyonları ekler (aynı adlı olanı tekrar eklemez). Telefondaki eski referanslar silinmez; istenirse "Tüm Referansları Sil" sonra yükle.
+- Kütüphane (9): LO 01 Liquidity Sweep, LO 02 OB Retest (eski), LO 03 BOS (eski), LO 04 Wyckoff Birikim Spring'li, LO 05 Wyckoff Birikim Spring'siz, LO 06 OB Retest, LO 07 CHoCH Dönüşü, LO 08 BOS Devamı, SH 01 Wyckoff Dağıtım UTAD'lı.
+- Bilgisayar testi: LO 04 görseli Fotoğraf Oku ile tarandı -> 1. LO Wyckoff Birikim (Spring'li) %100, 2. %67.
+- Açık konu: benzer çiftler (LO 05 ↔ LO 02 %91, LO 07 ↔ LO 01 %91) kullanıcı kararı bekliyor.
