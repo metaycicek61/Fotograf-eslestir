@@ -33,7 +33,7 @@ h1{
   position:relative;
   width:91%;
   margin:0 auto;
-  aspect-ratio:1.50/1;
+  aspect-ratio:1.20/1;
   background:#000;
   overflow:hidden;
   border-radius:18px;
@@ -361,20 +361,16 @@ const SCAN_MARGIN=.03;
 function updateScanBox(){
   const rect=cameraBox.getBoundingClientRect();
   if(!rect.width||!rect.height)return;
-  const ratio=rect.width/rect.height;
-  const target=TARGET_W/TARGET_H;
-  const max=1-2*SCAN_MARGIN;
-  let wf=max;
-  let hf=wf*ratio/target;
-  if(hf>max){
-    hf=max;
-    wf=hf*target/ratio;
-  }
-  SCAN_LEFT=(1-wf)/2;
-  SCAN_RIGHT=SCAN_LEFT+wf;
-  SCAN_TOP=(1-hf)/2;
-  SCAN_BOTTOM=SCAN_TOP+hf;
+  /* 31 Ekim: yeşil alan artık kamera alanının TAMAMI (kenarlarda %3 pay).
+     Oran referansa (502x277) zorlanmıyor; karşılaştırma her mumu grafiğin
+     en yüksek/en düşük noktasına göre ölçtüğü için dikey oran sonucu
+     etkilemez. Okuma sıkıştırmadan yapılır (genişlik 502, yükseklik orana göre). */
+  SCAN_LEFT=SCAN_MARGIN;
+  SCAN_RIGHT=1-SCAN_MARGIN;
+  SCAN_TOP=SCAN_MARGIN;
+  SCAN_BOTTOM=1-SCAN_MARGIN;
 }
+let SCAN_OUT_H=TARGET_H;
 const CAPTURE_SCALE=2;
 
 const video=document.getElementById("video");
@@ -1091,7 +1087,9 @@ function buildStill(img,box){
   let w=right-x;
   let h=box.h+2*padY;
 
-  const T=TARGET_W/TARGET_H;
+  const br=cameraBox.getBoundingClientRect();
+  const T=((SCAN_RIGHT-SCAN_LEFT)*br.width)/
+    Math.max(1,(SCAN_BOTTOM-SCAN_TOP)*br.height);
   if(w/h<T){
     w=h*T;
     x=right-w;
@@ -1358,11 +1356,11 @@ function drawDetectedCandles(candles){
 
     const top=
       scanY+
-      (c.top/TARGET_H)*scanH;
+      (c.top/SCAN_OUT_H)*scanH;
 
     const bottom=
       scanY+
-      (c.bottom/TARGET_H)*scanH;
+      (c.bottom/SCAN_OUT_H)*scanH;
 
     ctx.strokeStyle=
       c.direction>0
@@ -1493,8 +1491,11 @@ function captureScanRegion(){
 
   const out=document.createElement("canvas");
 
+  const outH=Math.max(1,Math.round(TARGET_W*sh/Math.max(1,sw)));
+  SCAN_OUT_H=outH;
+
   out.width=TARGET_W;
-  out.height=TARGET_H;
+  out.height=outH;
 
   const ctx=out.getContext(
     "2d",
@@ -1502,13 +1503,13 @@ function captureScanRegion(){
   );
 
   ctx.fillStyle="#fff";
-  ctx.fillRect(0,0,TARGET_W,TARGET_H);
+  ctx.fillRect(0,0,TARGET_W,outH);
 
   ctx.drawImage(
     full,
     sx,sy,sw,sh,
     0,0,
-    TARGET_W,TARGET_H
+    TARGET_W,outH
   );
 
   return out;
