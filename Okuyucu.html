@@ -25,8 +25,22 @@ body{
 
 h1{
   text-align:center;
-  font-size:23px;
-  margin:12px 0 18px;
+  font-size:20px;
+  margin:4px 0 8px;
+}
+
+#openRow{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  width:91%;
+  margin:8px auto 0;
+}
+#openRow button,#openRow .fileButton{
+  margin-top:0;
+  padding:14px 4px;
+  font-size:16px;
+  border-radius:14px;
 }
 
 .cameraBox{
@@ -34,6 +48,7 @@ h1{
   width:91%;
   margin:0 auto;
   aspect-ratio:1.20/1;
+  max-height:52vh;
   background:#000;
   overflow:hidden;
   border-radius:18px;
@@ -92,7 +107,7 @@ button,.fileButton{
 }
 #controlBar button{
   margin-top:0;
-  padding:16px 2px;
+  padding:14px 2px;
   font-size:17px;
   border-radius:14px;
 }
@@ -134,9 +149,9 @@ button,.fileButton{
   font-size:15px;
   font-weight:700;
   line-height:1.35;
-  min-height:42px;
-  margin:6px 4px 0;
-  padding:8px 10px;
+  min-height:36px;
+  margin:4px 4px 0;
+  padding:6px 10px;
   border-radius:12px;
   background:#1b1b1b;
   color:#ddd;
@@ -295,18 +310,19 @@ button,.fileButton{
   <button id="scanBtn" disabled>🧠 Tara</button>
 </div>
 
+<!-- Kamerayı Aç ve Fotoğraf Çek yan yana -->
+<div id="openRow">
+  <button id="startBtn">📷 Kamerayı Aç</button>
+  <!-- iPhone'un kendi kamerasıyla (2x, otomatik odak) çek ya da galeriden seç -->
+  <label class="fileButton" id="photoBtn">
+    🖼️ Fotoğraf Oku
+    <input id="photoInput" type="file" accept="image/*">
+  </label>
+</div>
+
 <div id="sensorStatus">Sensör bekliyor.</div>
 <div id="hint">Kamerayı aç, grafiği yeşil kutunun içine getir.</div>
-
-<button id="startBtn">📷 Kamerayı Aç</button>
-
 <div id="zoomNote" class="small"></div>
-
-<!-- iPhone'un kendi kamerasıyla (2x, otomatik odak) çek ya da galeriden seç -->
-<label class="fileButton" id="photoBtn">
-  📸 Fotoğraf Çek / Seç ve Oku
-  <input id="photoInput" type="file" accept="image/*">
-</label>
 
 <label class="fileButton">
   🖼️ Referans Formasyon Ekle
@@ -1019,7 +1035,7 @@ function setupZoom(stream){
       "Zoom: "+currentZoom+" (aralık "+caps.zoom.min+"–"+caps.zoom.max+")";
   }else{
     zoomNote.textContent=
-      "Bu tarayıcıda canlı zoom yok. 2x için \"📸 Fotoğraf Çek / Seç ve Oku\" düğmesini kullan.";
+      "Bu tarayıcıda canlı zoom yok. 2x için \"🖼️ Fotoğraf Oku\" düğmesini kullan.";
   }
 }
 
@@ -1196,7 +1212,7 @@ photoInput.addEventListener("change",async e=>{
     cameraReady=true;
     scanBtn.disabled=false;
     quickTestBtn.disabled=false;
-    startBtn.textContent="📷 Canlı Kameraya Dön";
+    startBtn.textContent="📷 Canlıya Dön";
     zoomNote.textContent="Fotoğraf modu: "+stillInfo;
 
     await updateSensor();
@@ -1257,7 +1273,7 @@ async function openCamera(){
     scanBtn.disabled=false;
     quickTestBtn.disabled=false;
 
-    startBtn.textContent="✅ Kamera Açık";
+    startBtn.textContent="✅ Açık";
 
     statusEl.textContent=
       "Son mumları yeşil alana hizala.";
