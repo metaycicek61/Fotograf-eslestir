@@ -249,3 +249,14 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - 1x ileride uzun formasyonlar (40–60 mum) için gerekecek. Sıra: ÖNCE uzun formasyonlar bulunacak, SONRA 1x çalışması yapılacak.
 - 1x çalışmasında yapılacaklar: o mum sayısıyla 1x test, okuma doğruluğunu ölç, gerekirse ayırma kodunu küçük mumlara göre ayarla; gerekirse 1,5x düğmesi ekle.
 - Bilinen sınır: 1x'te ~30 mum iyi (22/22), ~56 mumda kutular karışıyordu.
+
+## KARAR (31 Ekim 05:08): Karşılaştırma büyük resimde, kanallarla
+- Mum mum birebir eşleşme gerçekçi değil. Karşılaştırmada kanal içindeki küçük farklar yok sayılacak; formasyon büyük resimde yakalanacak: kanalların sırası, yönü/eğimi ve oranları (inen → yatay → yükselen gibi).
+- Aranan formasyonlar Smart Money yapıları. Formasyonun ilk büyük kısmı (yaklaşık 2/3) büyük ölçüde tutmalı; kalan kısım hareket edilecek yönü gösterir.
+- KESİM KURALI (kullanıcının yöntemi): mumlar, gerçek yukarı hareketin başladığı yerden 2 mum sonra kesildi. Amaç: formasyonun başladığından emin olmak ve harekete geçtiği anı yakalamak. Kesilen mumlar = hareket edeceğimiz alan (karşılaştırmaya girmez, sonuçta beklenen hareket olarak gösterilir). Mevcut kesimler (F1: 5, F2: 8, F3: 5) bu kurala göre yapılmış, AYNEN kalıyor.
+- Kanal denemesi (tam formasyonlar, sitenin okuma koduyla, otomatik):
+  - F1 Liquidity Sweep: İnen (1–10) → dik iniş/iğne (11–14) → Yükselen (15–26). Yatay taban yok.
+  - F2 Order Block: İnen (1–10) → Yatay taban (11–23) → Yükselen (24–32). Kullanıcının elle çizimiyle birebir aynı.
+  - F3 BOS: Yumuşak inen (1–16) → Yatay (17–24) → Yükselen (25–30).
+- Sıradaki adımlar: (1) kanal bulmayı siteye ekle ve kamera görüntüsüne çiz; (2) karşılaştırmayı kanal dizisine geçir (eski mum mum karşılaştırma bir süre yanında kalsın); (3) sonuçta "aşama" ve kesilen kısmı beklenen hareket olarak göster (hayalet çizim en son).
+- Not: son kısım geçmişte formasyonun nasıl tamamlandığını gösterir, her seferinde aynı yönü garanti etmez.
