@@ -321,3 +321,13 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kütüphane (9): LO 01 Liquidity Sweep, LO 02 OB Retest (eski), LO 03 BOS (eski), LO 04 Wyckoff Birikim Spring'li, LO 05 Wyckoff Birikim Spring'siz, LO 06 OB Retest, LO 07 CHoCH Dönüşü, LO 08 BOS Devamı, SH 01 Wyckoff Dağıtım UTAD'lı.
 - Bilgisayar testi: LO 04 görseli Fotoğraf Oku ile tarandı -> 1. LO Wyckoff Birikim (Spring'li) %100, 2. %67.
 - Açık konu: benzer çiftler (LO 05 ↔ LO 02 %91, LO 07 ↔ LO 01 %91) kullanıcı kararı bekliyor.
+
+## 31 Ekim 07:20 — LO 09 Kahve Fincanı (Cup and Handle) eklendi
+- Tanım (William O'Neil, How to Make Money in Stocks; StockCharts ChartSchool): önce yükseliş (devam formasyonu), U şeklinde yuvarlak dip (V değil), fincan derinliği önceki yükselişin ~1/3'ü (en fazla 1/2–2/3), sağ kenar sol tepeye yakın döner, kulp: kısa, hafif aşağı eğimli geri çekilme (fincan yükselişinin ~%30–50'sinden az), kırılım kulp direncinin üstü (hacim artışıyla).
+- Çizim: 34 mum, kesim 5 (kulp kırılımı + 2 mum). Kanallar: Yükselen → İnen → Yükselen. En yakın: BOS Devamı %78.
+- Kullanıcı notu: daha önce görüp denedi, işe yarıyor.
+
+## Zaman dilimi (31 Ekim 07:20)
+- Kütüphane çizimleri ŞEMATİK: belirli bir zaman dilimine bağlı değiller, mum sayısıyla tanımlı. SMC/Wyckoff ve Cup and Handle tanımları her zaman diliminde kullanılıyor (fraktal kabul).
+- Ancak klasik tanımlar (O'Neil Cup and Handle: fincan 1–6 ay, kulp 1–4 hafta) GÜNLÜK/HAFTALIK grafiklerden geliyor; düşük zaman diliminde gürültü daha fazla, güvenilirliği bağımsız olarak kanıtlanmış değil.
+- Kullanıcı tercihi: 15 dk. Bilimsel yaklaşım: her testte zaman dilimini kaydet (coin test tablosuna sütun), ileride 5/15/30 dk ve 1 sa için sonuçları karşılaştır.
