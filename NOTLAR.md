@@ -238,3 +238,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - 04:25 yöntemi (basınca 0,45 sn bekle, sonra çek) ters tepti: kullanıcı dokununca telefonu indiriyor, site grafiğin altını (VOL/MACD yazıları, -1,90%) çekti.
 - Yeni yöntem: kamera açıkken son ~1 sn'nin kareleri sürekli tutuluyor (120 ms'de bir, 9 kare). Kaydet/Tara'ya parmak DEĞDİĞİ andan önceki karelerin en neti kullanılıyor. Sonuç anında; dokunuş ve sonrasındaki hareket etkilemiyor.
 - Not: kırmızı "-1,90%" yazısı kırmızı mum sayıldı (12 sahte mum); yazıları alan dışında tutmak gerekiyor.
+
+## 31 Ekim 04:42 — Anında önizleme
+- Kaydet/Tara sonrası yakalanan kare, okunan mum kutularıyla kamera alanında 2 sn donuyor; sensör şeridinde "⏸ Yakalanan kare: N mum". Kaydırmadan kontrol için.
+- 04:39 ilk deneme testi: keskin, 23 mumdan 22 doğru. Tek hata: ekrandaki fare imleci yeşil mum sayıldı -> çekimden önce imleci grafik dışına al. Çerçeve hâlâ biraz yukarıda (son mumlar üst kenara değiyor).

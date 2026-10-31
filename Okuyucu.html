@@ -891,6 +891,7 @@ async function saveTestShots(){
     const full=best.full;
     const scan=best.scan;
     const candles=detectCandles(scan);
+    if(!stillMode)showFrozen(full,candles);
     const numbered=drawNumberedTest(scan,candles);
 
     const d=new Date();
@@ -1594,6 +1595,28 @@ async function captureBest(frames=6,delay=450,gap=110){
     if(k<frames-1)await sleep(gap);
   }
   return best;
+}
+/* Anında önizleme: yakalanan kare, okunan mumlarla birlikte
+   kamera alanında 2 saniye donar (kaydırmadan kontrol için). */
+let freezeUntil=0;
+let freezeTimer=null;
+function showFrozen(full,candles,ms=2000){
+  try{
+    const st=document.getElementById("still");
+    st.width=full.width;
+    st.height=full.height;
+    st.getContext("2d").drawImage(full,0,0);
+    st.style.display="block";
+    freezeUntil=performance.now()+ms;
+    drawDetectedCandles(candles);
+    sensorStatus.textContent=
+      "⏸ Yakalanan kare: "+candles.length+" mum";
+    clearTimeout(freezeTimer);
+    freezeTimer=setTimeout(()=>{
+      freezeUntil=0;
+      if(!stillMode)st.style.display="none";
+    },ms);
+  }catch(e){}
 }
 /* ==== NET KARE SEÇİMİ SONU ==== */
 
@@ -2508,7 +2531,8 @@ async function updateSensor(){
 
   if(
     !cameraReady||
-    sensorBusy
+    sensorBusy||
+    performance.now()<freezeUntil
   ){
     return;
   }
@@ -3638,13 +3662,14 @@ async function scanFormation(){
     statusEl.textContent=
       "En net kare seçiliyor…";
 
-    const queryCanvas=
-      (await captureBest()).scan;
+    const bestShot=await captureBest();
+    const queryCanvas=bestShot.scan;
 
     const detected=
       detectCandles(queryCanvas);
 
-    drawDetectedCandles(detected);
+    if(!stillMode)showFrozen(bestShot.full,detected);
+    else drawDetectedCandles(detected);
 
     sensorStatus.textContent=
       "Sensör: "+
