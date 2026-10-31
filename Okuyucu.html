@@ -3529,6 +3529,156 @@ async function prepareReference(
   return result;
 }
 
+/* ==== 31 Ekim: KANAL TABANLI KARŞILAŞTIRMA ====
+   Formasyon büyük resimde aranır: mumlar kanallara (inen / yatay /
+   yükselen) bölünür; kanal içindeki küçük farklar yok sayılır.
+   Karşılaştırılan: kanal orta çizgisinin şekli + kanal yönlerinin sırası.
+   Mum sayısı serbest: canlı pencere referansın ~%75–130'u arasında esner. */
+function lineFit(xs,ys,a,b){
+  let n=b-a,sx=0,sy=0,sxx=0,sxy=0;
+  for(let i=a;i<b;i++){sx+=xs[i];sy+=ys[i];sxx+=xs[i]*xs[i];sxy+=xs[i]*ys[i];}
+  const d=n*sxx-sx*sx;
+  const s=d?(n*sxy-sx*sy)/d:0;
+  const k=(sy-s*sx)/n;
+  let e=0;
+  for(let i=a;i<b;i++){const r=s*xs[i]+k-ys[i];e+=r*r;}
+  return{s,k,e};
+}
+
+function findChannels(raw){
+  const n=raw.length;
+  if(n<4)return null;
+  const xs=raw.map((c,i)=>i);
+  const ys=raw.map(c=>(c.bodyTop+c.bodyBottom)/2);
+  let top=Infinity,bot=-Infinity;
+  raw.forEach(c=>{top=Math.min(top,c.top);bot=Math.max(bot,c.bottom);});
+  const rng=Math.max(1,bot-top);
+  const minLen=Math.max(3,Math.round(n*.12));
+  const pen=Math.pow(rng*.06,2)*n*.5;
+
+  const best=new Array(n+1).fill(Infinity);
+  const prev=new Array(n+1).fill(-1);
+  best[0]=0;
+  for(let j=minLen;j<=n;j++){
+    for(let i=0;i<=j-minLen;i++){
+      if(best[i]===Infinity)continue;
+      const v=best[i]+lineFit(xs,ys,i,j).e+pen;
+      if(v<best[j]){best[j]=v;prev[j]=i;}
+    }
+  }
+  if(best[n]===Infinity)return null;
+  const cuts=[];
+  for(let j=n;j>0;j=prev[j])cuts.push([prev[j],j]);
+  cuts.reverse();
+
+  const segs=cuts.map(([a,b])=>{
+    const f=lineFit(xs,ys,a,b);
+    let up=Infinity,lo=-Infinity;
+    for(let i=a;i<b;i++){
+      const m=f.s*i+f.k;
+      up=Math.min(up,raw[i].top-m);
+      lo=Math.max(lo,raw[i].bottom-m);
+    }
+    /* yükseklik değişimi / grafik aralığı (+ yukarı) */
+    const rise=-f.s*(b-a)/rng;
+    const dir=Math.abs(rise)<.18?0:(rise>0?1:-1);
+    return{a,b,s:f.s,k:f.k,up,lo,rise,dir};
+  });
+  return{segs,top,rng,n};
+}
+
+const CH_POINTS=24;
+function channelProfile(raw){
+  const ch=findChannels(raw);
+  if(!ch)return null;
+  const line=[],dirs=[];
+  for(let p=0;p<CH_POINTS;p++){
+    const t=p/(CH_POINTS-1)*(ch.n-1);
+    const sg=ch.segs.find(g=>t<g.b-.0001)||ch.segs[ch.segs.length-1];
+    const y=sg.s*t+sg.k;
+    line.push(1-(y-ch.top)/ch.rng);
+    dirs.push(sg.dir);
+  }
+  return{ch,line,dirs};
+}
+
+function compareProfiles(q,r){
+  let d=0,same=0;
+  for(let p=0;p<CH_POINTS;p++){
+    d+=Math.abs(q.line[p]-r.line[p]);
+    if(q.dirs[p]===r.dirs[p])same++;
+    else if(Math.abs(q.dirs[p]-r.dirs[p])===2)same-=.5;
+  }
+  const lineScore=clamp(1-(d/CH_POINTS)/.35);
+  const phaseScore=clamp(same/CH_POINTS);
+  return clamp(lineScore*.6+phaseScore*.4);
+}
+
+function channelLabel(prof){
+  const names={"-1":"İnen","0":"Yatay","1":"Yükselen"};
+  const out=[];
+  prof.ch.segs.forEach(g=>{
+    const nm=names[g.dir];
+    if(!out.length||out[out.length-1]!==nm)out.push(nm);
+  });
+  return out.join(" → ");
+}
+
+function channelMatch(all,refRaw){
+  const ref=channelProfile(refRaw);
+  if(!ref||all.length<4)return{score:0,count:0,label:"-",refLabel:ref?channelLabel(ref):"-"};
+  const R=refRaw.length;
+  let best=null;
+  const lo=Math.max(4,Math.round(R*.75));
+  const hi=Math.round(R*1.3);
+  const sizes=[];
+  for(let k=lo;k<=hi;k++)if(k<=all.length)sizes.push(k);
+  /* kamera az mum görüyorsa: görünen tüm mumlar, referansın sonu ile */
+  if(!sizes.length){
+    const q=channelProfile(all);
+    const rTail=channelProfile(refRaw.slice(-all.length));
+    if(!q||!rTail)return{score:0,count:0,label:"-",refLabel:channelLabel(ref)};
+    const sc=compareProfiles(q,rTail)*(.85+.15*all.length/R);
+    return{score:sc,count:all.length,label:channelLabel(q),refLabel:channelLabel(ref),prof:q,raw:all};
+  }
+  for(const k of sizes){
+    const win=all.slice(-k);
+    const q=channelProfile(win);
+    if(!q)continue;
+    const sc=compareProfiles(q,ref);
+    if(!best||sc>best.score)
+      best={score:sc,count:k,label:channelLabel(q),refLabel:channelLabel(ref),prof:q,raw:win};
+  }
+  return best||{score:0,count:0,label:"-",refLabel:channelLabel(ref)};
+}
+
+/* kanalları bir tuvale çizer; mx/my: mum koordinatını tuvale çevirir */
+function drawChannels(ctx,raw,mx,my,lw=2){
+  const ch=findChannels(raw);
+  if(!ch)return;
+  const cols={"-1":"#e11d48","0":"#2563eb","1":"#059669"};
+  ctx.save();
+  ctx.lineWidth=lw;
+  ch.segs.forEach(g=>{
+    ctx.strokeStyle=cols[g.dir];
+    const xa=g.a-.5,xb=g.b-.5;
+    const X=t=>{
+      const i=Math.max(0,Math.min(raw.length-1,Math.round(t)));
+      const j=Math.max(0,Math.min(raw.length-1,i+(t>i?1:-1)));
+      const xi=raw[i].x,xj=raw[j].x;
+      return mx(i===j?xi:xi+(xj-xi)*(t-i)/(j-i));
+    };
+    for(const off of [g.up,g.lo]){
+      ctx.beginPath();
+      ctx.moveTo(X(xa),my(g.s*xa+g.k+off));
+      ctx.lineTo(X(xb),my(g.s*xb+g.k+off));
+      ctx.stroke();
+    }
+  });
+  ctx.restore();
+}
+/* ==== KANAL SONU ==== */
+
 function renderResults(results){
 
   if(!results.length){
@@ -3550,7 +3700,9 @@ function renderResults(results){
     pct(best.finalScore)+"%";
 
   bestDetail.innerHTML=
-    "Formasyon: <b>"+
+    "Kanal: <b>"+
+    pct(best.channelScore||0)+
+    "%</b> • Mum mum: <b>"+
     pct(best.shapeScore)+
     "%</b> • AI: <b>"+
     (
@@ -3561,9 +3713,11 @@ function renderResults(results){
     "</b><br>"+
     "Algılanan mum: <b>"+
     best.detected+
-    "</b> • Karşılaştırılan: <b>"+
-    best.windowCount+
-    "</b>";
+    "</b> • Kanal penceresi: <b>"+
+    (best.channelCount||0)+
+    "</b> mum<br>"+
+    "Grafik: <b>"+(best.channelLabel||"-")+"</b><br>"+
+    "Formasyon: <b>"+(best.refChannelLabel||"-")+"</b>";
 
   topMatches.innerHTML="";
 
@@ -3604,7 +3758,9 @@ function renderResults(results){
     detail.className="detail";
 
     detail.textContent=
-      "Formasyon "+
+      "Kanal "+
+      pct(result.channelScore||0)+
+      "% • Mum "+
       pct(result.shapeScore)+
       "% • AI "+
       (
@@ -3736,6 +3892,12 @@ async function scanFormation(){
           prepared.sequence
         );
 
+      const chm=
+        channelMatch(
+          detected,
+          prepared.sequence.raw
+        );
+
       let aiScore=null;
 
       if(
@@ -3762,14 +3924,15 @@ async function scanFormation(){
 
       let finalScore;
 
+      /* 31 Ekim: ana skor kanal skoru (büyük resim) */
       if(aiScore===null){
 
-        finalScore=match.score;
+        finalScore=chm.score;
 
       }else{
 
         finalScore=
-          match.score*SHAPE_WEIGHT+
+          chm.score*SHAPE_WEIGHT+
           aiScore*AI_WEIGHT;
       }
 
@@ -3779,6 +3942,10 @@ async function scanFormation(){
         src:ref.src,
 
         shapeScore:match.score,
+        channelScore:chm.score,
+        channelLabel:chm.label,
+        refChannelLabel:chm.refLabel,
+        channelCount:chm.count,
         aiScore,
 
         finalScore:

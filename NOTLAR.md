@@ -260,3 +260,12 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   - F3 BOS: Yumuşak inen (1–16) → Yatay (17–24) → Yükselen (25–30).
 - Sıradaki adımlar: (1) kanal bulmayı siteye ekle ve kamera görüntüsüne çiz; (2) karşılaştırmayı kanal dizisine geçir (eski mum mum karşılaştırma bir süre yanında kalsın); (3) sonuçta "aşama" ve kesilen kısmı beklenen hareket olarak göster (hayalet çizim en son).
 - Not: son kısım geçmişte formasyonun nasıl tamamlandığını gösterir, her seferinde aynı yönü garanti etmez.
+
+## 31 Ekim 05:15 — Kanal tabanlı karşılaştırma eklendi (ilk sürüm)
+- Okuyucu.html "KANAL TABANLI KARŞILAŞTIRMA": findChannels (mumları en uygun kanallara böler; kanal içi küçük farklar yok sayılır), channelProfile (kanal orta çizgisi 24 noktaya örneklenir + her noktanın yönü: inen/yatay/yükselen), channelMatch (canlı pencere en sağdan, referans mum sayısının %75–130'u arasında esner; en iyi uyan alınır).
+- Skor = %60 kanal çizgisinin şekli + %40 kanal yönlerinin sırası. ANA SKOR artık kanal skoru; mum mum skor yanında gösteriliyor ("Kanal X% • Mum Y%"). Sonuç kartında grafiğin ve formasyonun kanal dizisi yazıyor.
+- Bilgisayar testi (kesilmiş referanslar):
+  - Kendisiyle %100. F2 tabanı 4 mum uzatılınca %92, düşüşü 3 mum kısaltılınca %87 (mum sayısı serbestliği çalışıyor).
+  - İlgisiz BTC grafikleri: %28–53.
+  - Zayıf nokta: kesilmiş F1 ile F3 birbirine benziyor (%76–82); ikisi de kesimden sonra "inen → yükselen" görünüyor. Ayrım için ileride kanal eğimi/derinliği ağırlığı artırılabilir.
+- Sıradaki: kanalları kamera görüntüsüne/test görüntüsüne çizmek (drawChannels hazır), telefonda Tara ile test, eşik belirleme.
