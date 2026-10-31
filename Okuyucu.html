@@ -598,7 +598,6 @@ function updateHint(candles,canvas){
   if(Date.now()<hintLockUntil)return;
 
   const n=candles.length;
-  observeShotCount(n);
   const t=viewThresholds();
   const g=guidanceFor(candles,canvas);
 
@@ -1114,40 +1113,15 @@ document.querySelectorAll(".zoomBtn").forEach(b=>{
 });
 
 /* ==== ÇEKİM ÖNERİSİ: 1x mi 2x mi? (31 Ekim) ====
-   Tarama en sağdaki mumdan başlar ve kütüphanedeki formasyonun mum sayısı
-   kadar mum ister. Kadraja o kadar mum sığmazsa eşleşme yapılamaz.
-   - 2x: mumlar büyük ve net, ama kadraja daha az mum sığar.
-   - 1x: yaklaşık iki kat mum sığar, mumlar küçülür.
-   Kadraja sığan mum sayısı, canlı kamerada okunan mum sayısından ölçülür
-   (zoom ile ters orantılı). Ölçüm yoksa 31 Ekim PARTIUSDT testindeki
-   2x ≈ 33 mum değeri kullanılır. Öneri sadece bilgi verir; seçim
-   kullanıcıdadır (1x / 2x düğmeleri ya da iPhone kamerasındaki lens). */
-const SHOT={per1x:66,observed:false,samples:[]};
-const SHOT_MARGIN=.9; /* kenarlarda kaybolan mumlar için %10 pay */
-
-function shotCapacity(z){
-  return Math.round(SHOT.per1x/z*SHOT_MARGIN);
-}
-
-function observeShotCount(n){
-  /* Canlı zoom desteklenmiyorsa kamera 1x'tedir. */
-  if(stillMode||!videoTrack||n<8)return;
-  SHOT.samples.push(n*(currentZoom||1));
-  if(SHOT.samples.length>15)SHOT.samples.shift();
-  const s=[...SHOT.samples].sort((a,b)=>a-b);
-  SHOT.per1x=s[Math.floor(s.length/2)];
-  SHOT.observed=true;
-  renderShotAdvice();
-}
-
-let lastShotHtml="";
+   Sadece öneri verir; kamera, mum sayımı ve çekim işlemleri değişmez.
+   Kural (kullanıcı): kütüphanedeki formasyon 33 mumdan fazlaysa 1x,
+   değilse 2x önerilir. Seçim kullanıcıdadır. */
+const SHOT_LIMIT_2X=33;
 
 function renderShotAdvice(){
   const box=document.getElementById("shotAdvice");
   if(!box)return;
 
-  const cap2=shotCapacity(2);
-  const cap1=shotCapacity(1);
   let html;
   let rec=2;
 
@@ -1155,37 +1129,20 @@ function renderShotAdvice(){
     html="📐 <b>Çekim önerisi: 2x</b> (varsayılan). Kütüphane yüklenince formasyonların mum sayısına göre yeniden hesaplanır.";
   }else{
     const need=Math.max(...refCounts);
-    const fit2=refCounts.filter(c=>c<=cap2).length;
-    const fit1=refCounts.filter(c=>c>cap2&&c<=cap1).length;
-    const over=refCounts.filter(c=>c>cap1).length;
-    rec=need<=cap2?2:1;
-
+    const n2=refCounts.filter(c=>c<=SHOT_LIMIT_2X).length;
+    const n1=refCounts.length-n2;
+    rec=need>SHOT_LIMIT_2X?1:2;
     html="📐 <b>Çekim önerisi: "+rec+"x</b> — en uzun formasyon "+need+
-      " mum; 2x'te ~"+cap2+", 1x'te ~"+cap1+" mum sığıyor"+
-      (SHOT.observed?" (kameradan ölçüldü)":" (tahmini, kamera açılınca ölçülür)")+".";
-    html+="<br>Kütüphane: "+fit2+" formasyon 2x'e sığar";
-    if(fit1)html+=", "+fit1+" formasyon 1x ister";
-    html+=".";
-    if(over){
-      html+="<br><span class=\"warn\">⚠ "+over+
-        " formasyon 1x'e de sığmıyor: Binance'te grafiği iki parmakla küçült.</span>";
-    }
-    if(rec===2&&fit2===refCounts.length){
-      html+="<br>2x daha net okur; 1x'e gerek yok.";
-    }else if(rec===1){
-      html+="<br>Sadece kısa formasyonlara bakacaksan 2x de seçebilirsin.";
-    }
+      " mum (sınır "+SHOT_LIMIT_2X+").";
+    html+="<br>Kütüphane: "+n2+" formasyon 2x"+(n1?", "+n1+" formasyon 1x":"")+".";
+    if(rec===1)html+="<br>Sadece kısa formasyonlara bakacaksan 2x de seçebilirsin.";
   }
   html+="<br>🖼️ Fotoğraf Oku ile çekerken iPhone kamerasında da <b>"+rec+"x</b> seç.";
 
   document.querySelectorAll(".zoomBtn").forEach(b=>{
     b.classList.toggle("rec",Number(b.dataset.z)===rec);
   });
-
-  if(html!==lastShotHtml){
-    box.innerHTML=html;
-    lastShotHtml=html;
-  }
+  box.innerHTML=html;
 }
 renderShotAdvice();
 

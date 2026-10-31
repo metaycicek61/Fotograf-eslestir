@@ -341,9 +341,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Sonra: kanal dışına taşma sınırını (%20 gövde) koda eklemek; sonuçta "yön özeti" (ilk 5 eşleşmede LO/SH sayısı).
 
 ## 31 Ekim 23:30 — Çekim önerisi: 1x mi 2x mi?
-- Kural: tarama en sağdaki mumdan başlar ve kütüphanedeki formasyonun mum sayısı kadar mum ister. QM referanslarının bir kısmı 80–120 mum; 2x kadraja (~33 mum) sığmıyor.
-- Okuyucu.html: kamera düğmelerinin altında "📐 Çekim önerisi" kutusu. Kütüphanedeki en uzun formasyonun mum sayısını, 2x ve 1x'te kadraja sığan mum sayısıyla karşılaştırır; önerilen zoom düğmesi yeşil çerçeveli olur. Seçim kullanıcıda.
-- Kadraja sığan mum: canlı kamerada okunan mum × zoom (son 15 ölçümün medyanı, %10 kenar payı). Ölçüm yoksa 2x ≈ 33 mum (PARTIUSDT testi) varsayılır.
-- Kutu ayrıca kaç formasyonun 2x'e sığdığını, kaçının 1x istediğini, kaçının 1x'e de sığmadığını (→ Binance'te grafiği küçült) yazar. Fotoğraf Oku için iPhone kamerasında hangi lensin seçileceğini söyler.
-- Bilgisayar testi: mevcut 10 formasyonla öneri 2x (en uzun 29 mum); 77 mumluk XAUUSD QM eklenince öneri 1x'e döndü.
-- Açık konu: QM ortak 9 görsel (TradingView + ForexFactory) kırılım kontrolü sürüyor; mum sayıları ~25–120. Karşılaştırmadan önce ortak mum sayısına ölçekleme ayrıca değerlendirilecek.
+- Okuyucu.html: kamera düğmelerinin altında "📐 Çekim önerisi" kutusu. SADECE öneri; kamera, mum sayımı ve çekim işlemlerinde değişiklik YOK (kullanıcı kararı).
+- Kural (kullanıcı): kütüphanedeki formasyon 33 mumdan fazlaysa 1x, değilse 2x önerilir. Önerilen zoom düğmesi yeşil çerçeveli olur; seçim kullanıcıda. Kutu kaç formasyonun 2x / 1x olduğunu ve Fotoğraf Oku için iPhone lensini yazar.
+- 1x için düzeltmeler ileride yapılacak.
+- Bilgisayar testi: mevcut 10 formasyon → 2x (en uzun 29 mum); 77 mumluk XAUUSD QM eklenince → 1x.
+- Öncelik (kullanıcı): kütüphanedeki kesme işlemi ve kanal boylarını yerleştirmek. QM ortak 9 görsel (TradingView + ForexFactory) kırılım kontrolü sürüyor.
