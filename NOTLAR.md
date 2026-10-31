@@ -346,3 +346,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - 1x için düzeltmeler ileride yapılacak.
 - Bilgisayar testi: mevcut 10 formasyon → 2x (en uzun 29 mum); 77 mumluk XAUUSD QM eklenince → 1x.
 - Öncelik (kullanıcı): kütüphanedeki kesme işlemi ve kanal boylarını yerleştirmek. QM ortak 9 görsel (TradingView + ForexFactory) kırılım kontrolü sürüyor.
+- Kullanıcı kararı (31 Ekim 23:53): QM hızlı / yavaş (normal) retest ayrımı ya KENDİLİĞİNDEN (kütüphanede ayrı formasyonlar, karşılaştırma ayırt eder) ya da KULLANICI SEÇİMİYLE (taramadan önce "Hepsi / Hızlı retest / Normal QM") yapılacak. Kodlama sonra; kamera ve mum sayımına dokunulmayacak.
