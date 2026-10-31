@@ -227,3 +227,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Sonuç: bulanık test 21 -> 25; diğer testler ve kütüphane referansları değişmedi.
 - Denenip GERİ ALINAN: yeşil ton sınırını 178 -> 195 genişletmek (çok ince "T" camgöbeği görünüyor). Diğer testlerde hata artırdı.
 - Gözlem: çerçeve sık sık sağ üste kayıyor; son mumun üstünde/sağında boşluk bırakmak gerekiyor.
+
+## 31 Ekim 04:25 — Kayma kontrolü ve net kare seçimi
+- Kullanıcı gözlemi: Tara/Kaydet'e basınca çekilen kare, önizlemeye göre hep aşağı yönde kayıyor; basınca beklemek gerekiyor.
+- Kontrol (bilgisayar, sahte kamera deseni, iPhone ekran boyutu): önizleme ile kaydedilen kare arasında kod kaynaklı kayma YOK (merkez farkı ~%0,2).
+- Sebep: düğmeler ekranın alt yarısında; basmak telefonu eğiyor, site tam o anki kareyi alıyordu (kayma + hareket bulanıklığı).
+- Çözüm (captureBest): basınca 0,45 sn beklenir, sonra ~0,6 sn içinde 6 kare alınır, en net olan (gradyan enerjisi) kullanılır. Kaydet ve Tara ikisi de bunu kullanıyor. Test bilgisinde "Netlik" değeri yazıyor (bulanıklık eşiği ayarı için veri).

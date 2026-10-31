@@ -886,8 +886,10 @@ async function saveTestShots(){
   testShareBtn.style.display="none";
   try{
     updateScanBox();
-    const full=captureFullFrame();
-    const scan=captureScanRegion();
+    testShots.textContent="Sabit tut… en net kare seçiliyor";
+    const best=await captureBest();
+    const full=best.full;
+    const scan=best.scan;
     const candles=detectCandles(scan);
     const numbered=drawNumberedTest(scan,candles);
 
@@ -908,6 +910,7 @@ async function saveTestShots(){
     info.textContent=
       "Saat "+p2(d.getHours())+":"+p2(d.getMinutes())+":"+p2(d.getSeconds())+
       " • Okunan mum: "+candles.length+
+      " • Netlik: "+Math.round(best.sharp)+
       (stillMode
         ?" • Kaynak: FOTOĞRAF "+stillInfo
         :" • Kaynak: canlı kamera "+video.videoWidth+"x"+video.videoHeight+
@@ -1518,11 +1521,48 @@ function captureFullFrame(){
   return c;
 }
 
-function captureScanRegion(){
+/* ==== 31 Ekim: NET KARE SEÇİMİ ====
+   Düğmeye basmak telefonu oynatıyor (kare kayıyor ve bulanıklaşıyor).
+   Basınca önce kısa beklenir, sonra birkaç kare alınıp en neti seçilir. */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function sharpness(canvas){
+  const w=canvas.width,h=canvas.height;
+  const d=canvas.getContext("2d",{willReadFrequently:true})
+    .getImageData(0,0,w,h).data;
+  let sum=0,n=0;
+  for(let y=1;y<h-1;y+=2){
+    for(let x=1;x<w-1;x+=2){
+      const i=(y*w+x)*4;
+      const g=d[i]+d[i+1]+d[i+2];
+      const gx=g-(d[i+4]+d[i+5]+d[i+6]);
+      const gy=g-(d[i+w*4]+d[i+w*4+1]+d[i+w*4+2]);
+      sum+=gx*gx+gy*gy;
+      n++;
+    }
+  }
+  return n?sum/n:0;
+}
+
+async function captureBest(frames=6,delay=450,gap=110){
+  await sleep(delay);
+  let best=null;
+  for(let k=0;k<frames;k++){
+    const full=captureFullFrame();
+    const scan=captureScanRegion(full);
+    const sh=sharpness(scan);
+    if(!best||sh>best.sharp)best={full,scan,sharp:sh};
+    if(k<frames-1)await sleep(gap);
+  }
+  return best;
+}
+/* ==== NET KARE SEÇİMİ SONU ==== */
+
+function captureScanRegion(givenFull){
 
   updateScanBox();
 
-  const full=captureFullFrame();
+  const full=givenFull||captureFullFrame();
 
   const sx=Math.round(
     full.width*SCAN_LEFT
@@ -3556,8 +3596,11 @@ async function scanFormation(){
 
   try{
 
+    statusEl.textContent=
+      "Sabit tut… en net kare seçiliyor";
+
     const queryCanvas=
-      captureScanRegion();
+      (await captureBest()).scan;
 
     const detected=
       detectCandles(queryCanvas);
