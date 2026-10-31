@@ -2291,7 +2291,7 @@ function addDojis(candles,data,medW){
     x>=c.left-2&&x<=c.right+2
   );
 
-  /* her serbest sütunda en uzun dikey iz (aynı renk, 5 px'e kadar boşluk) */
+  /* her serbest sütunda en uzun dikey iz (aynı renk, 8 px'e kadar boşluk) */
   const cols=[];
   for(let x=0;x<width;x++){
     if(busy(x))continue;
@@ -2301,7 +2301,7 @@ function addDojis(candles,data,medW){
         if(mask[y*width+x]===type){
           if(t<0)t=y;
           e=y;gap=0;
-        }else if(t>=0&&++gap>5){
+        }else if(t>=0&&++gap>8){ /* bulanık fitil kesik kesik görünebilir */
           if(e-t>bestE-bestT){bestT=t;bestE=e;}
           t=-1;gap=0;
         }
