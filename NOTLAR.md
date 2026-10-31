@@ -203,3 +203,14 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Geçici test bölümü kullanıcı isteğiyle KORUNUYOR.
 - Bilgisayar sonucu (aynı fotoğraflar, fotoğraf modu): 2x fotoğraf 41 mum, VOL kapalı 2x fotoğraf 34 mum. Büyük mumlar doğru ayrılıyor.
 - Kalan hatalar (sıradaki iş = ayırma düzeltmesi): (1) gövdesi neredeyse olmayan çok küçük doji'ler ("+" / "T") kaçıyor; (2) yan yana iki yeşil mum bazen tek kutu oluyor. İkisi de en sağ (en önemli) bölgede görüldü.
+
+## 31 Ekim 03:45 — Yeşil alan tam ekran + ayırma düzeltmesi
+- Kamera alanı 1,2:1, yeşil alan kamera alanının tamamı (%3 pay). Karşılaştırma dikey ölçekten bağımsız olduğu için oran zorlanmıyor; okuma sıkıştırmasız (genişlik 502).
+- Test (BTCUSDT 15m, büyük ekran, site test görüntüleri): kutular mumlara tam oturuyor; ekran görüntülerindeki kayma hareketten. 1x: 22 mumun hepsi doğru (yalnız küçük "T" kaçtı). 2x: 29 gerçek mumdan 25.
+- 2x'te ekran piksel deseni (dikey çizgiler) belirgin; biraz uzaktan çekmek iyi. Çerçeve sık sık aşağı kayıyor: grafik alanın ortasında olmalı.
+- Ayırma düzeltmesi (Okuyucu.html, "AYIRMA DÜZELTMESİ"):
+  - splitWideBodies: ortanca gövde genişliğinin 1,6 katından geniş kutu bölünür (gövde kenarı sıçraması / seyrek sütun).
+  - addDojis: mumlardan uzakta kalan dikey fitil izinde en dolu satır = "+" / "T" doji gövdesi.
+  - mergeBodyCandidates: gövdenin üstünde/altında duran ince fitil parçası artık gövdeye eklenmiyor (gövdeler fitil boyunda uzuyordu).
+  - Başka mumun gövde aralığındaki dar parça (fitil) ayrı mum sayılmıyor.
+- Sonuç: 2x test 25 -> 28 (kalan tek eksik kenarda yarım doji), 1x test 22 -> 23 (hepsi doğru). Kütüphane referansları değişmedi (21/24/25).
