@@ -397,3 +397,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - 06:30 Kullanıcı: Kaydet düğmesi yok; kanal adımında sağdaki mumlar görünmüyor ve uyarı yok. Düzeltme: Adım 4 görüntüsü formasyon + devamı birlikte gösterir (devam sarı, kesikli kırmızı çizgi); kesim son mum değilse "⚠️ Kesim (a) son mum (b) değil: sağda N mum var → devam olarak kaydedilir". Kanal verisi yine yalnızca formasyondan hesaplanır.
 - Adım 5 Kaydet: LO/SH seçimi + ad → telefondaki kişisel kütüphaneye (localStorage). Kayıt: temiz görsel (Tara bunu okur) + hazir:{mum, kanallar, devam, tarih}. Depoya/siteye girmez. Test: BTC fotoğrafı 31 mum, 3 kanal, devam 19 → kütüphanede görünüyor.
 - Sırada: kanal sınırını kullanıcının düzeltmesi; Tara'da %20 eleme kuralı (hazir.kanallar kullanılarak).
+- 06:35 Kullanıcı kararı: "Aralık Sil (iki mum)" kaldırıldı. Sahte mum yalnızca tek tek; sağ tarafı ayırmak için kesim yeterli. Modlar: ✂️ Sahte Mum / 🟢 Başlangıç / 🔴 Kesim.
