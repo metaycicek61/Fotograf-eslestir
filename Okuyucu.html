@@ -433,7 +433,16 @@ button,.fileButton{
     <div id="hz4Info" style="font-size:16px;font-weight:800"></div>
     <div id="hz4View" style="margin-top:8px;background:#fff;border-radius:10px;overflow:hidden"></div>
     <div id="hz4List" class="small" style="margin-top:6px"></div>
-    <div class="small" style="margin-top:6px">Kanal sınırlarını site önerir (en uç gövdeler + kanal genişliğinin %20'si dışarı, paralel kesikli çizgi). Kanallar görsele değil veriye kaydedilir. Sırada Adım 5: Kaydet.</div>
+    <div class="small" style="margin-top:6px">Kanal sınırlarını site önerir (en uç gövdeler + kanal genişliğinin %20'si dışarı, paralel kesikli çizgi). Sarı bölge: kesimden sonraki devam (formasyona girmez). Kanallar görsele değil veriye kaydedilir.</div>
+    <div style="margin-top:12px;font-size:16px;font-weight:800">💾 Adım 5: Kaydet</div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:6px;margin-top:6px">
+      <select id="hzYon" style="font-size:16px;padding:10px;border-radius:10px">
+        <option value="LO">LO ▲</option><option value="SH">SH ▼</option>
+      </select>
+      <input id="hzAd" placeholder="Ad (ör. QM Hızlı Retest 01)" style="font-size:16px;padding:10px;border-radius:10px;border:0">
+    </div>
+    <button id="hzSave" style="background:#15803d">💾 Kütüphaneye Kaydet</button>
+    <div id="hzSaveInfo" class="small" style="margin-top:6px"></div>
   </div>
 </div>
 
@@ -4561,7 +4570,13 @@ hzInput.addEventListener("change",async e=>{
 $hz("hz4Btn").addEventListener("click",()=>{
   if(!hz.clean)return;
   const clean=hz.clean.canvas;
-  const R=detectCandles(clean);
+  const R0=detectCandles(clean);
+  const ch0=findChannels(R0);
+  /* gösterim: formasyon + devam birlikte (devam sarı); kanallar sadece formasyonda */
+  const nF=hz.clean.raw.length,dv=hz.clean.devam;
+  const show=dv.length?hzCleanDraw(hz.clean.raw.concat(dv)):clean;
+  const RA=detectCandles(show);
+  const R=RA.length>=nF?RA.slice(0,nF):R0;
   const ch=findChannels(R);
   const info=$hz("hz4Info"),view=$hz("hz4View"),list=$hz("hz4List");
   $hz("hzStep4").style.display="block";
@@ -4582,15 +4597,25 @@ $hz("hz4Btn").addEventListener("click",()=>{
       if(o>0)over.push({no:g.a+j+1,pct:Math.round(100*o/(td-tu))});});
     out.push({n:n+1,a:g.a+1,b:g.b,dir:g.dir,s:f.s,k:f.k,ust:tu,alt:td,x0:xs[0],x1:xs[xs.length-1],over});
   });
-  hz.clean.channels=out.map(c=>({mumlar:[c.a,c.b],tur:names[c.dir],egim:+c.s.toFixed(4),kesisim:+c.k.toFixed(2),ust:+c.ust.toFixed(2),alt:+c.alt.toFixed(2),pay:.2}));
+  const outData=ch0?ch0.segs.map(g=>{const P=R0.slice(g.a,g.b);const xs=P.map(c=>c.x),ys=P.map(c=>(c.bodyTop+c.bodyBottom)/2);
+    const f=lineFit(xs,ys,0,P.length);let up=Infinity,dn=-Infinity;
+    P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.bodyTop-m);dn=Math.max(dn,c.bodyBottom-m);});
+    const w=Math.max(1,dn-up);return{a:g.a+1,b:g.b,dir:g.dir,s:f.s,k:f.k,ust:up-.2*w,alt:dn+.2*w};}):out;
+  hz.clean.channels=outData.map(c=>({mumlar:[c.a,c.b],tur:names[c.dir],egim:+c.s.toFixed(4),kesisim:+c.k.toFixed(2),ust:+c.ust.toFixed(2),alt:+c.alt.toFixed(2),pay:.2}));
   /* çizim: temiz görsel 2x, kesikli çizgiler taşarsa pay bırak */
-  let top=0,bot=clean.height;
+  let top=0,bot=show.height;
   out.forEach(c=>[c.x0-4,c.x1+4].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-6);bot=Math.max(bot,c.s*x+c.k+c.alt+6);}));
   const k=2,cv=document.createElement("canvas");
-  cv.width=clean.width*k;cv.height=Math.ceil((bot-top)*k);
+  cv.width=show.width*k;cv.height=Math.ceil((bot-top)*k);
   const ctx=cv.getContext("2d");
   ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
-  ctx.drawImage(clean,0,-top*k,clean.width*k,clean.height*k);
+  ctx.drawImage(show,0,-top*k,show.width*k,show.height*k);
+  if(dv.length&&RA.length>nF){
+    const xc=(RA[nF-1].x+RA[nF].x)/2*k;
+    ctx.fillStyle="rgba(255,215,0,.35)";ctx.fillRect(xc,0,cv.width-xc,cv.height);
+    ctx.strokeStyle="#dc2626";ctx.lineWidth=2;ctx.setLineDash([7,5]);
+    ctx.beginPath();ctx.moveTo(xc,0);ctx.lineTo(xc,cv.height);ctx.stroke();ctx.setLineDash([]);
+  }
   ctx.lineWidth=2.5;ctx.setLineDash([9,6]);
   out.forEach(c=>{
     ctx.strokeStyle=cols[c.dir];
@@ -4605,12 +4630,37 @@ $hz("hz4Btn").addEventListener("click",()=>{
   cv.style.width="100%";cv.style.display="block";
   view.innerHTML="";view.appendChild(cv);
   const tot=out.reduce((a,c)=>a+c.over.length,0);
-  info.innerHTML="📏 "+out.length+" kanal önerildi • %20 sınırını aşan fitil: "+tot;
+  const kept=hzKeptIdx(),lastNo=kept.length,cutNo=kept.indexOf(hz.cut)+1;
+  info.innerHTML="📏 "+out.length+" kanal önerildi • %20 sınırını aşan fitil: "+tot+
+    (dv.length?"<br><span style='color:#fde68a'>⚠️ Kesim ("+cutNo+") son mum ("+lastNo+") değil: sağda "+dv.length+" mum var (sarı) → formasyona girmez, devam olarak kaydedilir.</span>":"");
+  $hz("hzSaveInfo").textContent="";
+  if(!$hz("hzAd").value)$hz("hzAd").value="QM "+(new Date().toISOString().slice(5,16).replace("T"," "));
   list.innerHTML=out.map(c=>"<span style='color:"+cols[c.dir]+";font-weight:800'>"+c.n+". "+names[c.dir]+"</span> (mum "+c.a+"–"+c.b+")"+
     (c.over.length?" • taşma: "+c.over.map(o=>o.no+": %"+o.pct).join(", "):" • taşma yok")).join("<br>");
   $hz("hzStep4").scrollIntoView({behavior:"smooth",block:"nearest"});
 });
-/* ==== FORMASYON HAZIRLA — ADIM 1–4 SONU ==== */
+
+/* ---- Adım 5: Kaydet (1 Kasım) ----
+   Telefondaki kişisel kütüphaneye (localStorage) eklenir; depoya/siteye
+   GİRMEZ. Kaydedilen: temiz görsel (Tara bunu okur), mum sayısı,
+   kanallar (%20), devam mumları (öngörülecek kısım). */
+$hz("hzSave").addEventListener("click",()=>{
+  const C=hz.clean,si=$hz("hzSaveInfo");
+  if(!C||!C.channels){si.textContent="Önce Adım 4'ü çalıştır.";return;}
+  const ad=($hz("hzAd").value||"").trim()||"QM";
+  const name=$hz("hzYon").value+" · "+ad;
+  if(references.some(r=>r.name===name)){si.textContent="Bu adla bir formasyon zaten var; adı değiştir.";return;}
+  const strip=list=>list.map(m=>({x:m.x,top:m.top,bottom:m.bottom,bodyTop:m.bodyTop,bodyBottom:m.bodyBottom,direction:m.direction}));
+  references.push({
+    name,
+    src:C.canvas.toDataURL("image/png"),
+    hazir:{mum:C.raw.length,kanallar:C.channels,devam:strip(C.devam),tarih:new Date().toISOString()}
+  });
+  try{saveReferences();}catch(e){references.pop();si.textContent="Kaydedilemedi (telefon hafızası dolu olabilir): "+(e&&e.message||e);return;}
+  referenceCache.clear();renderReferences();
+  si.innerHTML="✅ Kaydedildi: <b>"+name+"</b> • "+C.raw.length+" mum, "+C.channels.length+" kanal, devam "+C.devam.length+" mum. Formasyon Kütüphanesi'nde görünür; Tara artık bununla da karşılaştırır.";
+});
+/* ==== FORMASYON HAZIRLA — ADIM 1–5 SONU ==== */
 
 
 </script>
