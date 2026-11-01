@@ -398,3 +398,12 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Adım 5 Kaydet: LO/SH seçimi + ad → telefondaki kişisel kütüphaneye (localStorage). Kayıt: temiz görsel (Tara bunu okur) + hazir:{mum, kanallar, devam, tarih}. Depoya/siteye girmez. Test: BTC fotoğrafı 31 mum, 3 kanal, devam 19 → kütüphanede görünüyor.
 - Sırada: kanal sınırını kullanıcının düzeltmesi; Tara'da %20 eleme kuralı (hazir.kanallar kullanılarak).
 - 06:35 Kullanıcı kararı: "Aralık Sil (iki mum)" kaldırıldı. Sahte mum yalnızca tek tek; sağ tarafı ayırmak için kesim yeterli. Modlar: ✂️ Sahte Mum / 🟢 Başlangıç / 🔴 Kesim.
+
+## 1 Kasım 06:50 — Tara'da %20 kanal elemesi
+- Yalnızca Formasyon Hazırla ile kaydedilmiş formasyonlarda (ref.hazir). Kamera / mum okuma koduna dokunulmadı.
+- Yöntem: algılanan mumlardan en sağdaki N (formasyonun mum sayısı) alınır → kütüphane biçiminde yeniden çizilir (hzCleanDraw) → sitenin okumasıyla okunur → her gövde kendi kanalının %20 paylı sınırları içinde mi bakılır. İçeride kalan oran < %80 (KANAL20_ESIK) ise formasyon ELENİR (skor 0). Az mum varsa "az mum (a/N)" yazar, elemez.
+- Sonuç ekranı: "✅ %20 kanal 29/31" ya da "❌ ELENDİ %20 kanal 10/31".
+- Test (bilgisayar): iPhone BTC fotoğrafından iki formasyon kaydedildi (son 31 mum = aynı, ilk 31 mum = farklı).
+  - Aynı fotoğrafla tarama: aynı 31/31 ✅ %100; farklı 12/31 ❌ elendi.
+  - Aynı grafiğin SİTE KAMERA karesiyle tarama: aynı 29/31 ✅; farklı 10/31 ❌ elendi.
+- Eşik (%80) ilk değer; gerçek testlerle ayarlanacak.

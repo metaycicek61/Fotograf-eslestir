@@ -3888,6 +3888,8 @@ function renderResults(results){
     pct(best.finalScore)+"%";
 
   bestDetail.innerHTML=
+    (best.k20?(best.k20.az?"%20 kanal: <b>az mum ("+best.k20.var+"/"+best.k20.n+")</b><br>"
+      :"%20 kanal: <b>"+best.k20.ic+"/"+best.k20.n+" mum içeride "+(best.k20.elendi?"❌ elendi":"✅")+"</b><br>"):"")+
     "Kanal: <b>"+
     pct(best.channelScore||0)+
     "%</b> • Mum mum: <b>"+
@@ -3946,6 +3948,8 @@ function renderResults(results){
     detail.className="detail";
 
     detail.textContent=
+      (result.k20?(result.k20.az?"%20 kanal: az mum ("+result.k20.var+"/"+result.k20.n+") • "
+        :(result.k20.elendi?"❌ ELENDİ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • ":"✅ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • ")):"")+
       "Kanal "+
       pct(result.channelScore||0)+
       "% • Mum "+
@@ -4124,10 +4128,15 @@ async function scanFormation(){
           aiScore*AI_WEIGHT;
       }
 
+      /* 1 Kasım: Hazırla ile kaydedilmiş formasyonlarda %20 kanal elemesi */
+      const k20=kanal20Kontrol(detected,ref);
+      if(k20&&k20.elendi)finalScore=0;
+
       results.push({
 
         name:ref.name,
         src:ref.src,
+        k20,
 
         shapeScore:match.score,
         channelScore:chm.score,
@@ -4660,6 +4669,34 @@ $hz("hzSave").addEventListener("click",()=>{
   si.innerHTML="✅ Kaydedildi: <b>"+name+"</b> • "+C.raw.length+" mum, "+C.channels.length+" kanal, devam "+C.devam.length+" mum. Formasyon Kütüphanesi'nde görünür; Tara artık bununla da karşılaştırır.";
 });
 /* ==== FORMASYON HAZIRLA — ADIM 1–5 SONU ==== */
+/* ==== %20 KANAL ELEMESİ (1 Kasım) ====
+   Yalnızca Formasyon Hazırla ile kaydedilmiş (ref.hazir) formasyonlarda.
+   Kural (kullanıcı): tarama en sağ mumdan başlar, formasyonun mum sayısı
+   kadar mum alınır. Bu pencere kütüphane formasyonuyla AYNI biçimde
+   yeniden çizilir (hzCleanDraw) ve sitenin okumasıyla okunur; böylece
+   koordinatlar kaydedilen kanallarla aynı düzlemde olur. Her mumun gövdesi
+   kendi kanalının %20 paylı sınırları içinde mi bakılır. İçeride kalan
+   oranı KANAL20_ESIK'in altındaysa formasyon elenir (skor 0). */
+const KANAL20_ESIK=.8;
+function kanal20Kontrol(detected,ref){
+  const H=ref&&ref.hazir;
+  if(!H||!H.kanallar||!H.kanallar.length)return null;
+  const n=H.mum;
+  if(detected.length<n)return{az:true,var:detected.length,n};
+  const win=detected.slice(-n);
+  const R=detectCandles(hzCleanDraw(win));
+  const m=Math.min(R.length,n);
+  let ic=0;
+  for(let j=0;j<m;j++){
+    const c=R[j];
+    const ch=H.kanallar.find(k=>j+1>=k.mumlar[0]&&j+1<=k.mumlar[1])||H.kanallar[H.kanallar.length-1];
+    const y=ch.egim*c.x+ch.kesisim;
+    if(c.bodyTop>=y+ch.ust-1&&c.bodyBottom<=y+ch.alt+1)ic++;
+  }
+  const oran=ic/n;
+  return{n,ic,oran,elendi:oran<KANAL20_ESIK};
+}
+
 
 
 </script>
