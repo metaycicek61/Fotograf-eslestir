@@ -416,3 +416,16 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - TAHMİN: Adım 5'te devam mumlarından hesaplanıp kaydedilir (hazir.tahmin): yön ▲/▼/◆, sonraki N mumda net hareket ve en çok yukarı/aşağı, formasyon boyuna göre %. Eşleşmede "🔮 Tahmin: ▼ düşüş • sonraki 8 mumda net %20 (en çok ▲%0 / ▼%58)". Devamı olmayan formasyonda "Tahmin yok".
 - Test: BTC fotoğrafının %80'i (kırpık, 42 mum) tarandı; tam fotoğraftan kırpığın son mumunda kesilen 25 mumluk formasyon: 25/25 içeride, hareket %100, tahmin ▼ (gerçekte de sonrasında düşüş vardı). Hazır kütüphanedeki 10 formasyon bu grafikte elendi.
 - Not: Hazır Kütüphane formasyonlarının devam kısmı yok (formasyonlar/kutuphane/tam/ içinde tam hâlleri var; ileride tahmin için kullanılabilir).
+
+## Yapılacaklar — 1 Kasım 07:10 önerileri (Claude, kullanıcı listeye eklenmesini istedi)
+- [ ] Kanal sınırını düzeltme: Adım 4'te site yanlış bölerse kullanıcı sınır mumunu seçip kanalı böler/birleştirir.
+- [ ] Kütüphane yönetimi: kayıtlı formasyonu kanallı önizlemeyle görme, yeniden adlandırma, tek tek silme, Hazırla'da yeniden açıp düzenleme.
+- [ ] Test günlüğü: her taramayı kaydet (tarih, coin, zaman dilimi, en yakın formasyon, skor, tahmin); sonradan "gerçekleşti / gerçekleşmedi" işaretle → formasyon başına başarı oranı. %80 eşiği ve %60/%40 ağırlıkları bu verilerle ayarlanır.
+- [ ] Hazır Kütüphane için tahmin: formasyonlar/kutuphane/tam/ içindeki tam hâllerden devam kısmını çıkarıp tahmin üret.
+- [ ] Yapay zekâ (CLIP) modeli: ana skor artık kanal skoru; ~90 MB model ilk taramayı yavaşlatıyor. Kapat/aç seçeneği (kapalıyken Tara saniyeler içinde biter).
+- [ ] Çizimli görsel uyarısı: Hazırla'da çok sayıda sahte mum silinirse "görselde çizim/yazı var gibi, orijinali kullan" uyarısı.
+- [ ] Kütüphaneyi gözden geçirme ve deneme planı:
+  1. Hazır Kütüphane (10) + QM (6) formasyonlarını Hazırla'dan geçir (kanallar + devam/tahmin).
+  2. Kendi kendine test: her formasyonun kendi görseliyle tarama → kendisi %80+ ile geçmeli.
+  3. Çapraz test: her formasyon diğerlerinin görseliyle → elenmeli; elenmeyen çiftler "benzer" (eski not: LO 05 ↔ LO 02 %91, LO 07 ↔ LO 01 %91) → birleştir ya da ayırt edici hâle getir.
+  4. Gerçek Binance denemeleri (15 dk, farklı coinler, 1x/2x): sonuçları test günlüğüne yaz.
