@@ -467,3 +467,5 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   | SH 01 Wyckoff Dağıtım | 31 | 24 | 7 |
 - QM görselleri (6) özel arşivde; onlar "Görsel Seç" ile yüklenir.
 - 02:45 Kullanıcı isteğiyle eski "📚 Hazır Kütüphaneyi Yükle" düğmesi GİZLENDİ (kesik görselleri Hazırla'dan geçirmeden ekliyordu). Kod duruyor; formasyonlar artık yalnızca Hazırla → Adım 5 Kaydet ile kütüphaneye girer.
+- 02:50 Telif önlemi (kullanıcı onayı): kaynağı belgelenmemiş ilk 3 formasyon (F1 Liquidity Sweep, F2 OB Retest, F3 BOS = LO 01–03) depodan ve Hazırla listesinden KALDIRILDI (kutuphane, tam, temiz, numarali, kesilmis). Listede yalnızca bizim çizdiğimiz 7 formasyon kaldı (LO 04–09, SH 01). Not: git geçmişinde eski sürümler hâlâ duruyor.
+- Kullanıcı şimdi telefonundaki 9 formasyonu (31 Ekim seçilen ortak set) Görsel Seç ile Hazırla'dan geçiriyor; sorun çıkarsa bildirecek.
