@@ -4052,7 +4052,10 @@ async function scanFormation(){
       detected.length+
       " mum algılandı. Karşılaştırılıyor…";
 
-    const model=await loadAI();
+    /* 1 Kasım: yapay zekâ (CLIP) KAPALI — skor tamamen kanal skorundan geliyor,
+       model katkı vermiyordu ama ~90 MB indiriliyordu. Gerekirse true yapılır. */
+    const AI_ACIK=false;
+    const model=AI_ACIK?await loadAI():null;
     const useAI=!!model;
 
     const results=[];

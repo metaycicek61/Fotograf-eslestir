@@ -433,3 +433,18 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kullanıcı görüşü: tüm grafikler Hazırla'dan yeniden yükleneceği için kütüphane yönetimindeki kanal düzenleme ihtiyacı büyük ölçüde ortadan kalkar; yeniden adlandırma / tek tek silme yeterli olabilir.
 
 - ÖNCELİK (1 Kasım, kullanıcı): Smart Money (SMC) formasyon grafiklerini bulup Formasyon Hazırla ile kütüphaneye eklemek.
+
+## 1 Kasım 07:30 — Yapay zekâ kapatıldı
+- Tara'da CLIP modeli KAPALI (AI_ACIK=false). Skor zaten tamamen kanal skorundan geliyordu; model katkı vermeden ~90 MB indiriliyordu. Bilgisayar testi: Fotoğraf Oku + 10 formasyonluk tarama ~0,8 sn, model hiç çağrılmıyor. Gerekirse AI_ACIK=true.
+- İleride (fikir): AI'ı Tara yerine kütüphanede kullanmak — kayıtta benzer formasyon uyarısı / gruplama.
+
+## ▶ YARIN (2 Kasım) PLANI
+1. Kütüphane sıfırdan: telefondaki eski referansları sil ("Tüm Referansları Sil"); tüm formasyonlar Formasyon Hazırla'dan eklenecek (numaralama → sahte mum → kesim önerisi/seçimi → kes → %20 kanallar + düzeltme → LO/SH adıyla kaydet).
+   - Önce 6 QM görseli (QM_Ortak_6), sonra diğer SMC formasyonları (öncelik).
+   - Hazır Kütüphane'deki 10 formasyon da istenirse Hazırla'dan geçirilir (kanal + devam/tahmin için tam hâlleri: formasyonlar/kutuphane/tam/).
+2. Bol deneme:
+   - Kendi kendine: her formasyon kendi görseliyle → kendisi geçmeli.
+   - Çapraz: diğer formasyonların görselleriyle → elenmeli; elenmeyen benzer çiftleri not et.
+   - Gerçek Binance (15 dk, farklı coinler, 1x/2x; Fotoğraf Oku ve canlı kamera).
+3. Aksaklıkları tespit et: her sorunun ekran görüntüsü + hangi adımda olduğu.
+4. En son: Yapılacaklar listesi ve NOTLAR bölümleri birlikte kontrol edilip güncellenecek (biten işler işaretlenecek, gereksizler çıkarılacak).
