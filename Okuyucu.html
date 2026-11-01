@@ -146,6 +146,8 @@ button,.fileButton{
 #zoomNote{text-align:center;margin-top:6px}
 #hzCard .hzRow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
 #hzCard .hzRow3 button{margin-top:0;padding:11px 2px;font-size:14px;border-radius:12px}
+#hzCard .hzRow2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+#hzCard .hzRow2 button{margin-top:0;padding:11px 2px;font-size:14px;border-radius:12px}
 #hzCard .hzMode{background:#374151}
 #hzCard .hzMode.on{background:#f59e0b;color:#111}
 
@@ -398,18 +400,19 @@ button,.fileButton{
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
   <h2>🛠️ Formasyon Hazırla</h2>
-  <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte gösterilir; sağa-sola kaydırılabilir.</div>
+  <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
     <input id="hzInput" type="file" accept="image/*" style="display:none">
   </label>
   <div id="hzInfo" style="margin-top:10px;font-size:17px;font-weight:800"></div>
-  <div id="hzModes" class="hzRow3" style="display:none">
-    <button data-m="sil" class="hzMode on">✂️ 1. Sahte Mum</button>
-    <button data-m="bas" class="hzMode">🟢 2. Başlangıç</button>
-    <button data-m="kes" class="hzMode">🔴 2. Kesim</button>
+  <div id="hzModes" class="hzRow2" style="display:none">
+    <button data-m="tek" class="hzMode on">✂️ Sahte Mum (tek tek)</button>
+    <button data-m="ara" class="hzMode">↔️ Aralık Sil (iki mum)</button>
+    <button data-m="bas" class="hzMode">🟢 Başlangıç</button>
+    <button data-m="kes" class="hzMode">🔴 Kesim</button>
   </div>
-  <div id="hzHelp" class="small" style="margin-top:6px"></div>
+  <div id="hzHelp" class="small" style="margin-top:6px;font-weight:700;color:#fde68a"></div>
   <div id="hzView" style="margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;background:#fff"></div>
   <div id="hzSel" class="small" style="margin-top:6px"></div>
   <div id="hzBtns" class="hzRow3" style="display:none">
@@ -417,9 +420,13 @@ button,.fileButton{
     <button id="hzClr" style="background:#6b7280" disabled>✖️ Seçimi Temizle</button>
     <button id="hzUndo" style="background:#6b7280" disabled>↩️ Silmeleri Geri Al</button>
   </div>
-  <label id="hzRangeL" class="small" style="display:none;margin-top:8px"><input type="checkbox" id="hzRange"> Aralık seç (iki muma dokun → aradakilerin hepsi seçilir)</label>
   <div id="hzCut" style="display:none;margin-top:10px;font-size:16px;font-weight:700"></div>
-  <button id="hzNext" style="background:#374151;display:none" disabled>➡️ Adım 3: Kes ve Temiz Çiz (sırada)</button>
+  <button id="hzNext" style="background:#0e7490;display:none">➡️ Adım 3: Kes ve Temiz Çiz</button>
+  <div id="hzStep3" style="display:none;margin-top:10px">
+    <div id="hzS3Info" style="font-size:16px;font-weight:800"></div>
+    <div id="hzS3View" style="margin-top:8px;background:#fff;border-radius:10px;overflow:hidden"></div>
+    <div class="small" style="margin-top:6px">Temiz çizim sitenin kütüphane biçiminde (502×277). Mum verisi de saklanır; Tara'da kamera ile aynı okuma kodundan çıkmış verilerle karşılaştırılacak. Adım 4 (%20 kanallar) sırada.</div>
+  </div>
 </div>
 
 <div class="card">
@@ -4184,22 +4191,25 @@ statusEl.textContent=
 requestAnimationFrame(drawGrid);
 
 
-/* ==== FORMASYON HAZIRLA — ADIM 1–2 (1 Kasım) ====
+/* ==== FORMASYON HAZIRLA — ADIM 1–3 (1 Kasım) ====
    Kamera, mum okuma ve Tara koduna DOKUNULMAZ; yalnızca kullanılır.
    OKUMA yolu Fotoğraf Oku ile birebir aynı:
    findChartBox → buildStill → tam kare (kamera kutusu oranı) →
    captureScanRegion (yeşil alan, 502 genişlik) → detectCandles.
-   GÖSTERİM ise orijinal görsel üzerinde yapılır (net görünsün diye):
-   tarama koordinatları aynı geometriyle orijinale geri çevrilir.
-   Adım 1: sahte mumları sil (çoklu seçim + aralık).
-   Adım 2: başlangıç ve kesim mumunu seç (kesim mumu DAHİL). */
-const hz={img:null,scan:null,raw:[],removed:new Set(),sel:new Set(),last:-1,
-  mode:"sil",start:-1,cut:-1,map:null};
+   GÖSTERİM orijinal görsel üzerinde (net); numaralar altta tek şeritte,
+   dokunulan SÜTUNDAKİ mum seçilir. Tuval her dokunuşta yeniden
+   oluşturulmaz (kaydırma konumu kaymaz).
+   Adım 1: sahte mum sil (tek tek ya da iki mum arası).
+   Adım 2: başlangıç ve kesim mumu (kesim mumu DAHİL).
+   Adım 3: kes + temiz çiz (502×277) + site okumasıyla doğrula. */
+const hz=window.__hz={img:null,scan:null,raw:[],removed:new Set(),sel:new Set(),first:-1,
+  mode:"tek",start:-1,cut:-1,map:null,cv:null,geo:null,clean:null};
 const $hz=id=>document.getElementById(id);
 const hzInput=$hz("hzInput"),hzInfo=$hz("hzInfo"),hzView=$hz("hzView"),
   hzSel=$hz("hzSel"),hzBtns=$hz("hzBtns"),hzDel=$hz("hzDel"),hzClr=$hz("hzClr"),
   hzUndo=$hz("hzUndo"),hzModes=$hz("hzModes"),hzHelp=$hz("hzHelp"),
-  hzRange=$hz("hzRange"),hzRangeL=$hz("hzRangeL"),hzCut=$hz("hzCut"),hzNext=$hz("hzNext");
+  hzCut=$hz("hzCut"),hzNext=$hz("hzNext"),hzStep3=$hz("hzStep3"),
+  hzS3Info=$hz("hzS3Info"),hzS3View=$hz("hzS3View");
 
 function hzFullFrame(src){
   /* captureFullFrame ile aynı kırpma, kaynak = verilen tuval */
@@ -4219,8 +4229,8 @@ function hzFullFrame(src){
   return c;
 }
 
-/* buildStill'in yerleşim hesabının aynısı (sadece koordinat dönüşümü için;
-   çizim buildStill'in kendisiyle yapılır). Dönen: still = (img - o) * k */
+/* buildStill'in yerleşim hesabının aynısı (yalnızca koordinat dönüşümü
+   için; çizim buildStill'in kendisiyle yapılır). still = (img - o) * k */
 function hzStillGeom(img,box){
   const padY=box.h*.06,padL=box.w*.01,padR=box.w*.06;
   let right=box.x+box.w+padR,x=box.x-padL,y=box.y-padY,w=right-x,h=box.h+2*padY;
@@ -4244,17 +4254,14 @@ function hzImageToScan(img){
     const g=hzStillGeom(img,box);
     const full=hzFullFrame(stillCanvas);
     const scan=captureScanRegion(full);
-    /* tarama → orijinal: img = ((scan/s2 + F)/fs + S)/k + o */
+    /* tarama → orijinal: img = ((scan/s2 + F)/fs + crop)/k + o */
     const fs=full.width/full._crop.sw;
     const fsx=Math.round(full.width*SCAN_LEFT),fsy=Math.round(full.height*SCAN_TOP);
-    const fsw=Math.round(full.width*(SCAN_RIGHT-SCAN_LEFT));
-    const s2=TARGET_W/Math.max(1,fsw);
+    const s2=TARGET_W/Math.max(1,Math.round(full.width*(SCAN_RIGHT-SCAN_LEFT)));
     const cr=full._crop;
-    const cy=full._crop.sy||0;
     hz.map={
       x:v=>((v/s2+fsx)/fs+cr.sx)/g.k+g.ox,
-      y:v=>((v/s2+fsy)/fs+cy)/g.k+g.oy,
-      sc:1/(s2*fs*g.k)
+      y:v=>((v/s2+fsy)/fs+cr.sy)/g.k+g.oy
     };
     return scan;
   }finally{
@@ -4264,97 +4271,111 @@ function hzImageToScan(img){
   }
 }
 
-/* silinmeyen mumların sırası (raw indeksleri) */
 function hzKeptIdx(){
   const out=[];
   hz.raw.forEach((m,i)=>{if(!hz.removed.has(i))out.push(i);});
   return out;
 }
 
-function hzDraw(){
+/* Görüntü geometrisi bir kez hesaplanır; tuval bir kez oluşturulur. */
+function hzSetup(){
   const M=hz.map,img=hz.img,R=hz.raw;
-  const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;
-  /* orijinalde mumların bulunduğu bölge */
+  const iw=img.width,ih=img.height;
   let x0=Infinity,x1=-Infinity,t=Infinity,b=-Infinity;
   R.forEach(m=>{x0=Math.min(x0,M.x(m.left));x1=Math.max(x1,M.x(m.right));
     t=Math.min(t,M.y(m.top));b=Math.max(b,M.y(m.bottom));});
   const pitchI=R.length>1?(M.x(R[R.length-1].x)-M.x(R[0].x))/(R.length-1):20;
-  const mx=pitchI*1.2,my=(b-t)*.08+pitchI*2;
-  const cx0=Math.max(0,x0-mx),cx1=Math.min(iw,x1+mx);
-  const cy0=Math.max(0,t-my),cy1=Math.min(ih,b+my*.6);
-  /* her mum ~26 CSS px; ekrandan dar olmasın */
+  const cx0=Math.max(0,x0-pitchI*1.2),cx1=Math.min(iw,x1+pitchI*1.2);
+  const cy0=Math.max(0,t-(b-t)*.06),cy1=Math.min(ih,b+(b-t)*.04);
   const viewW=Math.max(280,hzView.clientWidth||330);
-  /* mum başına ~20 CSS px; yükseklik en fazla ~440 px (ekranı kaplamasın) */
-  const S=Math.min(Math.max(viewW,R.length*20)/(cx1-cx0),440/Math.max(1,cy1-cy0));
-  const cssW=Math.max(viewW*.6,Math.round((cx1-cx0)*S));
+  /* mum başına en az ~22 CSS px (numaralar okunsun); grafik yüksekliği ≤ 360 px */
+  const S=Math.max(R.length*22/(cx1-cx0),Math.min(viewW/(cx1-cx0),360/Math.max(1,cy1-cy0)));
+  const cssW=Math.round((cx1-cx0)*S);
+  const chartH=Math.round((cy1-cy0)*S);
+  const bandH=46;
   const dpr=Math.min(3,window.devicePixelRatio||2);
   const c=document.createElement("canvas");
-  c.width=Math.round(cssW*dpr);c.height=Math.round((cy1-cy0)*S*dpr);
+  c.width=Math.round(cssW*dpr);c.height=Math.round((chartH+bandH)*dpr);
+  c.style.width=cssW+"px";c.style.height=(chartH+bandH)+"px";
+  c.style.maxWidth="none";c.style.display="block";c.style.touchAction="pan-x pan-y";
+  hz.geo={cx0,cy0,cx1,cy1,S,dpr,chartH,bandH,pitchI,cssW};
+  c.addEventListener("click",ev=>{
+    const r=c.getBoundingClientRect();
+    const xi=(ev.clientX-r.left)/hz.geo.S+hz.geo.cx0;
+    let best=-1,bd=Infinity;
+    hz.raw.forEach((m,i)=>{const d=Math.abs(hz.map.x(m.x)-xi);if(d<bd){bd=d;best=i;}});
+    if(best<0||bd>hz.geo.pitchI*.6)return;
+    hzTap(best);
+  });
+  hz.cv=c;
+  hzView.innerHTML="";hzView.appendChild(c);
+  /* en sağdan (son mumlardan) aç */
+  requestAnimationFrame(()=>{hzView.scrollLeft=hzView.scrollWidth;});
+}
+
+function hzDraw(){
+  const M=hz.map,R=hz.raw,c=hz.cv,G=hz.geo,dpr=G.dpr;
   const ctx=c.getContext("2d");
+  const P=v=>(v-G.cx0)*G.S*dpr,Q=v=>(v-G.cy0)*G.S*dpr;
+  const CH=G.chartH*dpr;
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,c.width,c.height);
   ctx.imageSmoothingQuality="high";
-  ctx.drawImage(img,cx0,cy0,cx1-cx0,cy1-cy0,0,0,c.width,c.height);
-  const P=v=>(v-cx0)*S*dpr,Q=v=>(v-cy0)*S*dpr;
+  ctx.drawImage(hz.img,G.cx0,G.cy0,G.cx1-G.cx0,G.cy1-G.cy0,0,0,c.width,CH);
   const kept=hzKeptIdx();
   const numOf=new Map();kept.forEach((ri,n)=>numOf.set(ri,n+1));
-  /* formasyon dışı bölgeler: başlangıçtan önce gri, kesimden sonra sarı */
-  if(hz.start>=0){
-    const xs=(P(M.x(R[hz.start].left))+ (hz.start>0?P(M.x(R[hz.start-1].right)):0))/2;
-    ctx.fillStyle="rgba(100,100,100,.28)";ctx.fillRect(0,0,xs,c.height);
-  }
+  const mid=i=>{ /* i ile i+1 arasındaki sınır */
+    if(i<0)return 0;if(i>=R.length-1)return c.width;
+    return (P(M.x(R[i].right))+P(M.x(R[i+1].left)))/2;};
+  if(hz.start>=0){ctx.fillStyle="rgba(90,90,90,.35)";ctx.fillRect(0,0,mid(hz.start-1),c.height);}
   if(hz.cut>=0){
-    const nx=hz.cut<R.length-1?P(M.x(R[hz.cut+1].left)):c.width;
-    const xc=(P(M.x(R[hz.cut].right))+nx)/2;
-    ctx.fillStyle="rgba(255,215,0,.35)";ctx.fillRect(xc,0,c.width-xc,c.height);
-    ctx.strokeStyle="#dc2626";ctx.lineWidth=3*dpr/2;ctx.setLineDash([8,6]);
+    const xc=mid(hz.cut);
+    ctx.fillStyle="rgba(255,215,0,.38)";ctx.fillRect(xc,0,c.width-xc,c.height);
+    ctx.strokeStyle="#dc2626";ctx.lineWidth=2*dpr;ctx.setLineDash([7*dpr,5*dpr]);
     ctx.beginPath();ctx.moveTo(xc,0);ctx.lineTo(xc,c.height);ctx.stroke();ctx.setLineDash([]);
   }
-  const fz=13*dpr;ctx.font="bold "+fz+"px sans-serif";ctx.textAlign="center";
+  /* alt şerit */
+  ctx.fillStyle="#f3f4f6";ctx.fillRect(0,CH,c.width,G.bandH*dpr);
+  const fz=12*dpr;ctx.font="bold "+fz+"px sans-serif";ctx.textAlign="center";
   R.forEach((m,i)=>{
     const off=hz.removed.has(i),sel=hz.sel.has(i);
-    const isS=i===hz.start,isK=i===hz.cut;
-    const col=sel?"#f59e0b":(off?"#9ca3af":(m.direction>0?"#00b050":"#e00020"));
+    const isS=i===hz.start,isK=i===hz.cut,isF=i===hz.first;
     const X=P(M.x(m.x));
-    ctx.strokeStyle=col;ctx.lineWidth=(sel?3:1.6)*dpr/2*1.4;
-    ctx.strokeRect(P(M.x(m.left))-1,Q(M.y(m.bodyTop))-1,
-      Math.max(3,P(M.x(m.right+1))-P(M.x(m.left))+2),Math.max(3,Q(M.y(m.bodyBottom+1))-Q(M.y(m.bodyTop))+2));
+    const col=sel||isF?"#f59e0b":(off?"#9ca3af":(m.direction>0?"#00b050":"#e00020"));
+    ctx.strokeStyle=col;ctx.lineWidth=(sel||isF?2.5:1.3)*dpr;
+    const bx=P(M.x(m.left))-1,by=Q(M.y(m.bodyTop))-1;
+    ctx.strokeRect(bx,by,Math.max(3,P(M.x(m.right+1))-P(M.x(m.left))+2),
+      Math.max(3,Q(M.y(m.bodyBottom+1))-Q(M.y(m.bodyTop))+2));
+    /* mumdan şeride ince kılavuz çizgi */
+    ctx.strokeStyle=(isS||isK||sel||isF)?col:"rgba(0,0,0,.12)";ctx.lineWidth=1*dpr;
+    ctx.beginPath();ctx.moveTo(X,Q(M.y(m.bottom))+2*dpr);ctx.lineTo(X,CH+(i%2?24:4)*dpr);ctx.stroke();
     const label=off?"✕":String(numOf.get(i));
-    const ty=Math.max(fz+2,Q(M.y(m.top))-4*dpr-(i%2)*(fz+3));
-    ctx.fillStyle=isS?"#16a34a":isK?"#dc2626":sel?"#fde68a":(off?"#fee2e2":"#fff");
-    const lw=ctx.measureText(label).width+6*dpr;
-    ctx.fillRect(X-lw/2,ty-fz,lw,fz+3*dpr);
+    const ty=CH+(i%2?40:20)*dpr;
+    const lw=Math.max(ctx.measureText(label).width+6*dpr,16*dpr);
+    ctx.fillStyle=isS?"#16a34a":isK?"#dc2626":(sel||isF)?"#fde68a":(off?"#fee2e2":"#fff");
+    ctx.fillRect(X-lw/2,ty-fz,lw,fz+4*dpr);
+    ctx.strokeStyle="#9ca3af";ctx.lineWidth=.6*dpr;ctx.strokeRect(X-lw/2,ty-fz,lw,fz+4*dpr);
     ctx.fillStyle=(isS||isK)?"#fff":(off?"#b91c1c":"#1d4ed8");
     ctx.fillText(label,X,ty);
   });
-  c.style.width=cssW+"px";c.style.maxWidth="none";c.style.display="block";
-  c.style.touchAction="pan-x pan-y";
-  c.addEventListener("click",ev=>{
-    const r=c.getBoundingClientRect();
-    const xi=(ev.clientX-r.left)/S+cx0;
-    let best=-1,bd=Infinity;
-    R.forEach((m,i)=>{const d=Math.abs(M.x(m.x)-xi);if(d<bd){bd=d;best=i;}});
-    if(best<0||bd>Math.max(4,pitchI*.75))return;
-    hzTap(best);
-  });
-  const keep=hzView.firstChild?hzView.scrollLeft:null;
-  hzView.innerHTML="";hzView.appendChild(c);
-  hzView.scrollLeft=keep===null?hzView.scrollWidth:keep;
   hzRender();
 }
 
 function hzTap(i){
-  if(hz.mode==="sil"){
-    if(hzRange.checked&&hz.last>=0&&hz.last!==i){
-      const a=Math.min(hz.last,i),b=Math.max(hz.last,i);
+  const m=hz.mode;
+  if(m==="tek"){
+    if(hz.sel.has(i))hz.sel.delete(i);else hz.sel.add(i);
+  }else if(m==="ara"){
+    if(hz.first<0){hz.first=i;}
+    else{
+      const a=Math.min(hz.first,i),b=Math.max(hz.first,i);
       for(let k=a;k<=b;k++)hz.sel.add(k);
-      hz.last=-1;
-    }else{
-      if(hz.sel.has(i))hz.sel.delete(i);else hz.sel.add(i);
-      hz.last=i;
+      hz.first=-1;
     }
   }else{
     if(hz.removed.has(i)){hzSel.textContent="Silinmiş mum seçilemez.";return;}
-    if(hz.mode==="bas")hz.start=i;else hz.cut=i;
+    if(m==="bas")hz.start=i;else hz.cut=i;
     if(hz.start>=0&&hz.cut>=0&&hz.start>hz.cut){const t=hz.start;hz.start=hz.cut;hz.cut=t;}
+    hzStep3.style.display="none";
   }
   hzDraw();
 }
@@ -4365,63 +4386,99 @@ function hzRender(){
     (hz.removed.size?" • Silinen: "+hz.removed.size+" • Kalan: "+n:"");
   hzModes.style.display="grid";
   document.querySelectorAll(".hzMode").forEach(b=>b.classList.toggle("on",b.dataset.m===hz.mode));
-  const silM=hz.mode==="sil";
+  const silM=hz.mode==="tek"||hz.mode==="ara";
   hzBtns.style.display=silM?"grid":"none";
-  hzRangeL.style.display=silM?"block":"none";
-  hzHelp.textContent=silM
-    ?"Sahte (yanlış okunan) mumlara dokun → sarı olur. Birden fazla seçebilirsin; sonra \"Seçilileri Sil\"."
-    :hz.mode==="bas"
-      ?"Formasyonun BAŞLADIĞI muma dokun (yeşil numara). Öncesi gri olur, formasyona girmez."
-      :"KESİM mumuna dokun (kırmızı numara, formasyona DAHİL). Sonrası sarı olur: öngörülecek devam kısmı.";
-  hzSel.textContent=silM?(hz.sel.size?"Seçili: "+hz.sel.size+" mum"+(hzRange.checked&&hz.last>=0?" • aralığın ikinci ucuna dokun":""):"Seçili mum yok."):"";
-  hzDel.disabled=!hz.sel.size;hzClr.disabled=!hz.sel.size;hzUndo.disabled=!hz.removed.size;
+  hzHelp.textContent={
+    tek:"Sahte mumlara TEK TEK dokun (alttaki numara ya da mumun sütunu) → sarı olur. Sonra \"Seçilileri Sil\".",
+    ara:hz.first<0?"Silinecek aralığın İLK mumuna dokun.":"Şimdi aralığın SON mumuna dokun → aradakilerin hepsi seçilir.",
+    bas:"Formasyonun BAŞLADIĞI muma dokun → numarası yeşil olur, öncesi gri.",
+    kes:"KESİM mumuna dokun (formasyona DAHİL) → numarası kırmızı, sonrası sarı (öngörülecek devam)."
+  }[hz.mode];
+  hzSel.textContent=silM?(hz.sel.size?"Seçili: "+hz.sel.size+" mum":"Seçili mum yok."):"";
+  hzDel.disabled=!hz.sel.size;hzClr.disabled=!hz.sel.size&&hz.first<0;hzUndo.disabled=!hz.removed.size;
   hzDel.textContent="🗑️ Seçilileri Sil"+(hz.sel.size?" ("+hz.sel.size+")":"");
-  /* adım 2 özeti */
   const num=i=>kept.indexOf(i)+1;
   hzCut.style.display="block";
   if(hz.start>=0&&hz.cut>=0){
     const f=kept.filter(i=>i>=hz.start&&i<=hz.cut).length;
     const d=kept.filter(i=>i>hz.cut).length;
     hzCut.innerHTML="📐 Formasyon: <span style='color:#4ade80'>"+num(hz.start)+"</span> → <span style='color:#f87171'>"+num(hz.cut)+
-      "</span> (kesim dahil) = <b>"+f+" mum</b>"+(f>SHOT_LIMIT_2X?" → çekimde 1x":" → 2x")+
+      "</span> (kesim dahil) = <b>"+f+" mum</b>"+(f>SHOT_LIMIT_2X?" → çekimde 1x":" → çekimde 2x")+
       "<br>Devam (sarı, öngörülecek): "+d+" mum";
     hzNext.style.display="block";
   }else{
-    hzCut.innerHTML="📐 Adım 2: "+(hz.start<0?"🟢 Başlangıç":"")+(hz.start<0&&hz.cut<0?" ve ":"")+(hz.cut<0?"🔴 Kesim":"")+" mumunu seç.";
+    const need=[];if(hz.start<0)need.push("🟢 Başlangıç");if(hz.cut<0)need.push("🔴 Kesim");
+    hzCut.innerHTML="📐 Adım 2: "+need.join(" ve ")+" mumunu seç.";
     hzNext.style.display="none";
   }
 }
 
+/* ---- Adım 3: kes + temiz çiz + doğrula ---- */
+function hzCleanDraw(list){
+  const W=TARGET_W,H=TARGET_H,PX=30,PY=22,n=list.length;
+  const c=document.createElement("canvas");c.width=W;c.height=H;
+  const ctx=c.getContext("2d");
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);
+  let lo=Infinity,hi=-Infinity;
+  list.forEach(m=>{lo=Math.min(lo,m.top);hi=Math.max(hi,m.bottom);});
+  const sy=(H-2*PY)/Math.max(1,hi-lo),Y=v=>PY+(v-lo)*sy;
+  const pitch=(W-2*PX)/n;
+  /* gövde aralığın %72'si: yan yana mumlar birleşmesin (site tekrar okuyabilsin) */
+  const bw=Math.max(1,Math.min(15,Math.round(pitch*.72)));
+  list.forEach((m,i)=>{
+    const x=Math.round(PX+pitch*(i+.5));
+    const col=m.direction>0?"#089c58":"#e02b3b";
+    ctx.fillStyle=col;
+    ctx.fillRect(x,Math.round(Y(m.top)),1,Math.max(1,Math.round(Y(m.bottom)-Y(m.top))));
+    const t=Math.round(Y(m.bodyTop)),b=Math.round(Y(m.bodyBottom));
+    ctx.fillRect(x-Math.floor(bw/2),t,bw,Math.max(2,b-t));
+  });
+  return c;
+}
+
+hzNext.addEventListener("click",()=>{
+  const kept=hzKeptIdx();
+  const form=kept.filter(i=>i>=hz.start&&i<=hz.cut).map(i=>hz.raw[i]);
+  const devam=kept.filter(i=>i>hz.cut).map(i=>hz.raw[i]);
+  const clean=hzCleanDraw(form);
+  const back=detectCandles(clean).length;
+  hz.clean={canvas:clean,raw:form,devam,check:back};
+  hzS3Info.innerHTML="✂️ Kesildi: "+form.length+" mum • Site tekrar okudu: "+back+" mum "+
+    (back===form.length?"<span style='color:#4ade80'>✓ birebir</span>":"<span style='color:#f87171'>✗ fark var</span>")+
+    "<br>Devam (öngörülecek): "+devam.length+" mum";
+  hzS3View.innerHTML="";clean.style.width="100%";clean.style.display="block";hzS3View.appendChild(clean);
+  hzStep3.style.display="block";
+  hzStep3.scrollIntoView({behavior:"smooth",block:"nearest"});
+});
+
 document.querySelectorAll(".hzMode").forEach(b=>b.addEventListener("click",()=>{
-  hz.mode=b.dataset.m;hz.last=-1;hzDraw();
+  hz.mode=b.dataset.m;hz.first=-1;hzDraw();
 }));
 hzDel.addEventListener("click",()=>{
   hz.sel.forEach(i=>{hz.removed.add(i);if(i===hz.start)hz.start=-1;if(i===hz.cut)hz.cut=-1;});
-  hz.sel.clear();hz.last=-1;hzDraw();
+  hz.sel.clear();hz.first=-1;hzStep3.style.display="none";hzDraw();
 });
-hzClr.addEventListener("click",()=>{hz.sel.clear();hz.last=-1;hzDraw();});
-hzUndo.addEventListener("click",()=>{hz.removed.clear();hz.sel.clear();hz.last=-1;hzDraw();});
-hzRange.addEventListener("change",()=>{hz.last=-1;hzRender();});
+hzClr.addEventListener("click",()=>{hz.sel.clear();hz.first=-1;hzDraw();});
+hzUndo.addEventListener("click",()=>{hz.removed.clear();hz.sel.clear();hz.first=-1;hzStep3.style.display="none";hzDraw();});
 
 hzInput.addEventListener("change",async e=>{
   const file=e.target.files&&e.target.files[0];
   e.target.value="";
   if(!file)return;
   hzInfo.textContent="Görsel okunuyor (Fotoğraf Oku ile aynı yol)…";
-  hzView.innerHTML="";
+  hzView.innerHTML="";hzStep3.style.display="none";
   const url=URL.createObjectURL(file);
   try{
     const img=await loadImageFromUrl(url);
     const scan=hzImageToScan(img);
     if(!scan){hzInfo.textContent="Görselde grafik bulunamadı (kırmızı/yeşil mum yok).";return;}
-    /* gösterim için görseli bellekte tut (URL kapanınca da çizilebilsin) */
     const keepC=document.createElement("canvas");
     keepC.width=img.naturalWidth;keepC.height=img.naturalHeight;
     keepC.getContext("2d").drawImage(img,0,0);
     Object.assign(hz,{img:keepC,scan,raw:detectCandles(scan),removed:new Set(),sel:new Set(),
-      last:-1,mode:"sil",start:-1,cut:-1});
+      first:-1,mode:"tek",start:-1,cut:-1,clean:null});
     if(!hz.raw.length){hzInfo.textContent="Mum okunamadı.";return;}
-    hzDraw();
+    hzSetup();hzDraw();
   }catch(err){
     console.error(err);
     hzInfo.textContent="Görsel okunamadı: "+(err&&err.message||err);
@@ -4429,7 +4486,8 @@ hzInput.addEventListener("change",async e=>{
     URL.revokeObjectURL(url);
   }
 });
-/* ==== FORMASYON HAZIRLA — ADIM 1–2 SONU ==== */
+/* ==== FORMASYON HAZIRLA — ADIM 1–3 SONU ==== */
+
 
 </script>
 </body>

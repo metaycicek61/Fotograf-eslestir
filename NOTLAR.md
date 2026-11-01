@@ -377,3 +377,12 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Adım 2: başlangıç mumu yeşil numara, öncesi gri; kesim mumu kırmızı numara (DAHİL), sonrası sarı + kesikli kırmızı çizgi. Özet: "Formasyon: a → b (kesim dahil) = N mum → 1x/2x • Devam: M mum". Numaralar silinen mumlar çıkarıldıktan sonraki sırayla.
 - "➡️ Adım 3: Kes ve Temiz Çiz" düğmesi görünür ama henüz pasif (sıradaki iş).
 - Test (bilgisayar): BTC iPhone 50 mum, 01 temiz 52 mum; aralık silme, başlangıç/kesim seçimi çalışıyor; hata yok.
+
+## 1 Kasım 05:10 — Formasyon Hazırla: Adım 1–3 (kullanıcı geri bildirimi sonrası)
+- Kaydırma sabit: tuval bir kez oluşturuluyor, dokunuşta yeniden çiziliyor (görüntü sola kaymıyor). En sağdan açılıyor.
+- Numaralar altta tek şeritte (iki sıra), mumdan şeride ince kılavuz çizgi; dokunulan SÜTUNDAKİ mum seçilir (tam mumun üstüne basmak gerekmez).
+- 4 mod: ✂️ Sahte Mum (tek tek) / ↔️ Aralık Sil (iki mum: ilk ve son → aradakilerin hepsi) / 🟢 Başlangıç / 🔴 Kesim. Yönerge satırı her modda ne yapılacağını söylüyor.
+- Adım 3 "Kes ve Temiz Çiz" çalışıyor: başlangıç–kesim arası (silinenler hariç) kütüphane biçiminde 502×277 çizilir (gövde = mum aralığının %72'si, birleşme olmasın); site kendi okuma koduyla tekrar okur ve "N/N ✓ birebir" yazar. Mum verisi (form) ve devam kısmı bellekte tutulur (kaydetme Adım 5).
+- Test: BTC iPhone fotoğrafı 21→45 = 25 mum, tekrar okuma 25/25.
+- Not: üstüne çizgi/yazı eklenmiş görseller (kırılım işaretli hâller) sahte mum üretir; Hazırla'ya ORİJİNAL görsel verilmeli.
+- Sırada: Adım 4 (%20 kanallar), Adım 5 (kaydet).
