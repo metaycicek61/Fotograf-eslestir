@@ -387,3 +387,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Not: üstüne çizgi/yazı eklenmiş görseller (kırılım işaretli hâller) sahte mum üretir; Hazırla'ya ORİJİNAL görsel verilmeli.
 - Sırada: Adım 4 (%20 kanallar), Adım 5 (kaydet).
 - 05:05: Kullanıcı ekranında görüntü çok uzundu (dar görsellerde grafik ekranı kaplıyordu, numaralar en altta kalıyordu). Gösterimde yatay ve dikey ölçek ayrıldı: grafik yüksekliği en fazla ~300 px; okuma etkilenmez. Kullanıcı: "resim çektik, numara tamam".
+- 05:15: Kullanıcı kesimi seçti ama başlangıcı seçmediği için Adım 3 düğmesi çıkmadı; sahte mum modunda sarı seçtiği mumlar kesim modunda da sarı görünüp karışıklık yarattı. Düzeltme: başlangıç İSTEĞE BAĞLI (seçilmezse ilk mum); kesim seçilince Adım 3 düğmesi çıkar. Sarı seçim yalnızca silme modlarında gösterilir; silinmemiş seçim varsa uyarı yazar.

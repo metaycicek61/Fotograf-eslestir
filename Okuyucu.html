@@ -4340,9 +4340,10 @@ function hzDraw(){
   /* alt şerit */
   ctx.fillStyle="#f3f4f6";ctx.fillRect(0,CH,c.width,G.bandH*dpr);
   const fz=12*dpr;ctx.font="bold "+fz+"px sans-serif";ctx.textAlign="center";
+  const silMode=hz.mode==="tek"||hz.mode==="ara";
   R.forEach((m,i)=>{
-    const off=hz.removed.has(i),sel=hz.sel.has(i);
-    const isS=i===hz.start,isK=i===hz.cut,isF=i===hz.first;
+    const off=hz.removed.has(i),sel=silMode&&hz.sel.has(i);
+    const isS=i===hz.start,isK=i===hz.cut,isF=silMode&&i===hz.first;
     const X=P(M.x(m.x));
     const col=sel||isF?"#f59e0b":(off?"#9ca3af":(m.direction>0?"#00b050":"#e00020"));
     ctx.strokeStyle=col;ctx.lineWidth=(sel||isF?2.5:1.3)*dpr;
@@ -4402,17 +4403,20 @@ function hzRender(){
   hzDel.disabled=!hz.sel.size;hzClr.disabled=!hz.sel.size&&hz.first<0;hzUndo.disabled=!hz.removed.size;
   hzDel.textContent="🗑️ Seçilileri Sil"+(hz.sel.size?" ("+hz.sel.size+")":"");
   const num=i=>kept.indexOf(i)+1;
+  const silMode0=!silM;
   hzCut.style.display="block";
-  if(hz.start>=0&&hz.cut>=0){
-    const f=kept.filter(i=>i>=hz.start&&i<=hz.cut).length;
+  const st=hz.start>=0?hz.start:(kept.length?kept[0]:-1);
+  if(hz.cut>=0&&st>=0){
+    const f=kept.filter(i=>i>=st&&i<=hz.cut).length;
     const d=kept.filter(i=>i>hz.cut).length;
-    hzCut.innerHTML="📐 Formasyon: <span style='color:#4ade80'>"+num(hz.start)+"</span> → <span style='color:#f87171'>"+num(hz.cut)+
+    hzCut.innerHTML=(hz.start<0?"<span style='color:#fde68a'>Başlangıç seçilmedi → ilk mum (1) alındı.</span><br>":"")+
+      (silMode0&&hz.sel.size?"<span style='color:#fde68a'>⚠️ "+hz.sel.size+" mum sarı seçili ama SİLİNMEDİ (silmek için ✂️ moduna dön → Seçilileri Sil).</span><br>":"")+
+      "📐 Formasyon: <span style='color:#4ade80'>"+num(st)+"</span> → <span style='color:#f87171'>"+num(hz.cut)+
       "</span> (kesim dahil) = <b>"+f+" mum</b>"+(f>SHOT_LIMIT_2X?" → çekimde 1x":" → çekimde 2x")+
       "<br>Devam (sarı, öngörülecek): "+d+" mum";
     hzNext.style.display="block";
   }else{
-    const need=[];if(hz.start<0)need.push("🟢 Başlangıç");if(hz.cut<0)need.push("🔴 Kesim");
-    hzCut.innerHTML="📐 Adım 2: "+need.join(" ve ")+" mumunu seç.";
+    hzCut.innerHTML="📐 Adım 2: 🔴 Kesim mumunu seç (🟢 Başlangıç isteğe bağlı; seçilmezse ilk mum).";
     hzNext.style.display="none";
   }
 }
@@ -4442,7 +4446,8 @@ function hzCleanDraw(list){
 
 hzNext.addEventListener("click",()=>{
   const kept=hzKeptIdx();
-  const form=kept.filter(i=>i>=hz.start&&i<=hz.cut).map(i=>hz.raw[i]);
+  const st=hz.start>=0?hz.start:kept[0];
+  const form=kept.filter(i=>i>=st&&i<=hz.cut).map(i=>hz.raw[i]);
   const devam=kept.filter(i=>i>hz.cut).map(i=>hz.raw[i]);
   const clean=hzCleanDraw(form);
   const back=detectCandles(clean).length;
