@@ -87,6 +87,7 @@ Kütüphanedeki formasyonların sağı kesildi; kesilen kısım formasyonun deva
 - [ ] GitHub hesabında iki adımlı doğrulamayı aç
 - [ ] Depo herkese açık (public) kalsın: GitHub Pages ücretsiz planda yalnızca public depolarda çalışır
 - [ ] Ziyaretçi erişimi (1 Kasım): site ve depo herkese açık. Ziyaretçi siteyi kullanabilir, kodu / NOTLAR.md'yi / formasyonlar/ klasörünü okuyabilir ve "📚 Hazır Kütüphane"yi yükleyip kullanabilir; telefondaki kişisel kütüphaneyi göremez, depoyu değiştiremez. Karar verilecek: (a) depoyu private yapmak (Pages için ücretli plan gerekir), (b) notları ayrı private depoya taşımak, (c) hazır kütüphaneyi siteden kaldırıp sadece kişisel kullanım. Formasyon Hazırla ile hazırlanan formasyonlar hiçbir zaman depoya/siteye yüklenmeyecek (telif).
+- [ ] Kişisel kütüphanenin korunması (1 Kasım, ileride): Safari, 7 gün girilmeyen sitenin verilerini silebilir. (1) Siteyi Ana Ekrana Ekle (uygulama gibi açılır, silme kuralı uygulanmaz). (2) Formasyon Hazırla'ya dışa aktar / içe aktar düğmesi: kütüphane tek dosya (mum verisi + kanallar + temiz çizim) olarak iCloud/Dosyalar'a; telefon değişince geri yükleme, kontrol için Claude'a gönderme. Dosya depoya/siteye girmez.
 
 ## Maliyet notu
 - GitHub Free süresiz ücretsiz; çalışmalar bir ay sonra silinmez. Ödeme gerekmiyor.
@@ -359,3 +360,10 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - 1x / 2x: yeşil çerçeve artık KULLANICININ SEÇİMİNİ gösteriyor (önceden hep öneriyi, 2x'i gösteriyordu). Düğmeler her zaman seçilebilir; seçim öneri kutusunda "Seçimin: 1x (öneri 2x)" olarak yazar ve Fotoğraf Oku için iPhone lensi buna göre söylenir. Kamera zoom'u yalnızca tarayıcı canlı zoom destekliyorsa uygulanır (önceki davranış aynı).
 - "🖼️ Fotoğraf Oku" düğmesi "Referans Formasyon Ekle"nin yanına taşındı; "Kamerayı Aç" tek başına tam genişlikte.
 - Kamera, mum okuma ve çekim kodunda değişiklik yok.
+
+## 1 Kasım 04:20 — Formasyon Hazırla, Adım 1: numaralama
+- Okuyucu.html'de yeni kart "🛠️ Formasyon Hazırla" (kütüphane kartının üstünde). Kamera / mum okuma / Tara koduna dokunulmadı; mevcut fonksiyonlar sadece çağrılıyor.
+- Yol Fotoğraf Oku ile birebir aynı: findChartBox → buildStill → tam kare (kamera kutusu oranı) → captureScanRegion → detectCandles. Ortak tuvaller (stillCanvas, SCAN_OUT_H) işlem sonrası eski hâline döner.
+- Numaralı görüntü gerçek boyutta, yatay kaydırılabilir, en sağdan açılır. Muma dokununca silinir (✕), tekrar dokununca geri gelir; "Silmeleri Geri Al" düğmesi. Bilgi satırı: okunan / silinen / kalan mum, 33 üstü ise 1x notu.
+- Doğrulama (bilgisayar): Hazırla ile Fotoğraf Oku aynı mum sayısını veriyor — iPhone BTC fotoğrafı 50/50, site karesi 58/58, 01 temiz 52/52.
+- Sıradaki: eksik (gizli) mum ekleme, sonra Adım 2 kesim yerleri.

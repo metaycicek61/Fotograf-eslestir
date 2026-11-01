@@ -388,6 +388,21 @@ button,.fileButton{
   <div id="topMatches" class="small">Henüz tarama yapılmadı.</div>
 </div>
 
+<!-- ==== FORMASYON HAZIRLA (1 Kasım) ====
+     Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
+     Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
+<div class="card" id="hzCard">
+  <h2>🛠️ Formasyon Hazırla</h2>
+  <div class="small">Adım 1 — Numaralama. Formasyon görselini seç; site onu Fotoğraf Oku ile aynı yoldan okur ve mumları numaralar. Görüntüyü sağa-sola kaydırabilirsin. Yanlış okunan (sahte) muma dokun → silinir (✕). Tekrar dokun → geri gelir.</div>
+  <label class="fileButton" id="hzPick">
+    🖼️ Görsel Seç
+    <input id="hzInput" type="file" accept="image/*" style="display:none">
+  </label>
+  <div id="hzInfo" class="small" style="margin-top:8px"></div>
+  <div id="hzView" style="margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px"></div>
+  <button id="hzUndo" style="background:#6b7280;display:none">↩️ Silmeleri Geri Al</button>
+</div>
+
 <div class="card">
   <h2>🖼️ Formasyon Kütüphanesi</h2>
   <div id="refs"></div>
@@ -4149,6 +4164,133 @@ statusEl.textContent=
 
 requestAnimationFrame(drawGrid);
 
+
+/* ==== FORMASYON HAZIRLA — ADIM 1: NUMARALAMA (1 Kasım) ====
+   Kamera, mum okuma ve Tara koduna DOKUNULMAZ; yalnızca kullanılır.
+   Yol, Fotoğraf Oku ile birebir aynı:
+   findChartBox → buildStill → tam kare (kamera kutusu oranı) →
+   captureScanRegion (yeşil alan, 502 genişlik) → detectCandles.
+   Ortak tuvaller (stillCanvas, SCAN_OUT_H) işlemden sonra eski hâline döner;
+   böylece açık olan fotoğraf/kamera görüntüsü bozulmaz. */
+const hz={scan:null,raw:[],removed:new Set(),k:2};
+const hzInput=document.getElementById("hzInput");
+const hzInfo=document.getElementById("hzInfo");
+const hzView=document.getElementById("hzView");
+const hzUndo=document.getElementById("hzUndo");
+
+function hzFullFrame(src){
+  /* captureFullFrame ile aynı kırpma, kaynak = verilen tuval */
+  const CAP_W=TARGET_W*CAPTURE_SCALE;
+  const rect=cameraBox.getBoundingClientRect();
+  const displayRatio=rect.width/Math.max(1,rect.height);
+  const c=document.createElement("canvas");
+  c.width=CAP_W;
+  c.height=Math.max(1,Math.round(CAP_W/displayRatio));
+  const ctx=c.getContext("2d",{willReadFrequently:true});
+  const vw=src.width,vh=src.height;
+  let sx=0,sy=0,sw=vw,sh=vh;
+  if(vw/vh>displayRatio){sw=vh*displayRatio;sx=(vw-sw)/2;}
+  else{sh=vw/displayRatio;sy=(vh-sh)/2;}
+  ctx.drawImage(src,sx,sy,sw,sh,0,0,c.width,c.height);
+  return c;
+}
+
+function hzImageToScan(img){
+  const box=findChartBox(img);
+  if(!box)return null;
+  /* ortak durumu yedekle */
+  const bak=document.createElement("canvas");
+  bak.width=stillCanvas.width;bak.height=stillCanvas.height;
+  if(bak.width&&bak.height)bak.getContext("2d").drawImage(stillCanvas,0,0);
+  const bakInfo=stillInfo,bakOutH=SCAN_OUT_H;
+  try{
+    buildStill(img,box);
+    const full=hzFullFrame(stillCanvas);
+    return captureScanRegion(full);
+  }finally{
+    stillCanvas.width=bak.width;stillCanvas.height=bak.height;
+    if(bak.width&&bak.height)stillCanvas.getContext("2d").drawImage(bak,0,0);
+    stillInfo=bakInfo;SCAN_OUT_H=bakOutH;
+  }
+}
+
+function hzKept(){
+  return hz.raw.filter((c,i)=>!hz.removed.has(i));
+}
+
+function hzDraw(){
+  const k=hz.k,scan=hz.scan;
+  const c=document.createElement("canvas");
+  c.width=scan.width*k;c.height=scan.height*k;
+  const ctx=c.getContext("2d");
+  ctx.drawImage(scan,0,0,c.width,c.height);
+  ctx.lineWidth=2;ctx.font="bold 16px sans-serif";ctx.textAlign="center";
+  let n=0;
+  hz.raw.forEach((m,i)=>{
+    const off=hz.removed.has(i);
+    const col=off?"#9ca3af":(m.direction>0?"#00b050":"#e00020");
+    ctx.strokeStyle=col;
+    ctx.beginPath();ctx.moveTo(m.x*k,m.top*k);ctx.lineTo(m.x*k,m.bottom*k);ctx.stroke();
+    ctx.strokeRect(m.left*k,m.bodyTop*k,Math.max(2,(m.right-m.left+1)*k),Math.max(2,(m.bodyBottom-m.bodyTop+1)*k));
+    const ty=Math.max(16,m.top*k-4);
+    const label=off?"✕":String(++n);
+    ctx.fillStyle=off?"#fee2e2":"#fff";
+    ctx.fillRect(m.x*k-11,ty-14,22,17);
+    ctx.fillStyle=off?"#b91c1c":"#1d4ed8";
+    ctx.fillText(label,m.x*k,ty);
+  });
+  /* Numaralar okunsun diye tuval gerçek boyutunda; yatay kaydırılır,
+     açılışta en sağa (son mumlara) gider. */
+  c.style.width=c.width+"px";c.style.maxWidth="none";c.style.display="block";
+  c.style.borderRadius="10px";c.style.touchAction="pan-x pan-y";
+  c.addEventListener("click",ev=>{
+    const r=c.getBoundingClientRect();
+    const x=(ev.clientX-r.left)*(c.width/r.width)/k;
+    let best=-1,bd=Infinity;
+    hz.raw.forEach((m,i)=>{const d=Math.abs(m.x-x);if(d<bd){bd=d;best=i;}});
+    if(best<0)return;
+    const w=Math.max(6,(hz.raw[best].right-hz.raw[best].left+1));
+    if(bd>w*1.5)return;
+    if(hz.removed.has(best))hz.removed.delete(best);else hz.removed.add(best);
+    hzDraw();
+  });
+  const keepScroll=hzView.firstChild?hzView.scrollLeft:null;
+  hzView.innerHTML="";
+  hzView.appendChild(c);
+  hzView.scrollLeft=keepScroll===null?hzView.scrollWidth:keepScroll;
+  const kept=hzKept().length;
+  hzInfo.innerHTML="Okunan: <b>"+hz.raw.length+"</b> mum • Silinen: <b>"+hz.removed.size+
+    "</b> • Formasyonda kalan: <b>"+kept+"</b> mum"+
+    (kept>SHOT_LIMIT_2X?" (33'ten fazla → çekimde 1x)":"");
+  hzUndo.style.display=hz.removed.size?"block":"none";
+}
+
+hzUndo.addEventListener("click",()=>{hz.removed.clear();hzDraw();});
+
+hzInput.addEventListener("change",async e=>{
+  const file=e.target.files&&e.target.files[0];
+  e.target.value="";
+  if(!file)return;
+  hzInfo.textContent="Görsel okunuyor (Fotoğraf Oku ile aynı yol)…";
+  hzView.innerHTML="";
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await loadImageFromUrl(url);
+    const scan=hzImageToScan(img);
+    if(!scan){hzInfo.textContent="Görselde grafik bulunamadı (kırmızı/yeşil mum yok).";return;}
+    hz.scan=scan;
+    hz.raw=detectCandles(scan);
+    hz.removed=new Set();
+    if(!hz.raw.length){hzInfo.textContent="Mum okunamadı.";return;}
+    hzDraw();
+  }catch(err){
+    console.error(err);
+    hzInfo.textContent="Görsel okunamadı: "+(err&&err.message||err);
+  }finally{
+    URL.revokeObjectURL(url);
+  }
+});
+/* ==== FORMASYON HAZIRLA — ADIM 1 SONU ==== */
 </script>
 </body>
 </html>
