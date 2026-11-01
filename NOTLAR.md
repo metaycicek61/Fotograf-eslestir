@@ -407,3 +407,11 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   - Aynı fotoğrafla tarama: aynı 31/31 ✅ %100; farklı 12/31 ❌ elendi.
   - Aynı grafiğin SİTE KAMERA karesiyle tarama: aynı 29/31 ✅; farklı 10/31 ❌ elendi.
 - Eşik (%80) ilk değer; gerçek testlerle ayarlanacak.
+
+## 1 Kasım 07:10 — Karşılaştırma kanal içinde + tahmin (kullanıcı isteği)
+- Kanal verisi olmayan formasyonlar (Hazır Kütüphane, eski referanslar) için kanallar Tara sırasında OTOMATİK hesaplanıyor (Adım 4 ile aynı yöntem, gövde + %20); sonuçta "(kanal otomatik)" yazar.
+- Skor artık kanal içinde: pencere (en sağdan N mum) ve formasyon aynı biçimde yeniden çizilip okunur → içeride oranı (%20 paylı sınırlar) + hareket uyumu (ardışık gövde ortası yukarı/aşağı aynı mı). Kanal skoru = %60 içeride + %40 hareket; içeride < %80 → elenir (skor 0). Eski mum/kanal/AI skorları detayda bilgi olarak duruyor.
+- Hepsi elenirse: "Eşleşme yok — tüm formasyonlar %20 kanal kuralıyla elendi" + en yakını.
+- TAHMİN: Adım 5'te devam mumlarından hesaplanıp kaydedilir (hazir.tahmin): yön ▲/▼/◆, sonraki N mumda net hareket ve en çok yukarı/aşağı, formasyon boyuna göre %. Eşleşmede "🔮 Tahmin: ▼ düşüş • sonraki 8 mumda net %20 (en çok ▲%0 / ▼%58)". Devamı olmayan formasyonda "Tahmin yok".
+- Test: BTC fotoğrafının %80'i (kırpık, 42 mum) tarandı; tam fotoğraftan kırpığın son mumunda kesilen 25 mumluk formasyon: 25/25 içeride, hareket %100, tahmin ▼ (gerçekte de sonrasında düşüş vardı). Hazır kütüphanedeki 10 formasyon bu grafikte elendi.
+- Not: Hazır Kütüphane formasyonlarının devam kısmı yok (formasyonlar/kutuphane/tam/ içinde tam hâlleri var; ileride tahmin için kullanılabilir).

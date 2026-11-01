@@ -3881,15 +3881,25 @@ function renderResults(results){
   const best=results[0];
 
   bestResult.style.display="block";
+  const hepsiElendi=results.every(r=>r.k20&&r.k20.elendi);
 
   setNameEl(bestName,best.name);
+  if(hepsiElendi){
+    bestName.textContent="Eşleşme yok";
+    bestScore.textContent="—";
+    bestDetail.innerHTML="Tüm formasyonlar %20 kanal kuralıyla elendi: grafiğin son mumları hiçbir formasyonun kanallarına uymuyor. En yakın: "+best.name+
+      (best.k20&&!best.k20.az?" ("+best.k20.ic+"/"+best.k20.n+" mum içeride)":"")+".";
+  }
 
+  if(!hepsiElendi){
   bestScore.textContent=
     pct(best.finalScore)+"%";
 
   bestDetail.innerHTML=
     (best.k20?(best.k20.az?"%20 kanal: <b>az mum ("+best.k20.var+"/"+best.k20.n+")</b><br>"
-      :"%20 kanal: <b>"+best.k20.ic+"/"+best.k20.n+" mum içeride "+(best.k20.elendi?"❌ elendi":"✅")+"</b><br>"):"")+
+      :"%20 kanal: <b>"+best.k20.ic+"/"+best.k20.n+" mum içeride "+(best.k20.elendi?"❌ elendi":"✅")+"</b> • Hareket uyumu: <b>"+pct(best.k20.hareket)+"%</b>"+
+        (best.k20.otomatik?" <i>(kanallar otomatik)</i>":"")+"<br>"+
+        (best.k20.elendi?"":(best.k20.tahmin?"<b>"+tahminText(best.k20.tahmin)+"</b><br>":"🔮 Tahmin yok (bu formasyonda devam kısmı kaydedilmemiş)<br>"))):"")+
     "Kanal: <b>"+
     pct(best.channelScore||0)+
     "%</b> • Mum mum: <b>"+
@@ -3908,6 +3918,7 @@ function renderResults(results){
     "</b> mum<br>"+
     "Grafik: <b>"+(best.channelLabel||"-")+"</b><br>"+
     "Formasyon: <b>"+(best.refChannelLabel||"-")+"</b>";
+  }
 
   topMatches.innerHTML="";
 
@@ -3949,7 +3960,8 @@ function renderResults(results){
 
     detail.textContent=
       (result.k20?(result.k20.az?"%20 kanal: az mum ("+result.k20.var+"/"+result.k20.n+") • "
-        :(result.k20.elendi?"❌ ELENDİ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • ":"✅ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • ")):"")+
+        :(result.k20.elendi?"❌ ELENDİ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • "
+          :"✅ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • hareket "+pct(result.k20.hareket)+"% • "))+(result.k20.otomatik?"(kanal otomatik) ":""):"")+
       "Kanal "+
       pct(result.channelScore||0)+
       "% • Mum "+
@@ -4129,8 +4141,8 @@ async function scanFormation(){
       }
 
       /* 1 Kasım: Hazırla ile kaydedilmiş formasyonlarda %20 kanal elemesi */
-      const k20=kanal20Kontrol(detected,ref);
-      if(k20&&k20.elendi)finalScore=0;
+      const k20=kanal20Kontrol(detected,ref,prepared);
+      if(k20&&!k20.az)finalScore=k20.elendi?0:k20.skor;
 
       results.push({
 
@@ -4662,27 +4674,79 @@ $hz("hzSave").addEventListener("click",()=>{
   references.push({
     name,
     src:C.canvas.toDataURL("image/png"),
-    hazir:{mum:C.raw.length,kanallar:C.channels,devam:strip(C.devam),tarih:new Date().toISOString()}
+    hazir:{mum:C.raw.length,kanallar:C.channels,devam:strip(C.devam),tahmin:hzTahmin(C.raw,C.devam),tarih:new Date().toISOString()}
   });
   try{saveReferences();}catch(e){references.pop();si.textContent="Kaydedilemedi (telefon hafızası dolu olabilir): "+(e&&e.message||e);return;}
   referenceCache.clear();renderReferences();
   si.innerHTML="✅ Kaydedildi: <b>"+name+"</b> • "+C.raw.length+" mum, "+C.channels.length+" kanal, devam "+C.devam.length+" mum. Formasyon Kütüphanesi'nde görünür; Tara artık bununla da karşılaştırır.";
 });
 /* ==== FORMASYON HAZIRLA — ADIM 1–5 SONU ==== */
-/* ==== %20 KANAL ELEMESİ (1 Kasım) ====
-   Yalnızca Formasyon Hazırla ile kaydedilmiş (ref.hazir) formasyonlarda.
-   Kural (kullanıcı): tarama en sağ mumdan başlar, formasyonun mum sayısı
-   kadar mum alınır. Bu pencere kütüphane formasyonuyla AYNI biçimde
-   yeniden çizilir (hzCleanDraw) ve sitenin okumasıyla okunur; böylece
-   koordinatlar kaydedilen kanallarla aynı düzlemde olur. Her mumun gövdesi
-   kendi kanalının %20 paylı sınırları içinde mi bakılır. İçeride kalan
-   oranı KANAL20_ESIK'in altındaysa formasyon elenir (skor 0). */
+/* ==== KANAL İÇİ KARŞILAŞTIRMA + %20 ELEME + TAHMİN (1 Kasım) ====
+   Kural (kullanıcı): karşılaştırma kanal çizgileri içinde yapılır.
+   Tarama en sağ mumdan başlar; formasyonun mum sayısı kadar mum alınır.
+   Pencere ve formasyon AYNI biçimde yeniden çizilip (hzCleanDraw) sitenin
+   okumasıyla okunur → aynı düzlem.
+   - İçeride oranı: gövde kendi kanalının %20 paylı sınırları içinde mi.
+   - Hareket uyumu: ardışık mumlar arasında yukarı/aşağı hareket aynı mı.
+   - Kanal skoru = %60 içeride + %40 hareket. İçeride < %80 → ELENİR.
+   - Kanal verisi olmayan formasyonlar (hazır kütüphane, eski referanslar)
+     için kanallar otomatik hesaplanır (Adım 4 ile aynı yöntem). */
 const KANAL20_ESIK=.8;
-function kanal20Kontrol(detected,ref){
-  const H=ref&&ref.hazir;
+const hazirCache=new Map();
+
+function hzKanallar(R){
+  const ch=findChannels(R);
+  if(!ch)return [];
+  const names={"-1":"İnen","0":"Yatay","1":"Yükselen"};
+  return ch.segs.map(g=>{
+    const P=R.slice(g.a,g.b);
+    const xs=P.map(c=>c.x),ys=P.map(c=>(c.bodyTop+c.bodyBottom)/2);
+    const f=lineFit(xs,ys,0,P.length);
+    let up=Infinity,dn=-Infinity;
+    P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.bodyTop-m);dn=Math.max(dn,c.bodyBottom-m);});
+    const w=Math.max(1,dn-up);
+    return{mumlar:[g.a+1,g.b],tur:names[g.dir],egim:f.s,kesisim:f.k,ust:up-.2*w,alt:dn+.2*w,pay:.2};
+  });
+}
+
+/* devam kısmından tahmin: formasyon boyuna göre % */
+function hzTahmin(form,devam){
+  if(!form||!form.length||!devam||!devam.length)return null;
+  let top=Infinity,bot=-Infinity;
+  form.forEach(c=>{top=Math.min(top,c.top);bot=Math.max(bot,c.bottom);});
+  const H=Math.max(1,bot-top);
+  const L=form[form.length-1];
+  const close=c=>c.direction>0?c.bodyTop:c.bodyBottom;
+  const c0=close(L);
+  let hi=Infinity,lo=-Infinity;
+  devam.forEach(c=>{hi=Math.min(hi,c.top);lo=Math.max(lo,c.bottom);});
+  const son=close(devam[devam.length-1]);
+  const yukari=Math.round(100*(c0-hi)/H),asagi=Math.round(100*(lo-c0)/H),net=Math.round(100*(c0-son)/H);
+  return{mum:devam.length,net,yukari,asagi,yon:net>5?"▲":(net<-5?"▼":"◆")};
+}
+
+function hazirOf(ref,prepared){
+  if(ref.hazir&&ref.hazir.kanallar&&ref.hazir.kanallar.length){
+    if(!ref.hazir._R){
+      ref.hazir._R=detectCandles(hzCleanDraw(prepared.sequence.raw));
+    }
+    return ref.hazir;
+  }
+  const key=ref.name+"|"+(ref.src||"").length;
+  if(hazirCache.has(key))return hazirCache.get(key);
+  const raw=prepared.sequence.raw;
+  if(!raw||raw.length<4){hazirCache.set(key,null);return null;}
+  const R=detectCandles(hzCleanDraw(raw));
+  const h={mum:raw.length,kanallar:hzKanallar(R),devam:[],tahmin:null,otomatik:true,_R:R};
+  hazirCache.set(key,h);
+  return h;
+}
+
+function kanal20Kontrol(detected,ref,prepared){
+  const H=prepared?hazirOf(ref,prepared):(ref&&ref.hazir);
   if(!H||!H.kanallar||!H.kanallar.length)return null;
   const n=H.mum;
-  if(detected.length<n)return{az:true,var:detected.length,n};
+  if(detected.length<n)return{az:true,var:detected.length,n,otomatik:!!H.otomatik,tahmin:H.tahmin};
   const win=detected.slice(-n);
   const R=detectCandles(hzCleanDraw(win));
   const m=Math.min(R.length,n);
@@ -4693,8 +4757,27 @@ function kanal20Kontrol(detected,ref){
     const y=ch.egim*c.x+ch.kesisim;
     if(c.bodyTop>=y+ch.ust-1&&c.bodyBottom<=y+ch.alt+1)ic++;
   }
-  const oran=ic/n;
-  return{n,ic,oran,elendi:oran<KANAL20_ESIK};
+  /* hareket uyumu: ardışık gövde ortası yukarı/aşağı */
+  let ha=0,ht=0;
+  const RR=H._R||[];
+  const mid=c=>(c.bodyTop+c.bodyBottom)/2;
+  const mm=Math.min(m,RR.length);
+  for(let j=1;j<mm;j++){
+    const dq=mid(R[j])-mid(R[j-1]),dr=mid(RR[j])-mid(RR[j-1]);
+    const eps=2;
+    const sq=Math.abs(dq)<eps?0:Math.sign(dq),sr=Math.abs(dr)<eps?0:Math.sign(dr);
+    ht++;if(sq===sr)ha++;else if(sq===0||sr===0)ha+=.5;
+  }
+  const oran=ic/n,hareket=ht?ha/ht:0;
+  const skor=clamp(.6*oran+.4*hareket);
+  return{n,ic,oran,hareket,skor,elendi:oran<KANAL20_ESIK,otomatik:!!H.otomatik,tahmin:H.tahmin};
+}
+
+function tahminText(t){
+  if(!t)return "";
+  const ad={"▲":"yükseliş","▼":"düşüş","◆":"yatay"}[t.yon];
+  return "🔮 Tahmin: "+t.yon+" "+ad+" • sonraki "+t.mum+" mumda net %"+Math.abs(t.net)+
+    " (en çok ▲%"+Math.max(0,t.yukari)+" / ▼%"+Math.max(0,t.asagi)+", formasyon boyuna göre)";
 }
 
 
