@@ -22,3 +22,11 @@ Orijinal görseller telif nedeniyle depoda YOK (yalnızca kullanıcının özel 
 - **Hata 4 — ilk algılamada fitiller:** İlk taramada bazı fitil uçları başlık/ızgara pikseline kadar uzamıştı (ör. 9. mum). `wick.py` ile kesintisiz tarama yapılarak düzeltildi.
 - Son kontrol: site okuması 52/52 mum, renk hatası 0, en büyük boy farkı %0,4.
 - Kanallar (gövde + %20): 8–26 yükselen, 26–42 inen, 42–47 yükselen (retest), 47–57 inen, 57–59 yükselen.
+
+## Seçim ölçütleri (1 Kasım, sonradan eklendi)
+İlk seçimde yalnızca "üç sitede ortak QM yapısı"na bakıldı; siteye uygunluk ölçülmedi. Eklenen ölçütler:
+- Mum başına en az ~6 piksel genişlik
+- Formasyon en fazla ~60 mum (1x sınırı)
+- Mumların üstüne yazı / çizim binmemesi
+- Grafiğin kenarlarda kesik olmaması
+Bu ölçütlerle 9 → 6 görsel. Çıkarılanlar: eski 02 ve 06 (TFlab EURUSD 15dk, ~200 mum / 625 px), eski 09 (TFlab XAUUSD 5dk, formasyon ~115 mum). Yeni numaralar: 01 Nora GBPUSD 1G, 02 TFlab MT5 USDCHF, 03 TFlab BTCUSD 1s, 04 TFlab BTCUSDT 5dk, 05 TFlab MT5 GBPUSD (şüpheli: yazı mumlara biniyor), 06 TFlab WTI 1s.
