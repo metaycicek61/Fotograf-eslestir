@@ -347,3 +347,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Bilgisayar testi: mevcut 10 formasyon → 2x (en uzun 29 mum); 77 mumluk XAUUSD QM eklenince → 1x.
 - Öncelik (kullanıcı): kütüphanedeki kesme işlemi ve kanal boylarını yerleştirmek. QM ortak 9 görsel (TradingView + ForexFactory) kırılım kontrolü sürüyor.
 - Kullanıcı kararı (31 Ekim 23:53): QM hızlı / yavaş (normal) retest ayrımı ya KENDİLİĞİNDEN (kütüphanede ayrı formasyonlar, karşılaştırma ayırt eder) ya da KULLANICI SEÇİMİYLE (taramadan önce "Hepsi / Hızlı retest / Normal QM") yapılacak. Kodlama sonra; kamera ve mum sayımına dokunulmayacak.
+
+## 1 Kasım 03:30 — QM kütüphanesi: 01 tamamlandı, işlem kaydı
+- Yöntem ve hata kayıtları: araclar/qm_kutuphane/ISLEM_KAYDI.md (betikler aynı klasörde). Orijinal görseller depoda yok.
+- 01 (Nora GBPUSD 1G, SH): 52 mum (gizli mum eklendi), kesim kullanıcı numarasıyla 58 dahil. Kanal yöntemi kesin: en uç gövdeler + kanal genişliğinin %20'si dışarı, paralel kesikli çizgi; kanallar json'da, görselde değil.
+- Kütüphane dosyası site formatında (502×277); sitenin kendi okuma koduyla 52/52 doğrulandı.
+- 02 düşük çözünürlük (~200 mum / 625 px): büyük orijinal bekliyor. Sırada 03.
