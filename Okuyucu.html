@@ -405,6 +405,9 @@ button,.fileButton{
     🖼️ Görsel Seç
     <input id="hzInput" type="file" accept="image/*" style="display:none">
   </label>
+  <select id="hzHazir" style="margin-top:8px;width:100%;font-size:16px;padding:10px;border-radius:10px">
+    <option value="">📚 veya Hazır Kütüphaneden yükle (tam hâli)…</option>
+  </select>
   <div id="hzInfo" style="margin-top:10px;font-size:17px;font-weight:800"></div>
   <div id="hzModes" class="hzRow3" style="display:none">
     <button data-m="tek" class="hzMode on">✂️ Sahte Mum</button>
@@ -4558,15 +4561,40 @@ hzDel.addEventListener("click",()=>{
 hzClr.addEventListener("click",()=>{hz.sel.clear();hz.first=-1;hzDraw();});
 hzUndo.addEventListener("click",()=>{hz.removed.clear();hz.sel.clear();hz.first=-1;hzStep3.style.display="none";hz.sug=hzSuggest();hzDraw();hzRenderSug();});
 
+/* 2 Kasım: Hazır Kütüphane formasyonlarını TAM hâlinden (devamıyla) Hazırla'ya yükle.
+   Kesim ÖNERİSİ = kesik kütüphane görselinin mum sayısı (sitenin okumasıyla ölçülür).
+   Kullanıcı istediği gibi değiştirebilir. Kamera / mum okuma koduna dokunulmaz. */
+const HZ_HAZIR=[["LO_01_Liquidity_Sweep","LO 01 Liquidity Sweep + Dönüş"],["LO_02_Order_Block_Retest_eski","LO 02 Order Block Retest (eski)"],
+ ["LO_03_BOS_eski","LO 03 BOS (eski)"],["LO_04_Wyckoff_Birikim_Springli","LO 04 Wyckoff Birikim (Spring'li)"],
+ ["LO_05_Wyckoff_Birikim_Springsiz","LO 05 Wyckoff Birikim (Spring'siz)"],["LO_06_Order_Block_Retest","LO 06 Order Block Retest"],
+ ["LO_07_CHoCH_Donus","LO 07 CHoCH Dönüşü"],["LO_08_BOS_Devam","LO 08 BOS Devamı"],["LO_09_Kahve_Fincani","LO 09 Kahve Fincanı"],
+ ["SH_01_Wyckoff_Dagitim_UTADli","SH 01 Wyckoff Dağıtım (UTAD'lı)"]];
+HZ_HAZIR.forEach(([f,a])=>{const o=document.createElement("option");o.value=f;o.textContent=a;hzHazir.appendChild(o);});
+hzHazir.addEventListener("change",async()=>{
+  const f=hzHazir.value;if(!f)return;
+  const ad=(HZ_HAZIR.find(x=>x[0]===f)||[])[1]||f;
+  hzInfo.textContent="Hazır formasyon yükleniyor…";
+  try{
+    const kesik=await loadImageFromUrl("formasyonlar/kutuphane/"+f+".png");
+    const nKesik=detectCandles(hzImageToScan(kesik)).length;
+    const tam=await loadImageFromUrl("formasyonlar/kutuphane/tam/"+f+"_tam.png");
+    await hzLoad(tam,{ad,yon:f.slice(0,2),kesimNo:nKesik});
+  }catch(err){console.error(err);hzInfo.textContent="Yüklenemedi: "+(err&&err.message||err);}
+  hzHazir.value="";
+});
 hzInput.addEventListener("change",async e=>{
   const file=e.target.files&&e.target.files[0];
   e.target.value="";
   if(!file)return;
+  const url=URL.createObjectURL(file);
+  try{await hzLoad(await loadImageFromUrl(url),null);}
+  catch(err){console.error(err);hzInfo.textContent="Görsel okunamadı: "+(err&&err.message||err);}
+  finally{URL.revokeObjectURL(url);}
+});
+async function hzLoad(img,preset){
   hzInfo.textContent="Görsel okunuyor (Fotoğraf Oku ile aynı yol)…";
   hzView.innerHTML="";hzStep3.style.display="none";
-  const url=URL.createObjectURL(file);
-  try{
-    const img=await loadImageFromUrl(url);
+  {
     const scan=hzImageToScan(img);
     if(!scan){hzInfo.textContent="Görselde grafik bulunamadı (kırmızı/yeşil mum yok).";return;}
     const keepC=document.createElement("canvas");
@@ -4576,14 +4604,15 @@ hzInput.addEventListener("change",async e=>{
       first:-1,mode:"tek",start:-1,cut:-1,clean:null});
     if(!hz.raw.length){hzInfo.textContent="Mum okunamadı.";return;}
     hz.sug=hzSuggest();
+    if(preset){
+      if(preset.kesimNo>=1&&preset.kesimNo<=hz.raw.length)hz.cut=preset.kesimNo-1;
+      hzAd.value=preset.ad;hzYon.value=preset.yon;
+    }
     hzSetup();hzDraw();hzRenderSug();
-  }catch(err){
-    console.error(err);
-    hzInfo.textContent="Görsel okunamadı: "+(err&&err.message||err);
-  }finally{
-    URL.revokeObjectURL(url);
+    if(preset&&hz.cut>=0)hzInfo.innerHTML+="<div style='font-size:14px;color:#fca5a5'>🔴 Önerilen kesim: "+preset.kesimNo+
+      " (kütüphanedeki kesik hâli). Uygunsa Adım 3'e geç; değilse 🔴 Kesim ile değiştir.</div>";
   }
-});
+}
 
 /* ---- Adım 4: %20 kanallar + KULLANICI DÜZELTMESİ (1 Kasım) ----
    Kanal bölümleri önce sitenin findChannels'ı ile ÖNERİLİR. Kaydetmeden önce

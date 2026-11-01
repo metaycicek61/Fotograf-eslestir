@@ -448,3 +448,21 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
    - Gerçek Binance (15 dk, farklı coinler, 1x/2x; Fotoğraf Oku ve canlı kamera).
 3. Aksaklıkları tespit et: her sorunun ekran görüntüsü + hangi adımda olduğu.
 4. En son: Yapılacaklar listesi ve NOTLAR bölümleri birlikte kontrol edilip güncellenecek (biten işler işaretlenecek, gereksizler çıkarılacak).
+
+## 2 Kasım 02:45 — Hazırla: "📚 Hazır Kütüphaneden yükle"
+- Kullanıcı sırası: 1) kütüphane çizimlerini bitir → 2) test → 3) sonuçlara göre karşılaştırma → 4) eksik/hataları not al → 5) devam planı.
+- Hazırla'ya açılır liste eklendi: 10 hazır formasyonun TAM hâli (devamıyla, formasyonlar/kutuphane/tam/) yüklenir; kesim, kesik kütüphane görselinin mum sayısında ÖNERİLİR (kullanıcı değiştirebilir); ad ve LO/SH Adım 5'e otomatik yazılır. Kamera / mum okuma koduna dokunulmadı.
+- Test (telefon boyutu, bilgisayar): 10/10 yüklendi, Adım 3 tekrar okuma hepsinde birebir.
+  | Formasyon | Tam | Kesim | Devam |
+  |---|---|---|---|
+  | LO 01 Liquidity Sweep | 26 | 21 | 5 |
+  | LO 02 OB Retest (eski) | 32 | 24 | 8 |
+  | LO 03 BOS (eski) | 30 | 25 | 5 |
+  | LO 04 Wyckoff Spring'li | 31 | 24 | 7 |
+  | LO 05 Wyckoff Spring'siz | 30 | 24 | 6 |
+  | LO 06 OB Retest | 26 | 20 | 6 |
+  | LO 07 CHoCH | 25 | 20 | 5 |
+  | LO 08 BOS Devam | 26 | 20 | 6 |
+  | LO 09 Kahve Fincanı | 34 | 29 | 5 |
+  | SH 01 Wyckoff Dağıtım | 31 | 24 | 7 |
+- QM görselleri (6) özel arşivde; onlar "Görsel Seç" ile yüklenir.
