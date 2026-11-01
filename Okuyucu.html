@@ -4288,17 +4288,21 @@ function hzSetup(){
   const cx0=Math.max(0,x0-pitchI*1.2),cx1=Math.min(iw,x1+pitchI*1.2);
   const cy0=Math.max(0,t-(b-t)*.06),cy1=Math.min(ih,b+(b-t)*.04);
   const viewW=Math.max(280,hzView.clientWidth||330);
-  /* mum başına en az ~22 CSS px (numaralar okunsun); grafik yüksekliği ≤ 360 px */
-  const S=Math.max(R.length*22/(cx1-cx0),Math.min(viewW/(cx1-cx0),360/Math.max(1,cy1-cy0)));
-  const cssW=Math.round((cx1-cx0)*S);
-  const chartH=Math.round((cy1-cy0)*S);
+  /* yatay: mum başına en az ~22 CSS px (numaralar okunsun);
+     dikey: grafik en fazla ~300 px (ekranı kaplamasın). Gösterim için
+     yatay ve dikey ölçek ayrı (görüntü yatayda esneyebilir; okuma etkilenmez). */
+  const Sx=Math.max(R.length*22,viewW)/(cx1-cx0);
+  const Sy=Math.min(Sx,300/Math.max(1,cy1-cy0));
+  const S=Sx;
+  const cssW=Math.round((cx1-cx0)*Sx);
+  const chartH=Math.round((cy1-cy0)*Sy);
   const bandH=46;
   const dpr=Math.min(3,window.devicePixelRatio||2);
   const c=document.createElement("canvas");
   c.width=Math.round(cssW*dpr);c.height=Math.round((chartH+bandH)*dpr);
   c.style.width=cssW+"px";c.style.height=(chartH+bandH)+"px";
   c.style.maxWidth="none";c.style.display="block";c.style.touchAction="pan-x pan-y";
-  hz.geo={cx0,cy0,cx1,cy1,S,dpr,chartH,bandH,pitchI,cssW};
+  hz.geo={cx0,cy0,cx1,cy1,S,Sy,dpr,chartH,bandH,pitchI,cssW};
   c.addEventListener("click",ev=>{
     const r=c.getBoundingClientRect();
     const xi=(ev.clientX-r.left)/hz.geo.S+hz.geo.cx0;
@@ -4316,7 +4320,7 @@ function hzSetup(){
 function hzDraw(){
   const M=hz.map,R=hz.raw,c=hz.cv,G=hz.geo,dpr=G.dpr;
   const ctx=c.getContext("2d");
-  const P=v=>(v-G.cx0)*G.S*dpr,Q=v=>(v-G.cy0)*G.S*dpr;
+  const P=v=>(v-G.cx0)*G.S*dpr,Q=v=>(v-G.cy0)*G.Sy*dpr;
   const CH=G.chartH*dpr;
   ctx.fillStyle="#fff";ctx.fillRect(0,0,c.width,c.height);
   ctx.imageSmoothingQuality="high";

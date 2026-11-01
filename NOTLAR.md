@@ -386,3 +386,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Test: BTC iPhone fotoğrafı 21→45 = 25 mum, tekrar okuma 25/25.
 - Not: üstüne çizgi/yazı eklenmiş görseller (kırılım işaretli hâller) sahte mum üretir; Hazırla'ya ORİJİNAL görsel verilmeli.
 - Sırada: Adım 4 (%20 kanallar), Adım 5 (kaydet).
+- 05:05: Kullanıcı ekranında görüntü çok uzundu (dar görsellerde grafik ekranı kaplıyordu, numaralar en altta kalıyordu). Gösterimde yatay ve dikey ölçek ayrıldı: grafik yüksekliği en fazla ~300 px; okuma etkilenmez. Kullanıcı: "resim çektik, numara tamam".
