@@ -469,3 +469,12 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - 02:45 Kullanıcı isteğiyle eski "📚 Hazır Kütüphaneyi Yükle" düğmesi GİZLENDİ (kesik görselleri Hazırla'dan geçirmeden ekliyordu). Kod duruyor; formasyonlar artık yalnızca Hazırla → Adım 5 Kaydet ile kütüphaneye girer.
 - 02:50 Telif önlemi (kullanıcı onayı): kaynağı belgelenmemiş ilk 3 formasyon (F1 Liquidity Sweep, F2 OB Retest, F3 BOS = LO 01–03) depodan ve Hazırla listesinden KALDIRILDI (kutuphane, tam, temiz, numarali, kesilmis). Listede yalnızca bizim çizdiğimiz 7 formasyon kaldı (LO 04–09, SH 01). Not: git geçmişinde eski sürümler hâlâ duruyor.
 - Kullanıcı şimdi telefonundaki 9 formasyonu (31 Ekim seçilen ortak set) Görsel Seç ile Hazırla'dan geçiriyor; sorun çıkarsa bildirecek.
+
+## 2 Kasım 03:05 — Hazırla görüntüsü: orijinal oran + büyütme (kullanıcı isteği)
+- Sorun (kullanıcı ekranı, QM 01 Nora GBPUSD): görüntü yatayda esnetiliyordu (mum başına 22 px), kutular mumların üstüne biniyordu, büyütme/küçültme yoktu → formasyon orijinal hâliyle görülemiyordu.
+- Düzeltme (yalnızca gösterim; okuma/kamera koduna dokunulmadı):
+  - Görsel ORİJİNAL ORANIYLA açılır (esnetme yok); yatayda görselin tamamı, dikeyde mumların olduğu bant.
+  - 🔍－ / 🔍＋ / ⤢ Sığdır düğmeleri + iki parmakla büyütme (1x–12x); büyütmede parmakların altındaki nokta yerinde kalır.
+  - 👁 Orijinal: mum kutuları ve kılavuz çizgileri gizlenir, yalnızca numara şeridi (ve seçili/silinen/başlangıç/kesim işaretleri) kalır. 🔢 İşaretler ile geri döner.
+  - Sıkışıkken numaralar seyreltilir (her 2/5/10'da bir + ilk/son + işaretliler); büyütünce hepsi görünür.
+- Test (iPhone boyutu): Nora QM görseli 103 mum, sığdır/büyüt/orijinal çalışıyor; 7 hazır formasyon Adım 3 birebir.

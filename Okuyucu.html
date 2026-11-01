@@ -415,6 +415,12 @@ button,.fileButton{
     <button data-m="kes" class="hzMode">🔴 Kesim</button>
   </div>
   <div id="hzHelp" class="small" style="margin-top:6px;font-weight:700;color:#fde68a"></div>
+  <div id="hzZoom" class="hzRow3" style="display:none;grid-template-columns:1fr 1fr 1fr 1fr">
+    <button id="hzZo" style="background:#374151">🔍－</button>
+    <button id="hzZi" style="background:#374151">🔍＋</button>
+    <button id="hzZf" style="background:#374151">⤢ Sığdır</button>
+    <button id="hzOrj" style="background:#374151">👁 Orijinal</button>
+  </div>
   <div id="hzView" style="margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:10px;background:#222"></div>
   <div id="hzSel" class="small" style="margin-top:6px"></div>
   <div id="hzBtns" class="hzRow3" style="display:none">
@@ -4372,23 +4378,24 @@ function hzSetup(){
   R.forEach(m=>{x0=Math.min(x0,M.x(m.left));x1=Math.max(x1,M.x(m.right));
     t=Math.min(t,M.y(m.top));b=Math.max(b,M.y(m.bottom));});
   const pitchI=R.length>1?(M.x(R[R.length-1].x)-M.x(R[0].x))/(R.length-1):20;
-  const cx0=Math.max(0,x0-pitchI*1.2),cx1=Math.min(iw,x1+pitchI*1.2);
-  const cy0=Math.max(0,t-(b-t)*.06),cy1=Math.min(ih,b+(b-t)*.04);
+  /* 2 Kasım (kullanıcı isteği): görsel ORİJİNAL hâliyle ve ORANIYLA gösterilir
+     (esnetme yok). Sığdır = tüm görsel ekran genişliğinde; ＋/－ ve iki parmakla
+     büyütme. Okuma etkilenmez (yalnızca gösterim). */
+  /* yatayda görselin tamamı; dikeyde mumların olduğu bant (+ pay) — numaralar mumlara yakın kalsın */
+  const cx0=0,cx1=iw,cy0=Math.max(0,t-(b-t)*.10),cy1=Math.min(ih,b+(b-t)*.06);
   const viewW=Math.max(280,hzView.clientWidth||330);
-  /* yatay: mum başına en az ~22 CSS px (numaralar okunsun);
-     dikey: grafik en fazla ~300 px (ekranı kaplamasın). Gösterim için
-     yatay ve dikey ölçek ayrı (görüntü yatayda esneyebilir; okuma etkilenmez). */
-  const Sx=Math.max(R.length*22,viewW)/(cx1-cx0);
-  const Sy=Math.min(Sx,300/Math.max(1,cy1-cy0));
-  const S=Sx;
-  const cssW=Math.round((cx1-cx0)*Sx);
-  const chartH=Math.round((cy1-cy0)*Sy);
+  hz.zoom=Math.min(12,Math.max(1,hz.zoom||1));
+  const S=viewW/iw*hz.zoom,Sy=S;
+  const cssW=Math.round(iw*S);
+  const chartH=Math.round((cy1-cy0)*S);
   const bandH=46;
-  const dpr=Math.min(3,window.devicePixelRatio||2);
+  /* iPhone tuval sınırı (~16 Mpx): büyük yakınlaştırmada çözünürlüğü düşür */
+  const dpr=Math.max(.5,Math.min(Math.min(3,window.devicePixelRatio||2),Math.sqrt(15e6/Math.max(1,cssW*(chartH+bandH)))));
   const c=document.createElement("canvas");
   c.width=Math.round(cssW*dpr);c.height=Math.round((chartH+bandH)*dpr);
   c.style.width=cssW+"px";c.style.height=(chartH+bandH)+"px";
   c.style.maxWidth="none";c.style.display="block";c.style.touchAction="pan-x pan-y";
+  hzPinch(c);
   hz.geo={cx0,cy0,cx1,cy1,S,Sy,dpr,chartH,bandH,pitchI,cssW};
   c.addEventListener("click",ev=>{
     const r=c.getBoundingClientRect();
@@ -4400,9 +4407,41 @@ function hzSetup(){
   });
   hz.cv=c;
   hzView.innerHTML="";hzView.appendChild(c);
-  /* en sağdan (son mumlardan) aç */
-  requestAnimationFrame(()=>{hzView.scrollLeft=hzView.scrollWidth;});
+  hzZoom.style.display="grid";
+  hzOrj.textContent=hz.orj?"🔢 İşaretler":"👁 Orijinal";
+  /* ilk açılışta en sağdan (son mumlardan); yakınlaştırmada odak noktası korunur */
+  requestAnimationFrame(()=>{
+    if(hz.focus){const f=hz.focus;hz.focus=null;
+      hzView.scrollLeft=f.fx*c.offsetWidth-f.vx;
+      const top=c.getBoundingClientRect().top+window.scrollY;
+      window.scrollTo(0,top+f.fy*c.offsetHeight-f.py);}
+    else hzView.scrollLeft=hzView.scrollWidth;});
 }
+/* yakınlaştır: odak (ekrandaki nokta) aynı mumda kalır */
+function hzZoomTo(z,clientX,clientY){
+  if(!hz.cv)return;
+  const r=hz.cv.getBoundingClientRect(),vr=hzView.getBoundingClientRect();
+  const px=clientX==null?vr.left+vr.width/2:clientX;
+  const py=clientY==null?Math.max(r.top,0)+Math.min(r.height,window.innerHeight)/2:clientY;
+  hz.focus={fx:(px-r.left)/r.width,fy:(py-r.top)/r.height,vx:px-vr.left,py};
+  hz.zoom=Math.min(12,Math.max(1,z));
+  hzSetup();hzDraw();
+}
+function hzPinch(c){
+  let d0=0,z0=1,mx=0,my=0;
+  const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+  c.addEventListener("touchstart",e=>{if(e.touches.length===2){d0=dist(e.touches);z0=hz.zoom;
+    mx=(e.touches[0].clientX+e.touches[1].clientX)/2;my=(e.touches[0].clientY+e.touches[1].clientY)/2;
+    c.style.transformOrigin=(mx-c.getBoundingClientRect().left)+"px "+(my-c.getBoundingClientRect().top)+"px";}},{passive:true});
+  c.addEventListener("touchmove",e=>{if(e.touches.length===2&&d0){e.preventDefault();
+    const k=Math.min(12/z0,Math.max(1/z0,dist(e.touches)/d0));c.style.transform="scale("+k+")";c._k=k;}},{passive:false});
+  c.addEventListener("touchend",e=>{if(d0&&e.touches.length<2){const k=c._k||1;d0=0;c.style.transform="";c._k=1;
+    if(Math.abs(k-1)>.05)hzZoomTo(z0*k,mx,my);}},{passive:true});
+}
+hzZi.addEventListener("click",()=>hzZoomTo((hz.zoom||1)*1.6));
+hzZo.addEventListener("click",()=>hzZoomTo((hz.zoom||1)/1.6));
+hzZf.addEventListener("click",()=>{hz.focus=null;hz.zoom=1;hzSetup();hzDraw();});
+hzOrj.addEventListener("click",()=>{hz.orj=!hz.orj;hzOrj.textContent=hz.orj?"🔢 İşaretler":"👁 Orijinal";hzDraw();});
 
 function hzDraw(){
   const M=hz.map,R=hz.raw,c=hz.cv,G=hz.geo,dpr=G.dpr;
@@ -4417,10 +4456,11 @@ function hzDraw(){
   const mid=i=>{ /* i ile i+1 arasındaki sınır */
     if(i<0)return 0;if(i>=R.length-1)return c.width;
     return (P(M.x(R[i].right))+P(M.x(R[i+1].left)))/2;};
-  if(hz.start>=0){ctx.fillStyle="rgba(90,90,90,.35)";ctx.fillRect(0,0,mid(hz.start-1),c.height);}
+  const orj=!!hz.orj;
+  if(hz.start>=0&&!orj){ctx.fillStyle="rgba(90,90,90,.35)";ctx.fillRect(0,0,mid(hz.start-1),c.height);}
   if(hz.cut>=0){
     const xc=mid(hz.cut);
-    ctx.fillStyle="rgba(255,215,0,.38)";ctx.fillRect(xc,0,c.width-xc,c.height);
+    if(!orj){ctx.fillStyle="rgba(255,215,0,.38)";ctx.fillRect(xc,0,c.width-xc,c.height);}
     ctx.strokeStyle="#dc2626";ctx.lineWidth=2*dpr;ctx.setLineDash([7*dpr,5*dpr]);
     ctx.beginPath();ctx.moveTo(xc,0);ctx.lineTo(xc,c.height);ctx.stroke();ctx.setLineDash([]);
   }
@@ -4428,19 +4468,27 @@ function hzDraw(){
   ctx.fillStyle="#f3f4f6";ctx.fillRect(0,CH,c.width,G.bandH*dpr);
   const fz=12*dpr;ctx.font="bold "+fz+"px sans-serif";ctx.textAlign="center";
   const silMode=hz.mode==="tek"||hz.mode==="ara";
+  /* sıkışıkken numaraları seyrelt (her k'ıncı + işaretliler); büyütünce hepsi görünür */
+  const pitchPx=G.pitchI*G.S;
+  const step=pitchPx>=11?1:pitchPx>=6?2:pitchPx>=3?5:10;
   R.forEach((m,i)=>{
     const off=hz.removed.has(i),sel=silMode&&hz.sel.has(i);
     const isS=i===hz.start,isK=i===hz.cut,isF=silMode&&i===hz.first;
     const X=P(M.x(m.x));
     const col=sel||isF?"#f59e0b":(off?"#9ca3af":(m.direction>0?"#00b050":"#e00020"));
-    ctx.strokeStyle=col;ctx.lineWidth=(sel||isF?2.5:1.3)*dpr;
-    const bx=P(M.x(m.left))-1,by=Q(M.y(m.bodyTop))-1;
-    ctx.strokeRect(bx,by,Math.max(3,P(M.x(m.right+1))-P(M.x(m.left))+2),
-      Math.max(3,Q(M.y(m.bodyBottom+1))-Q(M.y(m.bodyTop))+2));
-    /* mumdan şeride ince kılavuz çizgi */
-    ctx.strokeStyle=(isS||isK||sel||isF)?col:"rgba(0,0,0,.12)";ctx.lineWidth=1*dpr;
-    ctx.beginPath();ctx.moveTo(X,Q(M.y(m.bottom))+2*dpr);ctx.lineTo(X,CH+(i%2?24:4)*dpr);ctx.stroke();
-    const label=off?"✕":String(numOf.get(i));
+    const isaret=isS||isK||sel||isF||off;
+    if(!orj||isaret){
+      ctx.strokeStyle=col;ctx.lineWidth=(sel||isF?2.5:1.3)*dpr;
+      const bx=P(M.x(m.left))-1,by=Q(M.y(m.bodyTop))-1;
+      ctx.strokeRect(bx,by,Math.max(3,P(M.x(m.right+1))-P(M.x(m.left))+2),
+        Math.max(3,Q(M.y(m.bodyBottom+1))-Q(M.y(m.bodyTop))+2));
+    }
+    const no=numOf.get(i);
+    if(!isaret&&no%step!==0&&no!==1&&no!==kept.length)return;
+    /* mumdan şeride ince kılavuz çizgi (Orijinal modda yalnızca şeritte) */
+    ctx.strokeStyle=isaret?col:"rgba(0,0,0,.12)";ctx.lineWidth=1*dpr;
+    ctx.beginPath();ctx.moveTo(X,orj?CH:Q(M.y(m.bottom))+2*dpr);ctx.lineTo(X,CH+(i%2?24:4)*dpr);ctx.stroke();
+    const label=off?"✕":String(no);
     const ty=CH+(i%2?40:20)*dpr;
     const lw=Math.max(ctx.measureText(label).width+6*dpr,16*dpr);
     ctx.fillStyle=isS?"#16a34a":isK?"#dc2626":(sel||isF)?"#fde68a":(off?"#fee2e2":"#fff");
@@ -4600,7 +4648,7 @@ async function hzLoad(img,preset){
     const keepC=document.createElement("canvas");
     keepC.width=img.naturalWidth;keepC.height=img.naturalHeight;
     keepC.getContext("2d").drawImage(img,0,0);
-    Object.assign(hz,{img:keepC,scan,raw:detectCandles(scan),removed:new Set(),sel:new Set(),
+    Object.assign(hz,{zoom:1,orj:false,focus:null,img:keepC,scan,raw:detectCandles(scan),removed:new Set(),sel:new Set(),
       first:-1,mode:"tek",start:-1,cut:-1,clean:null});
     if(!hz.raw.length){hzInfo.textContent="Mum okunamadı.";return;}
     hz.sug=hzSuggest();
