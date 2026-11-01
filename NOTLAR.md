@@ -86,6 +86,7 @@ Kütüphanedeki formasyonların sağı kesildi; kesilen kısım formasyonun deva
 - [ ] Önemli dosyaların (Okuyucu.html, NOTLAR.md, araclar/formasyon_betik.py) kopyasını iCloud'da da tut
 - [ ] GitHub hesabında iki adımlı doğrulamayı aç
 - [ ] Depo herkese açık (public) kalsın: GitHub Pages ücretsiz planda yalnızca public depolarda çalışır
+- [ ] Ziyaretçi erişimi (1 Kasım): site ve depo herkese açık. Ziyaretçi siteyi kullanabilir, kodu / NOTLAR.md'yi / formasyonlar/ klasörünü okuyabilir ve "📚 Hazır Kütüphane"yi yükleyip kullanabilir; telefondaki kişisel kütüphaneyi göremez, depoyu değiştiremez. Karar verilecek: (a) depoyu private yapmak (Pages için ücretli plan gerekir), (b) notları ayrı private depoya taşımak, (c) hazır kütüphaneyi siteden kaldırıp sadece kişisel kullanım. Formasyon Hazırla ile hazırlanan formasyonlar hiçbir zaman depoya/siteye yüklenmeyecek (telif).
 
 ## Maliyet notu
 - GitHub Free süresiz ücretsiz; çalışmalar bir ay sonra silinmez. Ödeme gerekmiyor.
