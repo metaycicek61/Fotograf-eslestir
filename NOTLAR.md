@@ -368,3 +368,12 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Doğrulama (bilgisayar): Hazırla ile Fotoğraf Oku aynı mum sayısını veriyor — iPhone BTC fotoğrafı 50/50, site karesi 58/58, 01 temiz 52/52.
 - Sıradaki: eksik (gizli) mum ekleme, sonra Adım 2 kesim yerleri.
 - 04:30 düzeltme (kullanıcı geri bildirimi: okuma sonucu ve silme düğmesi görünmüyordu): bilgi satırı büyük ve kalın ("✅ Okunan: N mum"); görüntü sadece mumların olduğu yüksekliğe kırpılıyor; numaralar iki sıra (üst üste binmiyor); muma dokununca SARI seçilir, altında "🗑️ Seçili Mumu Sil" ve "↩️ Tüm Silmeleri Geri Al" düğmeleri; dokunma en yakın muma (mum aralığının %75'i içinde) gider.
+
+## 1 Kasım 04:50 — Formasyon Hazırla: net gösterim, çoklu silme, Adım 2
+- Kullanıcı geri bildirimi: görüntü bulanık, silme tek tek ve kullanışsız, sonraki adıma geçiş yok.
+- NET GÖSTERİM: okuma yine Fotoğraf Oku yolundan (502 genişlik, kamerayla aynı) yapılıyor; ama numaralar ORİJİNAL görselin üstüne çiziliyor. Tarama koordinatları buildStill / tam kare / yeşil alan geometrisiyle orijinale geri çevriliyor (hzStillGeom + hz.map). Görüntü yüksekliği en fazla ~440 px, mum başına ~20 px, yatay kaydırma, en sağdan açılır.
+- Mod düğmeleri: ✂️ 1. Sahte Mum / 🟢 2. Başlangıç / 🔴 2. Kesim.
+- Sahte mum: çoklu seçim (sarı), "Aralık seç" kutusu (iki muma dokun → aradakilerin hepsi), "Seçilileri Sil (n)", "Seçimi Temizle", "Silmeleri Geri Al".
+- Adım 2: başlangıç mumu yeşil numara, öncesi gri; kesim mumu kırmızı numara (DAHİL), sonrası sarı + kesikli kırmızı çizgi. Özet: "Formasyon: a → b (kesim dahil) = N mum → 1x/2x • Devam: M mum". Numaralar silinen mumlar çıkarıldıktan sonraki sırayla.
+- "➡️ Adım 3: Kes ve Temiz Çiz" düğmesi görünür ama henüz pasif (sıradaki iş).
+- Test (bilgisayar): BTC iPhone 50 mum, 01 temiz 52 mum; aralık silme, başlangıç/kesim seçimi çalışıyor; hata yok.
