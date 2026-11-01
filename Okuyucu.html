@@ -426,7 +426,14 @@ button,.fileButton{
   <div id="hzStep3" style="display:none;margin-top:10px">
     <div id="hzS3Info" style="font-size:16px;font-weight:800"></div>
     <div id="hzS3View" style="margin-top:8px;background:#fff;border-radius:10px;overflow:hidden"></div>
-    <div class="small" style="margin-top:6px">Temiz çizim sitenin kütüphane biçiminde (502×277). Mum verisi de saklanır; Tara'da kamera ile aynı okuma kodundan çıkmış verilerle karşılaştırılacak. Adım 4 (%20 kanallar) sırada.</div>
+    <div class="small" style="margin-top:6px">Temiz çizim sitenin kütüphane biçiminde (502×277). Mum verisi de saklanır; Tara'da kamera ile aynı okuma kodundan çıkmış verilerle karşılaştırılacak.</div>
+    <button id="hz4Btn" style="background:#0e7490">➡️ Adım 4: %20 Kanallar</button>
+  </div>
+  <div id="hzStep4" style="display:none;margin-top:10px">
+    <div id="hz4Info" style="font-size:16px;font-weight:800"></div>
+    <div id="hz4View" style="margin-top:8px;background:#fff;border-radius:10px;overflow:hidden"></div>
+    <div id="hz4List" class="small" style="margin-top:6px"></div>
+    <div class="small" style="margin-top:6px">Kanal sınırlarını site önerir (en uç gövdeler + kanal genişliğinin %20'si dışarı, paralel kesikli çizgi). Kanallar görsele değil veriye kaydedilir. Sırada Adım 5: Kaydet.</div>
   </div>
 </div>
 
@@ -4500,8 +4507,9 @@ hzNext.addEventListener("click",()=>{
   hzS3Info.innerHTML="✅ Kesme bitti: "+form.length+" mum • Site tekrar okudu: "+back+" mum "+
     (back===form.length?"<span style='color:#4ade80'>✓ birebir</span>":"<span style='color:#f87171'>✗ fark var</span>")+
     (devam.length
-      ?"<br><span style='color:#fde68a'>⚠️ Kesimin sağında "+devam.length+" mum var: formasyona girmedi, devam (öngörülecek) olarak saklandı.</span>"
-      :"<br><span style='color:#fde68a'>⚠️ Kesimin sağında mum yok: devam kısmı boş.</span>");
+      ?"<br><span style='color:#93c5fd'>ℹ️ Bilgi: kesimin sağındaki "+devam.length+" mum formasyona girmedi, devam (öngörülecek) olarak saklandı. Sorun değil, devam et ↓</span>"
+      :"<br><span style='color:#93c5fd'>ℹ️ Bilgi: kesimin sağında mum yok (devam kısmı boş). Devam et ↓</span>");
+  $hz("hzStep4").style.display="none";
   hzS3View.innerHTML="";clean.style.width="100%";clean.style.display="block";hzS3View.appendChild(clean);
   hzStep3.style.display="block";
   hzStep3.scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -4544,7 +4552,65 @@ hzInput.addEventListener("change",async e=>{
     URL.revokeObjectURL(url);
   }
 });
-/* ==== FORMASYON HAZIRLA — ADIM 1–3 SONU ==== */
+
+/* ---- Adım 4: %20 kanallar (1 Kasım) ----
+   Kanal bölümleri sitenin kendi findChannels'ı ile önerilir (Tara'daki kanal
+   karşılaştırmasıyla aynı mantık). Her kanalda: gövde ortalarına doğru
+   çizgisi, en uç gövdelere paralel üst/alt sınır, sonra kanal genişliğinin
+   %20'si kadar dışarı. Fitil taşmaları % olarak ölçülür. */
+$hz("hz4Btn").addEventListener("click",()=>{
+  if(!hz.clean)return;
+  const clean=hz.clean.canvas;
+  const R=detectCandles(clean);
+  const ch=findChannels(R);
+  const info=$hz("hz4Info"),view=$hz("hz4View"),list=$hz("hz4List");
+  $hz("hzStep4").style.display="block";
+  if(!ch){info.textContent="Kanal bulunamadı (en az 4 mum gerekir).";view.innerHTML="";list.innerHTML="";return;}
+  const names={"-1":"İnen","0":"Yatay","1":"Yükselen"};
+  const cols={"-1":"#c026d3","0":"#d97706","1":"#2563eb"};
+  const out=[];
+  ch.segs.forEach((g,n)=>{
+    const P=R.slice(g.a,g.b);
+    const xs=P.map(c=>c.x),ys=P.map(c=>(c.bodyTop+c.bodyBottom)/2);
+    const f=lineFit(xs,ys,0,P.length);
+    let up=Infinity,dn=-Infinity;
+    P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.bodyTop-m);dn=Math.max(dn,c.bodyBottom-m);});
+    const w=Math.max(1,dn-up),tu=up-.2*w,td=dn+.2*w;
+    const over=[];
+    P.forEach((c,j)=>{const m=f.s*c.x+f.k;
+      const o=Math.max(m+tu-c.top,c.bottom-(m+td),0);
+      if(o>0)over.push({no:g.a+j+1,pct:Math.round(100*o/(td-tu))});});
+    out.push({n:n+1,a:g.a+1,b:g.b,dir:g.dir,s:f.s,k:f.k,ust:tu,alt:td,x0:xs[0],x1:xs[xs.length-1],over});
+  });
+  hz.clean.channels=out.map(c=>({mumlar:[c.a,c.b],tur:names[c.dir],egim:+c.s.toFixed(4),kesisim:+c.k.toFixed(2),ust:+c.ust.toFixed(2),alt:+c.alt.toFixed(2),pay:.2}));
+  /* çizim: temiz görsel 2x, kesikli çizgiler taşarsa pay bırak */
+  let top=0,bot=clean.height;
+  out.forEach(c=>[c.x0-4,c.x1+4].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-6);bot=Math.max(bot,c.s*x+c.k+c.alt+6);}));
+  const k=2,cv=document.createElement("canvas");
+  cv.width=clean.width*k;cv.height=Math.ceil((bot-top)*k);
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.drawImage(clean,0,-top*k,clean.width*k,clean.height*k);
+  ctx.lineWidth=2.5;ctx.setLineDash([9,6]);
+  out.forEach(c=>{
+    ctx.strokeStyle=cols[c.dir];
+    const X0=c.x0-4,X1=c.x1+4;
+    [c.ust,c.alt].forEach(off=>{ctx.beginPath();
+      ctx.moveTo(X0*k,(c.s*X0+c.k+off-top)*k);ctx.lineTo(X1*k,(c.s*X1+c.k+off-top)*k);ctx.stroke();});
+  });
+  ctx.setLineDash([]);
+  out.forEach(c=>c.over.forEach(o=>{const m=R[o.no-1];
+    ctx.strokeStyle="#f97316";ctx.lineWidth=3;ctx.beginPath();
+    ctx.arc(m.x*k,((c.over.length?m.top:m.bottom)-top)*k,9,0,Math.PI*2);ctx.stroke();}));
+  cv.style.width="100%";cv.style.display="block";
+  view.innerHTML="";view.appendChild(cv);
+  const tot=out.reduce((a,c)=>a+c.over.length,0);
+  info.innerHTML="📏 "+out.length+" kanal önerildi • %20 sınırını aşan fitil: "+tot;
+  list.innerHTML=out.map(c=>"<span style='color:"+cols[c.dir]+";font-weight:800'>"+c.n+". "+names[c.dir]+"</span> (mum "+c.a+"–"+c.b+")"+
+    (c.over.length?" • taşma: "+c.over.map(o=>o.no+": %"+o.pct).join(", "):" • taşma yok")).join("<br>");
+  $hz("hzStep4").scrollIntoView({behavior:"smooth",block:"nearest"});
+});
+/* ==== FORMASYON HAZIRLA — ADIM 1–4 SONU ==== */
 
 
 </script>
