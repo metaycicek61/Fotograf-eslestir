@@ -36,6 +36,21 @@ h1{
   width:91%;
   margin:8px auto 0;
 }
+#openRow.tek{grid-template-columns:1fr}
+#openRow2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  width:91%;
+  margin:8px auto 0;
+}
+#openRow2 .fileButton{
+  margin-top:0;
+  padding:14px 4px;
+  font-size:16px;
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+}
 #openRow button,#openRow .fileButton{
   margin-top:0;
   padding:14px 4px;
@@ -321,20 +336,14 @@ button,.fileButton{
 
 <!-- Tek parmak kontrol çubuğu: kamera altında, kaydırmadan erişilir -->
 <div id="controlBar">
-  <button class="zoomBtn" data-z="1" disabled>1x</button>
-  <button class="zoomBtn" data-z="2" disabled>2x</button>
+  <button class="zoomBtn" data-z="1">1x</button>
+  <button class="zoomBtn" data-z="2">2x</button>
   <button id="quickTestBtn" disabled>📸 Kaydet</button>
   <button id="scanBtn" disabled>🧠 Tara</button>
 </div>
 
-<!-- Kamerayı Aç ve Fotoğraf Çek yan yana -->
-<div id="openRow">
+<div id="openRow" class="tek">
   <button id="startBtn">📷 Kamerayı Aç</button>
-  <!-- iPhone'un kendi kamerasıyla (2x, otomatik odak) çek ya da galeriden seç -->
-  <label class="fileButton" id="photoBtn">
-    🖼️ Fotoğraf Oku
-    <input id="photoInput" type="file" accept="image/*">
-  </label>
 </div>
 
 <div id="sensorStatus">Sensör bekliyor.</div>
@@ -343,10 +352,18 @@ button,.fileButton{
 <!-- Çekimden önce 1x / 2x önerisi (kütüphanedeki formasyonların mum sayısına göre) -->
 <div id="shotAdvice">📐 Çekim önerisi hesaplanıyor…</div>
 
-<label class="fileButton">
-  🖼️ Referans Formasyon Ekle
-  <input id="refInput" type="file" accept="image/*" multiple>
-</label>
+<!-- Fotoğraf Oku ve Referans Formasyon Ekle yan yana (1 Kasım) -->
+<div id="openRow2">
+  <!-- iPhone'un kendi kamerasıyla çek ya da galeriden seç -->
+  <label class="fileButton" id="photoBtn">
+    🖼️ Fotoğraf Oku
+    <input id="photoInput" type="file" accept="image/*">
+  </label>
+  <label class="fileButton">
+    🖼️ Referans Formasyon Ekle
+    <input id="refInput" type="file" accept="image/*" multiple>
+  </label>
+</div>
 
 <div id="status">Hazır.</div>
 
@@ -1047,8 +1064,12 @@ testShareBtn.addEventListener("click",async()=>{
       bırakılarak yeşil kutuya yerleştirilir; sonra aynı okuma kodu çalışır. */
 const stillCanvas=document.getElementById("still");
 const photoInput=document.getElementById("photoInput");
+/* 1 Kasım: düğmeler her zaman seçilebilir. "on" sadece canlı zoom
+   desteğini kaydeder; kamera zoom'u yalnızca destek varsa uygulanır. */
+let liveZoom=false;
 function setZoomButtons(on){
-  document.querySelectorAll(".zoomBtn").forEach(b=>{b.disabled=!on;});
+  liveZoom=!!on;
+  document.querySelectorAll(".zoomBtn").forEach(b=>{b.disabled=false;});
 }
 const zoomNote=document.getElementById("zoomNote");
 
@@ -1108,8 +1129,15 @@ function setupZoom(stream){
   }
 }
 
+/* Kullanıcının 1x/2x seçimi: yeşil çerçeve seçime geçer.
+   Canlı zoom destekleniyorsa kamera da o zoom'a ayarlanır. */
+let selectedZoom=null;
 document.querySelectorAll(".zoomBtn").forEach(b=>{
-  b.addEventListener("click",()=>setZoom(Number(b.dataset.z)));
+  b.addEventListener("click",()=>{
+    selectedZoom=Number(b.dataset.z);
+    renderShotAdvice();
+    if(liveZoom)setZoom(selectedZoom);
+  });
 });
 
 /* ==== ÇEKİM ÖNERİSİ: 1x mi 2x mi? (31 Ekim) ====
@@ -1137,10 +1165,14 @@ function renderShotAdvice(){
     html+="<br>Kütüphane: "+n2+" formasyon 2x"+(n1?", "+n1+" formasyon 1x":"")+".";
     if(rec===1)html+="<br>Sadece kısa formasyonlara bakacaksan 2x de seçebilirsin.";
   }
-  html+="<br>🖼️ Fotoğraf Oku ile çekerken iPhone kamerasında da <b>"+rec+"x</b> seç.";
+  const sel=(typeof selectedZoom==="number"&&selectedZoom)?selectedZoom:rec;
+  if(typeof selectedZoom==="number"&&selectedZoom){
+    html+="<br>✅ Seçimin: <b>"+sel+"x</b>"+(sel!==rec?" (öneri "+rec+"x)":"")+".";
+  }
+  html+="<br>🖼️ Fotoğraf Oku ile çekerken iPhone kamerasında da <b>"+sel+"x</b> seç.";
 
   document.querySelectorAll(".zoomBtn").forEach(b=>{
-    b.classList.toggle("rec",Number(b.dataset.z)===rec);
+    b.classList.toggle("rec",Number(b.dataset.z)===sel);
   });
   box.innerHTML=html;
 }

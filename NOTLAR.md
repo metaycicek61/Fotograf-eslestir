@@ -353,3 +353,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - 01 (Nora GBPUSD 1G, SH): 52 mum (gizli mum eklendi), kesim kullanıcı numarasıyla 58 dahil. Kanal yöntemi kesin: en uç gövdeler + kanal genişliğinin %20'si dışarı, paralel kesikli çizgi; kanallar json'da, görselde değil.
 - Kütüphane dosyası site formatında (502×277); sitenin kendi okuma koduyla 52/52 doğrulandı.
 - 02 düşük çözünürlük (~200 mum / 625 px): büyük orijinal bekliyor. Sırada 03.
+
+## 1 Kasım 03:45 — Arayüz düzeltmeleri (kullanıcı isteği)
+- 1x / 2x: yeşil çerçeve artık KULLANICININ SEÇİMİNİ gösteriyor (önceden hep öneriyi, 2x'i gösteriyordu). Düğmeler her zaman seçilebilir; seçim öneri kutusunda "Seçimin: 1x (öneri 2x)" olarak yazar ve Fotoğraf Oku için iPhone lensi buna göre söylenir. Kamera zoom'u yalnızca tarayıcı canlı zoom destekliyorsa uygulanır (önceki davranış aynı).
+- "🖼️ Fotoğraf Oku" düğmesi "Referans Formasyon Ekle"nin yanına taşındı; "Kamerayı Aç" tek başına tam genişlikte.
+- Kamera, mum okuma ve çekim kodunda değişiklik yok.
