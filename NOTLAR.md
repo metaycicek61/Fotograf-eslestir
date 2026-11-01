@@ -367,3 +367,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Numaralı görüntü gerçek boyutta, yatay kaydırılabilir, en sağdan açılır. Muma dokununca silinir (✕), tekrar dokununca geri gelir; "Silmeleri Geri Al" düğmesi. Bilgi satırı: okunan / silinen / kalan mum, 33 üstü ise 1x notu.
 - Doğrulama (bilgisayar): Hazırla ile Fotoğraf Oku aynı mum sayısını veriyor — iPhone BTC fotoğrafı 50/50, site karesi 58/58, 01 temiz 52/52.
 - Sıradaki: eksik (gizli) mum ekleme, sonra Adım 2 kesim yerleri.
+- 04:30 düzeltme (kullanıcı geri bildirimi: okuma sonucu ve silme düğmesi görünmüyordu): bilgi satırı büyük ve kalın ("✅ Okunan: N mum"); görüntü sadece mumların olduğu yüksekliğe kırpılıyor; numaralar iki sıra (üst üste binmiyor); muma dokununca SARI seçilir, altında "🗑️ Seçili Mumu Sil" ve "↩️ Tüm Silmeleri Geri Al" düğmeleri; dokunma en yakın muma (mum aralığının %75'i içinde) gider.

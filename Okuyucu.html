@@ -393,14 +393,18 @@ button,.fileButton{
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
   <h2>🛠️ Formasyon Hazırla</h2>
-  <div class="small">Adım 1 — Numaralama. Formasyon görselini seç; site onu Fotoğraf Oku ile aynı yoldan okur ve mumları numaralar. Görüntüyü sağa-sola kaydırabilirsin. Yanlış okunan (sahte) muma dokun → silinir (✕). Tekrar dokun → geri gelir.</div>
+  <div class="small">Adım 1 — Numaralama. Formasyon görselini seç; site onu Fotoğraf Oku ile aynı yoldan okur ve mumları numaralar. Görüntüyü sağa-sola kaydır. Yanlış okunan (sahte) muma dokun → sarı olur → "Seçili Mumu Sil".</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
     <input id="hzInput" type="file" accept="image/*" style="display:none">
   </label>
-  <div id="hzInfo" class="small" style="margin-top:8px"></div>
-  <div id="hzView" style="margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px"></div>
-  <button id="hzUndo" style="background:#6b7280;display:none">↩️ Silmeleri Geri Al</button>
+  <div id="hzInfo" style="margin-top:10px;font-size:17px;font-weight:800"></div>
+  <div id="hzView" style="margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;background:#fff"></div>
+  <div id="hzSel" class="small" style="margin-top:6px"></div>
+  <div id="hzBtns" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+    <button id="hzDel" style="background:#b91c1c;margin-top:0" disabled>🗑️ Seçili Mumu Sil</button>
+    <button id="hzUndo" style="background:#6b7280;margin-top:0" disabled>↩️ Tüm Silmeleri Geri Al</button>
+  </div>
 </div>
 
 <div class="card">
@@ -4172,11 +4176,14 @@ requestAnimationFrame(drawGrid);
    captureScanRegion (yeşil alan, 502 genişlik) → detectCandles.
    Ortak tuvaller (stillCanvas, SCAN_OUT_H) işlemden sonra eski hâline döner;
    böylece açık olan fotoğraf/kamera görüntüsü bozulmaz. */
-const hz={scan:null,raw:[],removed:new Set(),k:2};
+const hz={scan:null,raw:[],removed:new Set(),k:2,sel:-1};
 const hzInput=document.getElementById("hzInput");
 const hzInfo=document.getElementById("hzInfo");
 const hzView=document.getElementById("hzView");
 const hzUndo=document.getElementById("hzUndo");
+const hzDel=document.getElementById("hzDel");
+const hzSel=document.getElementById("hzSel");
+const hzBtns=document.getElementById("hzBtns");
 
 function hzFullFrame(src){
   /* captureFullFrame ile aynı kırpma, kaynak = verilen tuval */
@@ -4220,38 +4227,44 @@ function hzKept(){
 
 function hzDraw(){
   const k=hz.k,scan=hz.scan;
+  /* sadece mumların olduğu yükseklik gösterilir (boş beyazlık atılır) */
+  let t=Infinity,bt=-Infinity;
+  hz.raw.forEach(m=>{t=Math.min(t,m.top);bt=Math.max(bt,m.bottom);});
+  const y0=Math.max(0,Math.floor(t-30)),y1=Math.min(scan.height,Math.ceil(bt+12));
   const c=document.createElement("canvas");
-  c.width=scan.width*k;c.height=scan.height*k;
+  c.width=scan.width*k;c.height=(y1-y0)*k;
   const ctx=c.getContext("2d");
-  ctx.drawImage(scan,0,0,c.width,c.height);
-  ctx.lineWidth=2;ctx.font="bold 16px sans-serif";ctx.textAlign="center";
+  ctx.drawImage(scan,0,y0,scan.width,y1-y0,0,0,c.width,c.height);
+  ctx.lineWidth=2;ctx.font="bold 15px sans-serif";ctx.textAlign="center";
+  const Y=v=>(v-y0)*k;
   let n=0;
   hz.raw.forEach((m,i)=>{
-    const off=hz.removed.has(i);
-    const col=off?"#9ca3af":(m.direction>0?"#00b050":"#e00020");
-    ctx.strokeStyle=col;
-    ctx.beginPath();ctx.moveTo(m.x*k,m.top*k);ctx.lineTo(m.x*k,m.bottom*k);ctx.stroke();
-    ctx.strokeRect(m.left*k,m.bodyTop*k,Math.max(2,(m.right-m.left+1)*k),Math.max(2,(m.bodyBottom-m.bodyTop+1)*k));
-    const ty=Math.max(16,m.top*k-4);
+    const off=hz.removed.has(i),sel=i===hz.sel;
+    const col=sel?"#f59e0b":(off?"#9ca3af":(m.direction>0?"#00b050":"#e00020"));
+    ctx.strokeStyle=col;ctx.lineWidth=sel?3:2;
+    ctx.beginPath();ctx.moveTo(m.x*k,Y(m.top));ctx.lineTo(m.x*k,Y(m.bottom));ctx.stroke();
+    ctx.strokeRect(m.left*k,Y(m.bodyTop),Math.max(2,(m.right-m.left+1)*k),Math.max(2,(m.bodyBottom-m.bodyTop+1)*k));
     const label=off?"✕":String(++n);
-    ctx.fillStyle=off?"#fee2e2":"#fff";
-    ctx.fillRect(m.x*k-11,ty-14,22,17);
+    /* üst üste binmesin diye numaralar iki sıra */
+    const ty=Math.max(15,Y(m.top)-4-(i%2)*16);
+    ctx.fillStyle=sel?"#fde68a":(off?"#fee2e2":"#fff");
+    ctx.fillRect(m.x*k-11,ty-13,22,16);
     ctx.fillStyle=off?"#b91c1c":"#1d4ed8";
     ctx.fillText(label,m.x*k,ty);
   });
-  /* Numaralar okunsun diye tuval gerçek boyutunda; yatay kaydırılır,
-     açılışta en sağa (son mumlara) gider. */
   c.style.width=c.width+"px";c.style.maxWidth="none";c.style.display="block";
-  c.style.borderRadius="10px";c.style.touchAction="pan-x pan-y";
+  c.style.touchAction="pan-x pan-y";
   c.addEventListener("click",ev=>{
     const r=c.getBoundingClientRect();
     const x=(ev.clientX-r.left)*(c.width/r.width)/k;
     let best=-1,bd=Infinity;
     hz.raw.forEach((m,i)=>{const d=Math.abs(m.x-x);if(d<bd){bd=d;best=i;}});
     if(best<0)return;
-    const w=Math.max(6,(hz.raw[best].right-hz.raw[best].left+1));
-    if(bd>w*1.5)return;
-    if(hz.removed.has(best))hz.removed.delete(best);else hz.removed.add(best);
+    /* en yakın mum seçilir (mum aralığının yarısından uzaksa yok sayılır) */
+    const gaps=hz.raw.slice(1).map((m,i)=>m.x-hz.raw[i].x);
+    const pitch=gaps.length?median(gaps):10;
+    if(bd>Math.max(6,pitch*0.75))return;
+    hz.sel=(hz.sel===best)?-1:best;
     hzDraw();
   });
   const keepScroll=hzView.firstChild?hzView.scrollLeft:null;
@@ -4259,13 +4272,32 @@ function hzDraw(){
   hzView.appendChild(c);
   hzView.scrollLeft=keepScroll===null?hzView.scrollWidth:keepScroll;
   const kept=hzKept().length;
-  hzInfo.innerHTML="Okunan: <b>"+hz.raw.length+"</b> mum • Silinen: <b>"+hz.removed.size+
-    "</b> • Formasyonda kalan: <b>"+kept+"</b> mum"+
-    (kept>SHOT_LIMIT_2X?" (33'ten fazla → çekimde 1x)":"");
-  hzUndo.style.display=hz.removed.size?"block":"none";
+  hzInfo.innerHTML="✅ Okunan: "+hz.raw.length+" mum"+
+    (hz.removed.size?" • Silinen: "+hz.removed.size:"")+
+    " • Formasyon: "+kept+" mum"+
+    (kept>SHOT_LIMIT_2X?" (33 üstü → çekimde 1x)":"");
+  if(hz.sel>=0){
+    const off=hz.removed.has(hz.sel);
+    const no=off?"✕":(hz.raw.slice(0,hz.sel+1).filter((m,i)=>!hz.removed.has(i)).length);
+    hzSel.textContent="Seçili mum: "+no+(off?" (silinmiş)":"");
+    hzDel.textContent=off?"♻️ Seçili Mumu Geri Al":"🗑️ Seçili Mumu Sil";
+    hzDel.disabled=false;
+  }else{
+    hzSel.textContent="Bir muma dokunarak seç.";
+    hzDel.textContent="🗑️ Seçili Mumu Sil";
+    hzDel.disabled=true;
+  }
+  hzUndo.disabled=!hz.removed.size;
+  hzBtns.style.display="grid";
 }
 
-hzUndo.addEventListener("click",()=>{hz.removed.clear();hzDraw();});
+hzDel.addEventListener("click",()=>{
+  if(hz.sel<0)return;
+  if(hz.removed.has(hz.sel))hz.removed.delete(hz.sel);else hz.removed.add(hz.sel);
+  hz.sel=-1;hzDraw();
+});
+
+hzUndo.addEventListener("click",()=>{hz.removed.clear();hz.sel=-1;hzDraw();});
 
 hzInput.addEventListener("change",async e=>{
   const file=e.target.files&&e.target.files[0];
@@ -4281,6 +4313,7 @@ hzInput.addEventListener("change",async e=>{
     hz.scan=scan;
     hz.raw=detectCandles(scan);
     hz.removed=new Set();
+    hz.sel=-1;
     if(!hz.raw.length){hzInfo.textContent="Mum okunamadı.";return;}
     hzDraw();
   }catch(err){
