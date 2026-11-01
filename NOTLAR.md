@@ -420,7 +420,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 ## Yapılacaklar — 1 Kasım 07:10 önerileri (Claude, kullanıcı listeye eklenmesini istedi)
 - [ ] Kanal sınırını düzeltme: Adım 4'te site yanlış bölerse kullanıcı sınır mumunu seçip kanalı böler/birleştirir.
 - [ ] Kütüphane yönetimi: kayıtlı formasyonu kanallı önizlemeyle görme, yeniden adlandırma, tek tek silme, Hazırla'da yeniden açıp düzenleme.
-- [ ] Test günlüğü: her taramayı kaydet (tarih, coin, zaman dilimi, en yakın formasyon, skor, tahmin); sonradan "gerçekleşti / gerçekleşmedi" işaretle → formasyon başına başarı oranı. %80 eşiği ve %60/%40 ağırlıkları bu verilerle ayarlanır.
+- [ ] (ÇOK SONRA) Test arşivi: her tarama DEĞİL, yalnızca benzerliği belli oranın üstünde olan ve yakın çıkan eşleşmeler arşivlenir; sonradan "gerçekleşti / gerçekleşmedi" işaretlenip başarı oranı ve eşikler (%80, %60/%40) ayarlanır.
 - [ ] Hazır Kütüphane için tahmin: formasyonlar/kutuphane/tam/ içindeki tam hâllerden devam kısmını çıkarıp tahmin üret.
 - [ ] Yapay zekâ (CLIP) modeli: ana skor artık kanal skoru; ~90 MB model ilk taramayı yavaşlatıyor. Kapat/aç seçeneği (kapalıyken Tara saniyeler içinde biter).
 - [ ] Çizimli görsel uyarısı: Hazırla'da çok sayıda sahte mum silinirse "görselde çizim/yazı var gibi, orijinali kullan" uyarısı.
@@ -431,3 +431,5 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   4. Gerçek Binance denemeleri (15 dk, farklı coinler, 1x/2x): sonuçları test günlüğüne yaz.
 - 07:20 Kanal düzeltme Adım 4'e eklendi (kullanıcı: kaydetmeden önce kanal seçeneğinde sunulmalı): grafikte bir muma dokun → o mumdan yeni kanal başlar (BÖL; her kanal en az 2 mum); listede "⤴ öncekiyle birleştir"; "↺ Sitenin önerisine dön". Kanal türü (yükselen/inen/yatay) eğime göre yeniden hesaplanır; kayıt düzeltilmiş kanallarla yapılır. Test: böl 15→6+9, birleştir, kaydet çalışıyor.
 - Kullanıcı görüşü: tüm grafikler Hazırla'dan yeniden yükleneceği için kütüphane yönetimindeki kanal düzenleme ihtiyacı büyük ölçüde ortadan kalkar; yeniden adlandırma / tek tek silme yeterli olabilir.
+
+- ÖNCELİK (1 Kasım, kullanıcı): Smart Money (SMC) formasyon grafiklerini bulup Formasyon Hazırla ile kütüphaneye eklemek.
