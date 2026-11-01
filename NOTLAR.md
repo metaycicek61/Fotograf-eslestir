@@ -75,6 +75,7 @@ Kütüphanedeki formasyonların sağı kesildi; kesilen kısım formasyonun deva
 - [ ] 2. Sonuçta aşamayı göster: "Fo1'e benziyor, aşama 15/21, %82"
 - [ ] 3. Her yeni mum oluştuğunda tekrar tara: formasyon oluşuyorsa aşama ilerler ve skor yükselir; oluşmuyorsa skor düşer, uyarı verir
 - [ ] 4. (EN SON) Hayalet çizim: kalan mumlar ve kesilen devam kısmı sağa yarı saydam çizilsin (Ghost Pattern Finder fikri)
+- [ ] Kaçırılan formasyon (1 Kasım, kullanıcı fikri, değerlendirildi): Tara en sağdaki pencere uymazsa pencereyi sola kaydırarak arasın; formasyonun sağında kalan mum sayısı formasyonun mum sayısının %50'sinden AZ ise eşleşmeyi göstersin ve uyarsın ("⚠️ Formasyon N mum önce tamamlandı, hareket başlamış olabilir; işlem kararı senin"). %50 ve üstü: çok geç, gösterme. Dikkat: (1) çok pencere = şans eseri eşleşme riski → eşik en sağ pencere %80, kaydırılmışlar %85; (2) sağda oluşmuş mumlar tahminle uyumlu mu kontrol (çelişirse uyar); (3) daha çok mum gerekir (1x önerisi buna göre); (4) tahminde gerçekleşen ve kalan hareket ("beklenen ▼%58, olan ▼%20, kalan ~▼%38").
 
 ## Bilinen riskler
 - Rengi belirsiz mumlar (kahverengi/zeytin doji): F1 #2, F2 #4 ve #17, F3 #2, #20, #28 kontrol edilecek.
