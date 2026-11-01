@@ -420,6 +420,7 @@ button,.fileButton{
     <button id="hzClr" style="background:#6b7280" disabled>✖️ Seçimi Temizle</button>
     <button id="hzUndo" style="background:#6b7280" disabled>↩️ Silmeleri Geri Al</button>
   </div>
+  <div id="hzSug" style="display:none;margin-top:10px;padding:10px;border-radius:12px;background:#1e3a2f;border:1px solid #166534"></div>
   <div id="hzCut" style="display:none;margin-top:10px;font-size:16px;font-weight:700"></div>
   <button id="hzNext" style="background:#0e7490;display:none">➡️ Adım 3: Kes ve Temiz Çiz</button>
   <div id="hzStep3" style="display:none;margin-top:10px">
@@ -4209,7 +4210,51 @@ const hzInput=$hz("hzInput"),hzInfo=$hz("hzInfo"),hzView=$hz("hzView"),
   hzSel=$hz("hzSel"),hzBtns=$hz("hzBtns"),hzDel=$hz("hzDel"),hzClr=$hz("hzClr"),
   hzUndo=$hz("hzUndo"),hzModes=$hz("hzModes"),hzHelp=$hz("hzHelp"),
   hzCut=$hz("hzCut"),hzNext=$hz("hzNext"),hzStep3=$hz("hzStep3"),
-  hzS3Info=$hz("hzS3Info"),hzS3View=$hz("hzS3View");
+  hzS3Info=$hz("hzS3Info"),hzS3View=$hz("hzS3View"),hzSug=$hz("hzSug");
+
+/* ---- Kesim ÖNERİSİ (karar kullanıcıda) ----
+   Kural: gerçek hareketin başladığı mum + 2 mum = kesim (kesim dahil).
+   Hareket adayı: gövdesi büyük (≥ 1,8 × ortanca gövde) ve sonraki 4 mumda
+   aynı yönde net yol ≥ 4 × ortanca gövde olan mum. En güçlü 3 aday önerilir. */
+function hzSuggest(){
+  const kept=hzKeptIdx(),R=hz.raw;
+  if(kept.length<8)return [];
+  const body=i=>Math.max(1,R[i].bodyBottom-R[i].bodyTop);
+  const mb=median(kept.map(body));
+  const op=i=>R[i].direction>0?-R[i].bodyBottom:-R[i].bodyTop;
+  const cl=i=>R[i].direction>0?-R[i].bodyTop:-R[i].bodyBottom;
+  const out=[];
+  for(let k=3;k<kept.length-2;k++){
+    const i=kept[k];
+    if(body(i)<1.8*mb)continue;
+    const e=kept[Math.min(kept.length-1,k+3)];
+    const net=(cl(e)-op(i))*R[i].direction;
+    if(net<4*mb)continue;
+    out.push({k,i,cut:kept[k+2],dir:R[i].direction,score:net/mb});
+  }
+  out.sort((a,b)=>b.score-a.score);
+  const pick=[];
+  for(const c of out){if(pick.every(p=>Math.abs(p.k-c.k)>3))pick.push(c);if(pick.length>=3)break;}
+  return pick;
+}
+
+function hzRenderSug(){
+  const S=hz.sug||[];
+  const kept=hzKeptIdx(),num=i=>kept.indexOf(i)+1;
+  if(!S.length){hzSug.style.display="block";
+    hzSug.innerHTML="💡 Belirgin bir hareket bulunamadı; kesimi 🔴 Kesim moduyla kendin seç.";return;}
+  hzSug.style.display="block";
+  hzSug.innerHTML="💡 <b>Kesim önerisi</b> (hareket başı + 2 mum, kesim dahil). Karar senin:"+
+    S.map((c,n)=>"<button class='hzSugB' data-n='"+n+"' style='margin-top:6px;background:"+(n?"#374151":"#15803d")+"'>"+
+      (n?"":"⭐ ")+"Kesim "+num(c.cut)+" — "+(c.dir>0?"▲ yükseliş":"▼ düşüş")+" "+num(c.i)+"'de başlıyor</button>").join("")+
+    "<div class='small' style='margin-top:6px'>Farklı bir yer istersen 🔴 Kesim moduna geçip numaraya dokun.</div>";
+  hzSug.querySelectorAll(".hzSugB").forEach(b=>b.addEventListener("click",()=>{
+    hz.cut=S[Number(b.dataset.n)].cut;
+    if(hz.start>=0&&hz.start>hz.cut)hz.start=-1;
+    hzStep3.style.display="none";hzDraw();
+    hzCut.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }));
+}
 
 function hzFullFrame(src){
   /* captureFullFrame ile aynı kırpma, kaynak = verilen tuval */
@@ -4452,9 +4497,11 @@ hzNext.addEventListener("click",()=>{
   const clean=hzCleanDraw(form);
   const back=detectCandles(clean).length;
   hz.clean={canvas:clean,raw:form,devam,check:back};
-  hzS3Info.innerHTML="✂️ Kesildi: "+form.length+" mum • Site tekrar okudu: "+back+" mum "+
+  hzS3Info.innerHTML="✅ Kesme bitti: "+form.length+" mum • Site tekrar okudu: "+back+" mum "+
     (back===form.length?"<span style='color:#4ade80'>✓ birebir</span>":"<span style='color:#f87171'>✗ fark var</span>")+
-    "<br>Devam (öngörülecek): "+devam.length+" mum";
+    (devam.length
+      ?"<br><span style='color:#fde68a'>⚠️ Kesimin sağında "+devam.length+" mum var: formasyona girmedi, devam (öngörülecek) olarak saklandı.</span>"
+      :"<br><span style='color:#fde68a'>⚠️ Kesimin sağında mum yok: devam kısmı boş.</span>");
   hzS3View.innerHTML="";clean.style.width="100%";clean.style.display="block";hzS3View.appendChild(clean);
   hzStep3.style.display="block";
   hzStep3.scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -4465,10 +4512,11 @@ document.querySelectorAll(".hzMode").forEach(b=>b.addEventListener("click",()=>{
 }));
 hzDel.addEventListener("click",()=>{
   hz.sel.forEach(i=>{hz.removed.add(i);if(i===hz.start)hz.start=-1;if(i===hz.cut)hz.cut=-1;});
-  hz.sel.clear();hz.first=-1;hzStep3.style.display="none";hzDraw();
+  hz.sel.clear();hz.first=-1;hzStep3.style.display="none";
+  hz.sug=hzSuggest();hzDraw();hzRenderSug();
 });
 hzClr.addEventListener("click",()=>{hz.sel.clear();hz.first=-1;hzDraw();});
-hzUndo.addEventListener("click",()=>{hz.removed.clear();hz.sel.clear();hz.first=-1;hzStep3.style.display="none";hzDraw();});
+hzUndo.addEventListener("click",()=>{hz.removed.clear();hz.sel.clear();hz.first=-1;hzStep3.style.display="none";hz.sug=hzSuggest();hzDraw();hzRenderSug();});
 
 hzInput.addEventListener("change",async e=>{
   const file=e.target.files&&e.target.files[0];
@@ -4487,7 +4535,8 @@ hzInput.addEventListener("change",async e=>{
     Object.assign(hz,{img:keepC,scan,raw:detectCandles(scan),removed:new Set(),sel:new Set(),
       first:-1,mode:"tek",start:-1,cut:-1,clean:null});
     if(!hz.raw.length){hzInfo.textContent="Mum okunamadı.";return;}
-    hzSetup();hzDraw();
+    hz.sug=hzSuggest();
+    hzSetup();hzDraw();hzRenderSug();
   }catch(err){
     console.error(err);
     hzInfo.textContent="Görsel okunamadı: "+(err&&err.message||err);
