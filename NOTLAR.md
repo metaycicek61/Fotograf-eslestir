@@ -466,3 +466,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   | LO 09 Kahve Fincanı | 34 | 29 | 5 |
   | SH 01 Wyckoff Dağıtım | 31 | 24 | 7 |
 - QM görselleri (6) özel arşivde; onlar "Görsel Seç" ile yüklenir.
+- 02:45 Kullanıcı isteğiyle eski "📚 Hazır Kütüphaneyi Yükle" düğmesi GİZLENDİ (kesik görselleri Hazırla'dan geçirmeden ekliyordu). Kod duruyor; formasyonlar artık yalnızca Hazırla → Adım 5 Kaydet ile kütüphaneye girer.
