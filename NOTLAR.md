@@ -429,3 +429,5 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   2. Kendi kendine test: her formasyonun kendi görseliyle tarama → kendisi %80+ ile geçmeli.
   3. Çapraz test: her formasyon diğerlerinin görseliyle → elenmeli; elenmeyen çiftler "benzer" (eski not: LO 05 ↔ LO 02 %91, LO 07 ↔ LO 01 %91) → birleştir ya da ayırt edici hâle getir.
   4. Gerçek Binance denemeleri (15 dk, farklı coinler, 1x/2x): sonuçları test günlüğüne yaz.
+- 07:20 Kanal düzeltme Adım 4'e eklendi (kullanıcı: kaydetmeden önce kanal seçeneğinde sunulmalı): grafikte bir muma dokun → o mumdan yeni kanal başlar (BÖL; her kanal en az 2 mum); listede "⤴ öncekiyle birleştir"; "↺ Sitenin önerisine dön". Kanal türü (yükselen/inen/yatay) eğime göre yeniden hesaplanır; kayıt düzeltilmiş kanallarla yapılır. Test: böl 15→6+9, birleştir, kaydet çalışıyor.
+- Kullanıcı görüşü: tüm grafikler Hazırla'dan yeniden yükleneceği için kütüphane yönetimindeki kanal düzenleme ihtiyacı büyük ölçüde ortadan kalkar; yeniden adlandırma / tek tek silme yeterli olabilir.

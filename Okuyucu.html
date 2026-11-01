@@ -432,7 +432,7 @@ button,.fileButton{
     <div id="hz4Info" style="font-size:16px;font-weight:800"></div>
     <div id="hz4View" style="margin-top:8px;background:#fff;border-radius:10px;overflow:hidden"></div>
     <div id="hz4List" class="small" style="margin-top:6px"></div>
-    <div class="small" style="margin-top:6px">Kanal sınırlarını site önerir (en uç gövdeler + kanal genişliğinin %20'si dışarı, paralel kesikli çizgi). Sarı bölge: kesimden sonraki devam (formasyona girmez). Kanallar görsele değil veriye kaydedilir.</div>
+    <div class="small" style="margin-top:6px">Kanal sınırlarını site önerir; kaydetmeden önce düzeltebilirsin (en uç gövdeler + kanal genişliğinin %20'si dışarı, paralel kesikli çizgi). Sarı bölge: kesimden sonraki devam (formasyona girmez). Kanallar görsele değil veriye kaydedilir.</div>
     <div style="margin-top:12px;font-size:16px;font-weight:800">💾 Adım 5: Kaydet</div>
     <div style="display:grid;grid-template-columns:auto 1fr;gap:6px;margin-top:6px">
       <select id="hzYon" style="font-size:16px;padding:10px;border-radius:10px">
@@ -4582,81 +4582,126 @@ hzInput.addEventListener("change",async e=>{
   }
 });
 
-/* ---- Adım 4: %20 kanallar (1 Kasım) ----
-   Kanal bölümleri sitenin kendi findChannels'ı ile önerilir (Tara'daki kanal
-   karşılaştırmasıyla aynı mantık). Her kanalda: gövde ortalarına doğru
-   çizgisi, en uç gövdelere paralel üst/alt sınır, sonra kanal genişliğinin
-   %20'si kadar dışarı. Fitil taşmaları % olarak ölçülür. */
-$hz("hz4Btn").addEventListener("click",()=>{
-  if(!hz.clean)return;
-  const clean=hz.clean.canvas;
-  const R0=detectCandles(clean);
-  const ch0=findChannels(R0);
-  /* gösterim: formasyon + devam birlikte (devam sarı); kanallar sadece formasyonda */
-  const nF=hz.clean.raw.length,dv=hz.clean.devam;
-  const show=dv.length?hzCleanDraw(hz.clean.raw.concat(dv)):clean;
-  const RA=detectCandles(show);
-  const R=RA.length>=nF?RA.slice(0,nF):R0;
-  const ch=findChannels(R);
+/* ---- Adım 4: %20 kanallar + KULLANICI DÜZELTMESİ (1 Kasım) ----
+   Kanal bölümleri önce sitenin findChannels'ı ile ÖNERİLİR. Kaydetmeden önce
+   kullanıcı düzeltebilir: grafikte bir muma dokun → o mumdan yeni kanal başlar
+   (BÖL); listede "⤴ öncekiyle birleştir" → iki kanal tek kanal olur.
+   Her kanalda: gövde ortalarına doğru, en uç gövdelere paralel üst/alt sınır,
+   kanal genişliğinin %20'si kadar dışarı (kesikli). Fitil taşmaları %. */
+const hz4={R0:null,RA:null,R:null,show:null,nF:0,dv:[],bounds:[]};
+
+function hzEnv(R,a,b){
+  const P=R.slice(a,b);
+  const xs=P.map(c=>c.x),ys=P.map(c=>(c.bodyTop+c.bodyBottom)/2);
+  const f=P.length>1?lineFit(xs,ys,0,P.length):{s:0,k:ys[0]};
+  let up=Infinity,dn=-Infinity;
+  P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.bodyTop-m);dn=Math.max(dn,c.bodyBottom-m);});
+  const w=Math.max(1,dn-up);
+  let top=Infinity,bot=-Infinity;R.forEach(c=>{top=Math.min(top,c.top);bot=Math.max(bot,c.bottom);});
+  const rise=-f.s*(xs[xs.length-1]-xs[0])/Math.max(1,bot-top);
+  const dir=Math.abs(rise)<.12?0:(rise>0?1:-1);
+  return{a,b,s:f.s,k:f.k,ust:up-.2*w,alt:dn+.2*w,dir,x0:xs[0],x1:xs[xs.length-1]};
+}
+
+function hz4Segs(R){
+  const B=hz4.bounds,out=[];
+  for(let i=0;i<B.length;i++)out.push(hzEnv(R,B[i],i+1<B.length?B[i+1]:R.length));
+  return out;
+}
+
+function hz4Render(){
   const info=$hz("hz4Info"),view=$hz("hz4View"),list=$hz("hz4List");
-  $hz("hzStep4").style.display="block";
-  if(!ch){info.textContent="Kanal bulunamadı (en az 4 mum gerekir).";view.innerHTML="";list.innerHTML="";return;}
   const names={"-1":"İnen","0":"Yatay","1":"Yükselen"};
   const cols={"-1":"#c026d3","0":"#d97706","1":"#2563eb"};
-  const out=[];
-  ch.segs.forEach((g,n)=>{
-    const P=R.slice(g.a,g.b);
-    const xs=P.map(c=>c.x),ys=P.map(c=>(c.bodyTop+c.bodyBottom)/2);
-    const f=lineFit(xs,ys,0,P.length);
-    let up=Infinity,dn=-Infinity;
-    P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.bodyTop-m);dn=Math.max(dn,c.bodyBottom-m);});
-    const w=Math.max(1,dn-up),tu=up-.2*w,td=dn+.2*w;
-    const over=[];
-    P.forEach((c,j)=>{const m=f.s*c.x+f.k;
-      const o=Math.max(m+tu-c.top,c.bottom-(m+td),0);
-      if(o>0)over.push({no:g.a+j+1,pct:Math.round(100*o/(td-tu))});});
-    out.push({n:n+1,a:g.a+1,b:g.b,dir:g.dir,s:f.s,k:f.k,ust:tu,alt:td,x0:xs[0],x1:xs[xs.length-1],over});
+  const R=hz4.R,show=hz4.show,nF=hz4.nF,dv=hz4.dv,RA=hz4.RA;
+  const out=hz4Segs(R);
+  out.forEach(c=>{
+    c.over=[];
+    R.slice(c.a,c.b).forEach((m,j)=>{const y=c.s*m.x+c.k;
+      const o=Math.max(y+c.ust-m.top,m.bottom-(y+c.alt),0);
+      if(o>0)c.over.push({no:c.a+j+1,pct:Math.round(100*o/(c.alt-c.ust)),ust:y+c.ust-m.top>0});});
   });
-  const outData=ch0?ch0.segs.map(g=>{const P=R0.slice(g.a,g.b);const xs=P.map(c=>c.x),ys=P.map(c=>(c.bodyTop+c.bodyBottom)/2);
-    const f=lineFit(xs,ys,0,P.length);let up=Infinity,dn=-Infinity;
-    P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.bodyTop-m);dn=Math.max(dn,c.bodyBottom-m);});
-    const w=Math.max(1,dn-up);return{a:g.a+1,b:g.b,dir:g.dir,s:f.s,k:f.k,ust:up-.2*w,alt:dn+.2*w};}):out;
-  hz.clean.channels=outData.map(c=>({mumlar:[c.a,c.b],tur:names[c.dir],egim:+c.s.toFixed(4),kesisim:+c.k.toFixed(2),ust:+c.ust.toFixed(2),alt:+c.alt.toFixed(2),pay:.2}));
-  /* çizim: temiz görsel 2x, kesikli çizgiler taşarsa pay bırak */
+  /* kaydedilecek veri: formasyonun kendi temiz çiziminin okumasından (R0) */
+  const R0=hz4.R0.length===nF?hz4.R0:R;
+  hz.clean.channels=hz4Segs(R0).map(c=>({mumlar:[c.a+1,c.b],tur:names[c.dir],egim:+c.s.toFixed(4),kesisim:+c.k.toFixed(2),ust:+c.ust.toFixed(2),alt:+c.alt.toFixed(2),pay:.2}));
+  /* çizim */
   let top=0,bot=show.height;
   out.forEach(c=>[c.x0-4,c.x1+4].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-6);bot=Math.max(bot,c.s*x+c.k+c.alt+6);}));
-  const k=2,cv=document.createElement("canvas");
-  cv.width=show.width*k;cv.height=Math.ceil((bot-top)*k);
+  const k=2,band=26,cv=document.createElement("canvas");
+  cv.width=show.width*k;cv.height=Math.ceil((bot-top)*k)+band*k;
   const ctx=cv.getContext("2d");
   ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
   ctx.drawImage(show,0,-top*k,show.width*k,show.height*k);
+  const CH=Math.ceil((bot-top)*k);
   if(dv.length&&RA.length>nF){
     const xc=(RA[nF-1].x+RA[nF].x)/2*k;
-    ctx.fillStyle="rgba(255,215,0,.35)";ctx.fillRect(xc,0,cv.width-xc,cv.height);
+    ctx.fillStyle="rgba(255,215,0,.35)";ctx.fillRect(xc,0,cv.width-xc,CH);
     ctx.strokeStyle="#dc2626";ctx.lineWidth=2;ctx.setLineDash([7,5]);
-    ctx.beginPath();ctx.moveTo(xc,0);ctx.lineTo(xc,cv.height);ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(xc,0);ctx.lineTo(xc,CH);ctx.stroke();ctx.setLineDash([]);
   }
   ctx.lineWidth=2.5;ctx.setLineDash([9,6]);
-  out.forEach(c=>{
-    ctx.strokeStyle=cols[c.dir];
-    const X0=c.x0-4,X1=c.x1+4;
+  out.forEach(c=>{ctx.strokeStyle=cols[c.dir];const X0=c.x0-4,X1=c.x1+4;
     [c.ust,c.alt].forEach(off=>{ctx.beginPath();
-      ctx.moveTo(X0*k,(c.s*X0+c.k+off-top)*k);ctx.lineTo(X1*k,(c.s*X1+c.k+off-top)*k);ctx.stroke();});
-  });
+      ctx.moveTo(X0*k,(c.s*X0+c.k+off-top)*k);ctx.lineTo(X1*k,(c.s*X1+c.k+off-top)*k);ctx.stroke();});});
   ctx.setLineDash([]);
   out.forEach(c=>c.over.forEach(o=>{const m=R[o.no-1];
     ctx.strokeStyle="#f97316";ctx.lineWidth=3;ctx.beginPath();
-    ctx.arc(m.x*k,((c.over.length?m.top:m.bottom)-top)*k,9,0,Math.PI*2);ctx.stroke();}));
+    ctx.arc(m.x*k,((o.ust?m.top:m.bottom)-top)*k,9,0,Math.PI*2);ctx.stroke();}));
+  /* alt şerit: mum numaraları (dokun → buradan yeni kanal) */
+  ctx.fillStyle="#f3f4f6";ctx.fillRect(0,CH,cv.width,band*k);
+  ctx.font="bold "+(10*k)+"px sans-serif";ctx.textAlign="center";
+  R.forEach((m,i)=>{
+    const isB=hz4.bounds.includes(i)&&i>0;
+    const seg=out.find(c=>i>=c.a&&i<c.b);
+    ctx.fillStyle=isB?cols[seg.dir]:"#6b7280";
+    if(i%2===0||isB)ctx.fillText(String(i+1),m.x*k,CH+(isB?18:16)*k);
+    if(isB){ctx.strokeStyle=cols[seg.dir];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m.x*k-6*k/2,0);ctx.lineTo(m.x*k-6*k/2,CH);ctx.stroke();}
+  });
   cv.style.width="100%";cv.style.display="block";
+  cv.addEventListener("click",ev=>{
+    const r=cv.getBoundingClientRect();
+    const x=(ev.clientX-r.left)*(cv.width/r.width)/k;
+    let best=-1,bd=Infinity;R.forEach((m,i)=>{const d=Math.abs(m.x-x);if(d<bd){bd=d;best=i;}});
+    if(best<=0||best>=R.length)return;
+    if(hz4.bounds.includes(best))return;
+    /* her kanal en az 2 mum */
+    const B=[...hz4.bounds,best].sort((a,b)=>a-b);
+    const lens=B.map((b,i)=>(i+1<B.length?B[i+1]:R.length)-b);
+    if(lens.some(l=>l<2)){$hz("hz4Hint").textContent="Kanal en az 2 mum olmalı; biraz daha ileri/geri bir mum seç.";return;}
+    hz4.bounds=B;hz4Render();
+  });
   view.innerHTML="";view.appendChild(cv);
   const tot=out.reduce((a,c)=>a+c.over.length,0);
   const kept=hzKeptIdx(),lastNo=kept.length,cutNo=kept.indexOf(hz.cut)+1;
-  info.innerHTML="📏 "+out.length+" kanal önerildi • %20 sınırını aşan fitil: "+tot+
+  info.innerHTML="📏 "+out.length+" kanal • %20 sınırını aşan fitil: "+tot+
     (dv.length?"<br><span style='color:#fde68a'>⚠️ Kesim ("+cutNo+") son mum ("+lastNo+") değil: sağda "+dv.length+" mum var (sarı) → formasyona girmez, devam olarak kaydedilir.</span>":"");
+  list.innerHTML="<div id='hz4Hint' style='color:#fde68a;font-weight:700;margin-bottom:4px'>✏️ Düzeltme: grafikte bir muma dokun → o mumdan YENİ KANAL başlar. Birleştirmek için ⤴.</div>"+
+    out.map((c,n)=>"<div style='margin-top:4px'><span style='color:"+cols[c.dir]+";font-weight:800'>"+(n+1)+". "+names[c.dir]+"</span> (mum "+(c.a+1)+"–"+c.b+")"+
+      (c.over.length?" • taşma: "+c.over.map(o=>o.no+": %"+o.pct).join(", "):" • taşma yok")+
+      (n>0?" <button class='hz4Mrg' data-n='"+n+"' style='display:inline-block;width:auto;margin:0 0 0 6px;padding:4px 10px;font-size:13px;border-radius:8px;background:#374151'>⤴ öncekiyle birleştir</button>":"")+
+      "</div>").join("")+
+    "<button id='hz4Reset' style='margin-top:8px;background:#6b7280;padding:8px;font-size:14px'>↺ Sitenin önerisine dön</button>";
+  list.querySelectorAll(".hz4Mrg").forEach(b=>b.addEventListener("click",()=>{
+    const n=Number(b.dataset.n);hz4.bounds=hz4.bounds.filter((x,i)=>i!==n);hz4Render();}));
+  $hz("hz4Reset").addEventListener("click",()=>{hz4.bounds=hz4.sug.slice();hz4Render();});
   $hz("hzSaveInfo").textContent="";
+}
+
+$hz("hz4Btn").addEventListener("click",()=>{
+  if(!hz.clean)return;
+  const clean=hz.clean.canvas;
+  hz4.R0=detectCandles(clean);
+  hz4.nF=hz.clean.raw.length;hz4.dv=hz.clean.devam;
+  hz4.show=hz4.dv.length?hzCleanDraw(hz.clean.raw.concat(hz4.dv)):clean;
+  hz4.RA=detectCandles(hz4.show);
+  hz4.R=hz4.RA.length>=hz4.nF?hz4.RA.slice(0,hz4.nF):hz4.R0;
+  $hz("hzStep4").style.display="block";
+  const ch=findChannels(hz4.R);
+  if(!ch){$hz("hz4Info").textContent="Kanal bulunamadı (en az 4 mum gerekir).";$hz("hz4View").innerHTML="";$hz("hz4List").innerHTML="";return;}
+  hz4.sug=ch.segs.map(g=>g.a);
+  hz4.bounds=hz4.sug.slice();
+  hz4Render();
   if(!$hz("hzAd").value)$hz("hzAd").value="QM "+(new Date().toISOString().slice(5,16).replace("T"," "));
-  list.innerHTML=out.map(c=>"<span style='color:"+cols[c.dir]+";font-weight:800'>"+c.n+". "+names[c.dir]+"</span> (mum "+c.a+"–"+c.b+")"+
-    (c.over.length?" • taşma: "+c.over.map(o=>o.no+": %"+o.pct).join(", "):" • taşma yok")).join("<br>");
   $hz("hzStep4").scrollIntoView({behavior:"smooth",block:"nearest"});
 });
 
