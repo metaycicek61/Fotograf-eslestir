@@ -2135,7 +2135,7 @@ function bodyCandidates(data){
      yine bulunur. */
   data.wide=[];
 
-  return all.map(c=>splitWick(c,data)).filter(c=>{
+  return all.flatMap(c=>splitBridge(c,data)).map(c=>splitWick(c,data)).filter(c=>{
 
     /* bulanıklıkta ardışık aynı renk mumlar merdiven gibi birleşir:
        çok geniş parçaları sonra bölmek için ayır */
@@ -2168,6 +2168,51 @@ function bodyCandidates(data){
 
     return true;
   });
+}
+
+/* 2 Kasım: KÖPRÜ AYIRMA. Merdiven gibi dizilen aynı renk iki mum, aralarındaki
+   1 px boşluk bulanınca tek bir satırla (köprü) birleşir. splitWick bu köprüyü
+   "gövde", iki uzun gövdeyi "fitil" sanıp ikisini de atıyordu (QM 01 Nora:
+   HH'ye giden iki uzun yeşil mum kayboldu). Bileşenin içinde neredeyse boş bir
+   sütun varsa (iki yanı da dolu) ve iki yan dikeyde az örtüşüyorsa (merdiven),
+   bileşen o sütundan ayrılır. Gerçek tek mumda
+   böyle boş sütun olmaz (gövde dolu). Okuma kodu her yerde ortak: kamera,
+   Fotoğraf Oku, Hazırla. */
+function splitBridge(c,data,depth=0){
+  /* mum merdiveni dar ve uzundur; yatay yazı/fiyat etiketi geniş ve alçaktır */
+  if(c.width<5||depth>6||c.height<c.width*1.5)return [c];
+  const {mask,width}=data;
+  const col=[];
+  for(let x=c.minX;x<=c.maxX;x++){
+    let n=0;
+    for(let y=c.minY;y<=c.maxY;y++)if(mask[y*width+x]===c.type)n++;
+    col.push(n);
+  }
+  const maxC=Math.max(...col);
+  if(maxC<8)return [c];
+  const lim=Math.max(2,maxC*.15);
+  /* en boş iç sütun; solunda ve sağında en az 2 dolu sütun olmalı */
+  let cut=-1,cutN=Infinity;
+  for(let i=2;i<col.length-2;i++){
+    if(col[i]>lim||col[i]>=cutN)continue;
+    const L=Math.max(...col.slice(0,i)),R=Math.max(...col.slice(i+1));
+    if(L>=maxC*.5&&R>=maxC*.5){cut=i;cutN=col[i];}
+  }
+  if(cut<0)return [c];
+  const part=(a,b)=>{
+    let minY=Infinity,maxY=-1,area=0,minX=Infinity,maxX=-1;
+    for(let x=a;x<=b;x++)for(let y=c.minY;y<=c.maxY;y++)
+      if(mask[y*width+x]===c.type){area++;if(y<minY)minY=y;if(y>maxY)maxY=y;if(x<minX)minX=x;if(x>maxX)maxX=x;}
+    if(!area)return null;
+    return{type:c.type,minX,maxX,minY,maxY,width:maxX-minX+1,height:maxY-minY+1,area};
+  };
+  const l=part(c.minX,c.minX+cut-1),r=part(c.minX+cut+1,c.maxX);
+  if(!l||!r)return [c];
+  /* yalnızca MERDİVEN: iki parça dikeyde çok az örtüşür (köşeden değer).
+     Yazı/etiket harfleri aynı yükseklikte yan yana durur → bölünmez. */
+  const ov=Math.min(l.maxY,r.maxY)-Math.max(l.minY,r.minY)+1;
+  if(ov>Math.min(l.height,r.height)*.7)return [c];
+  return [...splitBridge(l,data,depth+1),...splitBridge(r,data,depth+1)];
 }
 
 // Fiyat yazısı ve kesikli fiyat çizgisi gibi aynı hizada dizilmiş,

@@ -478,3 +478,10 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   - 👁 Orijinal: mum kutuları ve kılavuz çizgileri gizlenir, yalnızca numara şeridi (ve seçili/silinen/başlangıç/kesim işaretleri) kalır. 🔢 İşaretler ile geri döner.
   - Sıkışıkken numaralar seyreltilir (her 2/5/10'da bir + ilk/son + işaretliler); büyütünce hepsi görünür.
 - Test (iPhone boyutu): Nora QM görseli 103 mum, sığdır/büyüt/orijinal çalışıyor; 7 hazır formasyon Adım 3 birebir.
+
+## 2 Kasım 03:20 — Mum okuma düzeltmesi: merdiven köprüsü (ortak okuma kodu)
+- Kullanıcı bulgusu (QM 01 Nora, Hazırla): 18 ile 19 arasındaki uzun yeşil mum (HH'ye çıkış) okunmadı; temiz çizimde de yok.
+- Sebep: merdiven gibi dizilen aynı renk iki uzun mum, aradaki 1 px boşluk bulanınca TEK satırla birleşiyor. splitWick o 1 satırı "gövde", iki uzun gövdeyi "fitil" sanıyor → yüksekliği 1 olan parça eleniyor → İKİ mum birden kayboluyordu. Görselin boyutuna göre ortaya çıkıyor (bende 1,33 kat ölçekte tekrarlandı).
+- Düzeltme: splitBridge — bileşenin içinde neredeyse boş bir sütun varsa, iki yan dikeyde az örtüşüyorsa (merdiven) ve bileşen dar-uzunsa, o sütundan ayrılır. Yatay yazı / fiyat etiketi (ör. "GBPUSD 1.27580") bölünmez.
+- detectCandles ortak: kamera, Fotoğraf Oku, Hazırla ve kütüphane okuması aynı düzeltmeyi alır.
+- Test (eski ↔ yeni, mum kaybı = 0 her yerde): Nora görseli 14 farklı ölçek → yalnızca kaçan merdiven mumları eklendi (1,33x: 95→97, 0,8x: 97→99, 2,2x: 102→104); BINANCE_TEST foto 34=34, temiz 25=25; 7 hazır formasyon değişmedi, Adım 3 birebir.
