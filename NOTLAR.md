@@ -595,3 +595,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kesim ekranı artık ilk açılışta her mum numarası okunacak kadar büyük açılıyor (en sağdan). "Sığdır" tüm görseli gösterir, o zaman numaralar yine seyrelir.
 - Adım 3 ekran çözünürlüğünde çiziliyor; mum aralığı ≥ ~15 px, gerekirse yana kaydırılıyor (soldan başlar). Numaralar 1,2,3… iki sıra dönüşümlü. Mum yeri/sırası değişmez, yalnızca orantılı büyütme.
 - s9 (kullanıcı düzeltmesi): kesim sayfası ve Adım 3 yine ORİJİNAL fotoğraf hâliyle, tamamı ekran genişliğinde açılır (otomatik büyütme geri alındı). Numaralar sıkışıkta seyrelir; ＋ / iki parmakla büyütünce sırayla görünür.
+- s10: 👁 Orijinal düğmesi büyütmeyi sıfırlar, fotoğrafın tamamını orijinal hâliyle gösterir.

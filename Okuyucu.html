@@ -4522,7 +4522,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s9";
+const HZ_SURUM="3Kas-s10";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4701,7 +4701,10 @@ function hzPinch(c){
 hzZi.addEventListener("click",()=>hzZoomTo((hz.zoom||1)*1.6));
 hzZo.addEventListener("click",()=>hzZoomTo((hz.zoom||1)/1.6));
 hzZf.addEventListener("click",()=>{hz.focus=null;hz.zoom=1;hzSetup();hzDraw();});
-hzOrj.addEventListener("click",()=>{hz.orj=!hz.orj;hzOrj.textContent=hz.orj?"🔢 İşaretler":"👁 Orijinal";hzDraw();});
+/* 3 Kasım (kullanıcı): Orijinal'e basınca fotoğraf büyütmesiz, tamamıyla (orijinal hâli) gösterilir */
+hzOrj.addEventListener("click",()=>{hz.orj=!hz.orj;
+  if(hz.orj&&(hz.zoom||1)!==1){hz.focus=null;hz.zoom=1;hzSetup();}
+  hzOrj.textContent=hz.orj?"🔢 İşaretler":"👁 Orijinal";hzDraw();});
 
 function hzDraw(){
   const M=hz.map,R=hz.raw,c=hz.cv,G=hz.geo,dpr=G.dpr;
