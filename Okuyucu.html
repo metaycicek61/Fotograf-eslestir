@@ -4521,7 +4521,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-02:45";
+const HZ_SURUM="3Kas-s4";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5159,7 +5159,7 @@ $hz("hz4Btn").addEventListener("click",()=>{
   hz4.sug=ch.segs.map(g=>g.a);
   hz4.bounds=hz4.sug.slice();
   hz4Render();
-  if(!$hz("hzAd").value)$hz("hzAd").value="QM "+(new Date().toISOString().slice(5,16).replace("T"," "));
+  if(!$hz("hzAd").value)$hz("hzAd").value="QM "+(()=>{const d=new Date(),z=n=>String(n).padStart(2,"0");return z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes());})();
   $hz("hzStep4").scrollIntoView({behavior:"smooth",block:"nearest"});
 });
 

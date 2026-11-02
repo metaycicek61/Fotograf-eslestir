@@ -571,3 +571,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kullanıcı: tek silinen formasyonlarda da 2 kez onay.
 - Kartta "Sil" → SAĞDA "1) Emin misin?" + Vazgeç → SOLDA "2) Onaylıyor musun?" → silinir. 8 sn dokunulmazsa kapanır. (confirm() kaldırıldı.)
 - Kullanıcı eski "QM 11-02 23:02" kaydını sildi; temiz hâlle yeniden hazırlanacak.
+
+## 3 Kasım 02:20 — Saat düzeltmesi — sürüm 3Kas-s4
+- Kayıt adındaki saat UTC'ydi (3 saat geri: "QM 11-02 23:02" aslında 3 Kasım 02:02). Artık telefonun yerel saati kullanılıyor.
+- Sürüm etiketleri saat değil, sıra numarası (3Kas-s4 = 3 Kasım'ın 4. sürümü). Önceki 02:35/02:45 etiketleri yanlışlıkla ileri saat yazılmıştı.
