@@ -589,3 +589,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 ## 3 Kasım 02:35 — Adım 3 artık TEMİZ çizimi gösterir — sürüm 3Kas-s7
 - Kullanıcı: "Kes ve Temiz Çiz"den sonra sadece kesti; yuvarlak ve oklar duruyordu. (Düğme adı ile ekran çelişiyordu.)
 - Adım 3 görüntüsü temiz orijinal (hzTemizOrj, aynı boyut/yer); "👁 Orijinal ⇄ 🧹 Temiz" düğmesiyle orijinale bakılarak sahte mum kontrol edilir. Seçim/numaralar her iki görünümde aynı.
+
+## 3 Kasım (s8) — Numaralar yeniden sırayla
+- Sorun: Kesim ekranında ve Adım 3 temiz çizimde numaralar seyreliyordu (25,30,35… / 2,4,6…), aradakiler ancak büyütünce çıkıyordu.
+- Kesim ekranı artık ilk açılışta her mum numarası okunacak kadar büyük açılıyor (en sağdan). "Sığdır" tüm görseli gösterir, o zaman numaralar yine seyrelir.
+- Adım 3 ekran çözünürlüğünde çiziliyor; mum aralığı ≥ ~15 px, gerekirse yana kaydırılıyor (soldan başlar). Numaralar 1,2,3… iki sıra dönüşümlü. Mum yeri/sırası değişmez, yalnızca orantılı büyütme.
