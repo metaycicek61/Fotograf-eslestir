@@ -597,3 +597,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - s9 (kullanıcı düzeltmesi): kesim sayfası ve Adım 3 yine ORİJİNAL fotoğraf hâliyle, tamamı ekran genişliğinde açılır (otomatik büyütme geri alındı). Numaralar sıkışıkta seyrelir; ＋ / iki parmakla büyütünce sırayla görünür.
 - s10: 👁 Orijinal düğmesi büyütmeyi sıfırlar, fotoğrafın tamamını orijinal hâliyle gösterir.
 - s11 (kullanıcı onayı): numaralar alt şeritte 2–5 sıra üst üste; orijinal (tam) görünümde bile hepsi sırayla. Yazı 11 px, gerekirse 8 px'e kadar küçülür. Kesim sayfası ve Adım 3 aynı.
+- s12: Adım 3 her yeni görsel/kesimde TEMİZ çizimle açılır; önceki '👁 Orijinal' seçimi taşınmıyordu (temizlik bozuldu sanılıyordu).
