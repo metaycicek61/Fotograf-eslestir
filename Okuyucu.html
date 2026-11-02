@@ -4384,7 +4384,20 @@ function hzStillGeom(img,box){
   return{k,ox:x-SCAN_LEFT*fullW,oy:y-SCAN_TOP*fullH};
 }
 
+/* 2 Kasım: Hazırla okuması kamera kutusunun o anki boyutuna BAĞLI OLMAMALI
+   (kullanıcının telefonunda Nora 69 mum, bilgisayarda 103 çıktı; kutu boyu
+   değişince okuma değişiyordu). Hazırla sırasında kutu ölçüsü sabit
+   kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
+   okumasına dokunulmaz. */
+const HZ_BOX={width:330,height:275};
 function hzImageToScan(img){
+  const real=cameraBox.getBoundingClientRect.bind(cameraBox);
+  cameraBox.getBoundingClientRect=()=>({left:0,top:0,right:HZ_BOX.width,bottom:HZ_BOX.height,
+    x:0,y:0,width:HZ_BOX.width,height:HZ_BOX.height});
+  try{return hzImageToScan0(img);}
+  finally{delete cameraBox.getBoundingClientRect;}
+}
+function hzImageToScan0(img){
   const box=findChartBox(img);
   if(!box)return null;
   const bak=document.createElement("canvas");

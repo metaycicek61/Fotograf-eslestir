@@ -508,3 +508,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   | 06 | TFlab WTI 1s | 80 | ✅ iyi |
 - Karar önerisi: 01, 02, 04, 06 kütüphaneye; 03 dikkatle (sahteler silinir, devamdaki sahteler için ileride çözüm); 05 çıkarılır. Sıfırdan başlamaya gerek yok.
 - Yeni eksik (not): Adım 3'te sahte mum yalnızca formasyonda silinebiliyor; kesimin sağındaki (devam) sahte mumlar silinemiyor → tahmine girer.
+
+## 2 Kasım 04:05 — Hazırla okuması kamera kutusundan bağımsız
+- Bulgu: aynı Nora orijinali kullanıcının telefonunda 69 mum, bilgisayarda 103 mum. Sebep: Hazırla (Fotoğraf Oku yolu) görseli sayfadaki kamera kutusunun o anki en/boy oranına göre yerleştiriyor; kutu farklı boyuttaysa (telefon düzeni, kamera kapalı/açık vb.) okuma değişiyor (test: kutu 358×150 → 59 mum, kırmızı mumlar kayboluyor). "KESIM" yazısı sitenin değil, eski işaretli kopyanındı — ama 69'un asıl sebebi buydu.
+- Düzeltme: Hazırla sırasında kutu ölçüsü sabit 330×275 (CSS oranı 1,20) kabul ediliyor. Kutu 150–700 px her boyda: 103 mum, öneriler 46/68/32. Kamera ve Fotoğraf Oku okumasına dokunulmadı.
+- AÇIK KONU (not): Fotoğraf Oku da aynı şekilde kutu boyutuna bağlı → aynı fotoğraf farklı cihaz düzenlerinde farklı okunabilir. Kamerayla tutarlılık için şimdilik bırakıldı; test aşamasında bakılacak.
