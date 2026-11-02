@@ -388,6 +388,7 @@ button,.fileButton{
   <div id="bestName">-</div>
   <div id="bestScore">-%</div>
   <div id="bestDetail" class="small"></div>
+  <button id="bestZoomBtn" style="display:none;background:#1d4ed8">🔍 Formasyonu Büyük Aç (kanallarla)</button>
 </div>
 
 <div class="card">
@@ -714,6 +715,7 @@ const bestResult=document.getElementById("bestResult");
 const bestName=document.getElementById("bestName");
 const bestScore=document.getElementById("bestScore");
 const bestDetail=document.getElementById("bestDetail");
+const bestZoomBtn=document.getElementById("bestZoomBtn");
 const topMatches=document.getElementById("topMatches");
 const clearBtn=document.getElementById("clearBtn");
 
@@ -786,22 +788,8 @@ function setNameEl(el,name){
   el.classList.add(y==="LO"?"nameLO":"nameSH");
 }
 
-function renderReferences(){
-
-  refsEl.innerHTML="";
-
-  if(!references.length){
-    refsEl.innerHTML=
-      '<div class="small">Henüz referans formasyon yok.</div>';
-    return;
-  }
-
-  references.forEach((ref,index)=>{
-
-    const box=document.createElement("div");
-    box.className="ref";
-
-    let img=document.createElement("img");
+function refPreview(ref){
+  let img=document.createElement("img");
     img.src=ref.src;
     /* 2 Kasım: Hazırla'dan gelen formasyonda %20 kanallar kartta da çizilir
        (yalnızca gösterim; kayıtlı görsel değişmez, Tara temiz görseli okur) */
@@ -845,6 +833,29 @@ function renderReferences(){
       im.src=ref.src;
       img=cv;
     }
+
+  return img;
+}
+
+window.refPreview=refPreview;
+function renderReferences(){
+
+  refsEl.innerHTML="";
+
+  if(!references.length){
+    refsEl.innerHTML=
+      '<div class="small">Henüz referans formasyon yok.</div>';
+    return;
+  }
+
+  references.forEach((ref,index)=>{
+
+    const box=document.createElement("div");
+    box.className="ref";
+
+    const img=refPreview(ref);
+    img.style.cursor="zoom-in";
+    img.addEventListener("click",()=>openZoom(ref));
 
     const name=document.createElement("div");
     name.className="refName";
@@ -4023,6 +4034,8 @@ function renderResults(results){
   const hepsiElendi=results.every(r=>r.k20&&r.k20.elendi);
 
   setNameEl(bestName,best.name);
+  bestZoomBtn.style.display=best.ref?"block":"none";
+  bestZoomBtn.onclick=()=>openZoom(best.ref);
   if(hepsiElendi){
     bestName.textContent="Eşleşme yok";
     bestScore.textContent="—";
@@ -4068,10 +4081,10 @@ function renderResults(results){
 
     row.className="matchRow";
 
-    const img=
-      document.createElement("img");
-
-    img.src=result.src;
+    let img;
+    if(result.ref){img=refPreview(result.ref);img.style.cursor="zoom-in";
+      img.addEventListener("click",()=>openZoom(result.ref));}
+    else{img=document.createElement("img");img.src=result.src;}
 
     const info=
       document.createElement("div");
@@ -4220,6 +4233,7 @@ async function scanFormation(){
 
           name:ref.name,
           src:ref.src,
+          ref,
 
           shapeScore:0,
           aiScore:null,
@@ -4290,6 +4304,7 @@ async function scanFormation(){
 
         name:ref.name,
         src:ref.src,
+        ref,
         k20,
 
         shapeScore:match.score,
@@ -4471,7 +4486,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="2Kas-07:00";
+const HZ_SURUM="3Kas-02:15";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5220,6 +5235,57 @@ function tahminText(t){
 
 
 
+</script>
+
+<div id="zoomView" style="display:none;position:fixed;inset:0;z-index:9999;background:#111;touch-action:none;overflow:hidden">
+  <div id="zoomStage" style="position:absolute;left:0;top:0;transform-origin:0 0"></div>
+  <div style="position:absolute;left:0;right:0;top:0;display:flex;gap:8px;align-items:center;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;background:rgba(0,0,0,.6);color:#fff;font:14px -apple-system,sans-serif">
+    <div id="zoomTitle" style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+    <button id="zoomFit" style="width:auto;margin:0;padding:8px 12px;background:#374151">Sığdır</button>
+    <button id="zoomClose" style="width:auto;margin:0;padding:8px 14px;background:#dc2626">✕</button>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);background:rgba(0,0,0,.6);color:#ddd;font:12px -apple-system,sans-serif;text-align:center">İki parmakla büyüt • tek parmakla kaydır • çift dokun: 2x / sığdır</div>
+</div>
+<script>
+/* 3 Kasım: kütüphane / eşleşme formasyonunu tam ekran, kanallarla, yakınlaştırılabilir gösterir */
+(function(){
+  const V=document.getElementById("zoomView"),S=document.getElementById("zoomStage");
+  let sc=1,tx=0,ty=0,fit=1,el=null,pts=new Map(),start=null,lastTap=0;
+  const apply=()=>{S.style.transform="translate("+tx+"px,"+ty+"px) scale("+sc+")";};
+  const size=()=>{const w=el.width||el.naturalWidth||1,h=el.height||el.naturalHeight||1;return{w,h};};
+  function doFit(){const {w,h}=size();fit=Math.min(innerWidth/w,(innerHeight-120)/h);sc=fit;
+    tx=(innerWidth-w*sc)/2;ty=(innerHeight-h*sc)/2;apply();}
+  function zoomAt(f,cx,cy){const ns=Math.max(fit*.5,Math.min(sc*f,fit*12));
+    tx=cx-(cx-tx)*ns/sc;ty=cy-(cy-ty)*ns/sc;sc=ns;apply();}
+  window.openZoom=function(ref){
+    if(!ref)return;
+    el=window.refPreview(ref);el.style.width="";el.style.maxWidth="none";el.style.display="block";
+    S.innerHTML="";S.appendChild(el);
+    document.getElementById("zoomTitle").textContent=ref.name||"";
+    V.style.display="block";document.body.style.overflow="hidden";
+    const ready=()=>{if(V.style.display==="block")doFit();};
+    if(el.tagName==="IMG"){el.complete?ready():el.onload=ready;}
+    else{ready();let n=0;const t=setInterval(()=>{ready();if(++n>10)clearInterval(t);},80);}
+  };
+  function close(){V.style.display="none";document.body.style.overflow="";S.innerHTML="";pts.clear();}
+  document.getElementById("zoomClose").onclick=close;
+  document.getElementById("zoomFit").onclick=doFit;
+  V.addEventListener("pointerdown",e=>{if(e.target.tagName==="BUTTON")return;
+    V.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});start=null;
+    if(pts.size===1){const now=Date.now();
+      if(now-lastTap<300){sc>fit*1.5?doFit():zoomAt(2/(sc/fit),e.clientX,e.clientY);lastTap=0;}else lastTap=now;}});
+  V.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId))return;
+    const prev=pts.get(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===1){tx+=e.clientX-prev.x;ty+=e.clientY-prev.y;apply();}
+    else if(pts.size===2){const [a,b]=[...pts.values()];
+      const d=Math.hypot(a.x-b.x,a.y-b.y),cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+      if(start){zoomAt(d/start.d,cx,cy);tx+=cx-start.cx;ty+=cy-start.cy;apply();}
+      start={d,cx,cy};}});
+  const up=e=>{pts.delete(e.pointerId);start=null;};
+  V.addEventListener("pointerup",up);V.addEventListener("pointercancel",up);
+  V.addEventListener("wheel",e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,e.clientX,e.clientY);},{passive:false});
+  addEventListener("resize",()=>{if(V.style.display==="block")doFit();});
+})();
 </script>
 </body>
 </html>

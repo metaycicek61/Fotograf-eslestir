@@ -548,3 +548,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   - Kaydet: hazir.orijinal (kırpık orijinal, ≤900 px JPEG) + hazir.kanallarOrj. Kütüphane kartı orijinal + kanalları gösteriyor. Tara için src (temiz çizim) ve hazir.kanallar değişmedi.
 - Bu görünüm okuma eksiklerini ortaya çıkardı → ORTAK OKUMA düzeltmesi: removeAlignedNoise grafiğin her yerindeki aynı hizadaki küçük düz mumları "yazı" sanıp siliyordu (QM 02 yatay bölgede ~1/3 kayıp). Artık yalnızca YAN YANA dizili (≤ max(10, 4×genişlik) aralıklı) ≥4 parça yazı/kesikli çizgi sayılıyor; üst %10 şeritte (başlık) eski kural. Sonuç: 02 88→100, 04 80→92, 06 79→89 (06'da yeşil zikzak çizgisi parçaları sahte olarak gelebilir — Adım 3'te silinir); Nora, 03, Binance test, 7 hazır formasyon DEĞİŞMEDİ.
 - Kalan: 02'de mavi zikzak çizgisinin geçtiği yerde 2–3 küçük mum hâlâ kaçıyor; devam kısmındaki sahteler silinemiyor; Fotoğraf Oku çerçeveye bağlı.
+
+## 3 Kasım 02:15 — Formasyonu büyük açma (kanallarla) — sürüm 3Kas-02:15
+- Kullanıcı: kütüphaneye eklenen formasyon kanal çizgileriyle büyük görülebilmeli; eşleşme sonrası kullanıcı eşleşen görüntüyü elle büyütüp gerçek ekranla gözle karşılaştırmalı.
+- Eklendi: tam ekran görüntüleyici (openZoom). Kütüphane kartına dokununca, En Yakın Eşleşmeler'deki küçük resme dokununca ve "🔍 Formasyonu Büyük Aç (kanallarla)" düğmesiyle açılır. İki parmakla büyütme, kaydırma, çift dokunma 2x/sığdır, Sığdır ve ✕. Telefon yan çevrilince yeniden sığdırır.
+- Kart çizimi refPreview(ref) fonksiyonuna taşındı (aynı çizim kartta, eşleşme listesinde ve büyük görünümde). Eşleşme listesindeki küçük resim artık kanallı orijinal. Kayıtlı görsel ve Tara DEĞİŞMEDİ.
+- 02 USDCHF testi (sürüm 2Kas-07:00 kuralları) hâlâ bekliyor.
