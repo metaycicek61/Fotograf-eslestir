@@ -409,6 +409,7 @@ button,.fileButton{
     <option value="">📚 veya Hazır Kütüphaneden yükle (tam hâli)…</option>
   </select>
   <div id="hzInfo" style="margin-top:10px;font-size:17px;font-weight:800"></div>
+  <div id="hzDiag" style="margin-top:4px;font-size:11px;color:#9ca3af;font-family:monospace;word-break:break-all"></div>
   <div id="hzModes" class="hzRow3" style="display:none;grid-template-columns:1fr 1fr">
     <button data-m="kes" class="hzMode on">🔴 Kesim</button>
     <button data-m="tek" class="hzMode">✂️ Sahte Mum</button>
@@ -4390,12 +4391,16 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
+const HZ_SURUM="2Kas-04:20";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
      doldurur, sola boşluk eklenmez, hiçbir mum kesilmez. */
   const b=findChartBox(img);
   const bw=b?b.w*1.07:HZ_BOX.width,bh=b?b.h*1.12:HZ_BOX.height;
+  try{const nw=img.naturalWidth||img.width,nh=img.naturalHeight||img.height,R=v=>Math.round(v);
+    document.getElementById("hzDiag").textContent="sürüm "+HZ_SURUM+" • görsel "+nw+"×"+nh+
+      " • grafik "+(b?R(b.x)+","+R(b.y)+" "+R(b.w)+"×"+R(b.h):"yok")+" • dpr "+(window.devicePixelRatio||1);}catch(e){}
   const W=330,H=Math.max(1,W*bh/bw);
   cameraBox.getBoundingClientRect=()=>({left:0,top:0,right:W,bottom:H,x:0,y:0,width:W,height:H});
   try{return hzImageToScan0(img);}
