@@ -4521,7 +4521,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s5";
+const HZ_SURUM="3Kas-s6";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5118,7 +5118,7 @@ function hz4Render(){
     const seg=out.find(c=>i>=c.a&&i<c.b);
     ctx.fillStyle=isB?cols[seg.dir]:"#6b7280";
     if((i+1)%stp===0||i===0||isB)ctx.fillText(String(i+1),m.x,CH+band*.7);
-    if(isB){ctx.strokeStyle=cols[seg.dir];ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(m.x-O.pitchO/2,0);ctx.lineTo(m.x-O.pitchO/2,CH);ctx.stroke();}
+    /* 3 Kasım: dik kanal başlangıç çizgileri kaldırıldı (kullanıcı: güven sorunu yaratıyor); başlangıç yalnızca renkli numarayla */
   });
   cv.style.width="100%";cv.style.display="block";
   cv.addEventListener("click",ev=>{

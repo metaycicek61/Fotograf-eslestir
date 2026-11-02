@@ -580,3 +580,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kullanıcı testi: 47 mum, Adım 4'te 3 kanal, taşma 0; araç çubuğu, QM yuvarlağı, oklar, zikzak temizlendi; mumlar yerinde.
 - Düzeltildi: temiz çizimde fitiller telefonda görünmeyecek kadar inceydi (≥ W/300, ≤ aralığın %16'sı); Adım 3 numaraları üst üste biniyordu (adım 2'de hepsi aynı sıraya düşüyordu) → sıra numarası dönüşümlü, aralık en geniş numaraya göre.
 - Açık: temiz görüntüde grafiğin altındaki geniş boş beyaz alan (orijinal yükseklik korunduğu için). Kırpılsın mı → kullanıcıya soruldu.
+
+## 3 Kasım 02:27 — Adım 4 dik çizgiler kaldırıldı — sürüm 3Kas-s6
+- Kullanıcı: kanal başlangıcını gösteren dik çizgiler gereksiz; diğer formasyonlarda olmayan bir fark "site hata mı" diye güven sorunu yaratır. Kaldırıldı; kanal başlangıcı yalnızca alttaki renkli numarayla gösteriliyor.
+- İlke (kullanıcı): ekranda gereksiz/tutarsız görsel öğe olmasın; formasyonlar arasında görünüm aynı olsun.
