@@ -4413,7 +4413,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="2Kas-06:10";
+const HZ_SURUM="2Kas-06:20";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4765,19 +4765,40 @@ function hzS3Show(){
   const C=hz.clean;if(!C)return;
   const n=C.raw.length,W=TARGET_W,H=TARGET_H,PX=30,band=26,dpr=2;
   const pitch=(W-2*PX)/n;
-  const d=document.createElement("canvas");d.width=W*dpr;d.height=(H+band)*dpr;
+  /* 2 Kasım (kullanıcı: "her adımda resim değişiyor"): üstte ORİJİNAL fotoğrafın
+     kesilen kısmı, temiz çizimle AYNI ölçek ve hizada (ilk/son mum ortaları ve
+     formasyonun en üst/en alt noktası eşleştirilir). Altta temiz çizim + numaralar. */
+  const GAP=18,OY=GAP,CY=GAP+H+GAP;
+  const d=document.createElement("canvas");d.width=W*dpr;d.height=(CY+H+band)*dpr;
   d.style.width="100%";d.style.display="block";
   const x=d.getContext("2d");x.scale(dpr,dpr);
-  x.drawImage(C.canvas,0,0);
-  x.fillStyle="#f3f4f6";x.fillRect(0,H,W,band);
+  x.fillStyle="#fff";x.fillRect(0,0,W,CY+H+band);
+  try{
+    const M=hz.map,F=C.idx.map(i=>hz.raw[i]),PY=22;
+    const xf=M.x(F[0].x),xl=M.x(F[F.length-1].x);
+    let t=Infinity,b=-Infinity;F.forEach(m=>{t=Math.min(t,M.y(m.top));b=Math.max(b,M.y(m.bottom));});
+    const c0=PX+pitch*.5,c1=W-PX-pitch*.5;
+    const kx=n>1&&xl>xf?(c1-c0)/(xl-xf):1,ky=(H-2*PY)/Math.max(1,b-t);
+    x.save();x.beginPath();x.rect(0,OY,W,H);x.clip();
+    x.drawImage(hz.img,c0-xf*kx,OY+PY-t*ky,hz.img.width*kx,hz.img.height*ky);
+    x.restore();
+  }catch(e){console.error(e);}
+  x.font="bold 11px sans-serif";x.textAlign="left";x.fillStyle="#374151";
+  x.fillText("ORİJİNAL (kesilen kısım)",4,12);x.fillText("TEMİZ ÇİZİM (kütüphaneye girecek)",4,CY-5);
+  x.strokeStyle="#d1d5db";x.strokeRect(.5,OY+.5,W-1,H-1);
+  x.drawImage(C.canvas,0,CY);
+  x.fillStyle="#f3f4f6";x.fillRect(0,CY+H,W,band);
   const step=pitch>=9?1:pitch>=5?2:5;
   x.font="bold 9px sans-serif";x.textAlign="center";
   for(let i=0;i<n;i++){
     const cx=PX+pitch*(i+.5),sel=hz.s3sel.has(i);
-    if(sel){x.strokeStyle="#f59e0b";x.lineWidth=2;x.strokeRect(cx-pitch/2+.5,2,pitch-1,H-4);
-      x.fillStyle="rgba(253,230,138,.35)";x.fillRect(cx-pitch/2+.5,2,pitch-1,H-4);}
+    /* ince kılavuz: üstteki orijinal mum ↔ alttaki temiz mum */
+    x.strokeStyle=sel?"#f59e0b":"rgba(0,0,0,.07)";x.lineWidth=sel?2:1;
+    x.beginPath();x.moveTo(cx,OY);x.lineTo(cx,CY+H);x.stroke();
+    if(sel){x.fillStyle="rgba(253,230,138,.35)";x.fillRect(cx-pitch/2+.5,OY,pitch-1,CY+H-OY);}
     if(sel||(i+1)%step===0||i===0||i===n-1){
-      x.fillStyle=sel?"#b45309":"#1d4ed8";x.fillText(String(i+1),cx,H+(i%2?22:12));}
+      x.textAlign="center";x.font="bold 9px sans-serif";
+      x.fillStyle=sel?"#b45309":"#1d4ed8";x.fillText(String(i+1),cx,CY+H+(i%2?22:12));}
   }
   d.style.cursor="pointer";d.style.touchAction="manipulation";
   /* iPhone'da dokunuş: pointerup (click bazen gelmiyor); kaydırma ise sayılmaz */
