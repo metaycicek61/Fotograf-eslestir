@@ -464,7 +464,15 @@ button,.fileButton{
   <h2>🖼️ Formasyon Kütüphanesi</h2>
   <div id="refs"></div>
   <button id="libBtn" style="display:none;background:#0f766e">📚 Hazır Kütüphaneyi Yükle</button>
-  <button id="clearBtn">🗑️ Tüm Referansları Sil</button>
+  <div style="display:flex;justify-content:center"><button id="clearBtn" style="width:auto;padding:6px 12px;font-size:12px;background:#9ca3af">🗑️ Tüm Referansları Sil</button></div>
+  <div id="clearConfirm" style="display:none;margin-top:6px">
+    <div class="small" style="text-align:center;margin-bottom:4px">⚠️ Kütüphanedeki <b id="clearCount">0</b> formasyonun tamamı silinecek</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="flex:1"><button id="clearStep2" style="display:none;margin:0;background:#b91c1c">2) Onaylıyor musun?</button></div>
+      <div style="flex:1"><button id="clearStep1" style="margin:0;background:#dc2626">1) Emin misin?</button></div>
+    </div>
+    <button id="clearCancel" style="margin-top:6px;background:#4b5563">Vazgeç</button>
+  </div>
 </div>
 
 <div class="info">
@@ -952,14 +960,23 @@ document.getElementById("libBtn").addEventListener("click",async()=>{
   }
 });
 
+/* 3 Kasım: tümünü silme iki ayrı onayla: 1) sağda "Emin misin?" 2) solda "Onaylıyor musun?" */
+const clearConfirm=document.getElementById("clearConfirm"),clearStep1=document.getElementById("clearStep1"),
+  clearStep2=document.getElementById("clearStep2"),clearCancel=document.getElementById("clearCancel");
+let clearTimer=null;
+function clearReset(){clearConfirm.style.display="none";clearStep1.style.display="block";clearStep2.style.display="none";
+  clearBtn.style.display="";clearTimer&&clearTimeout(clearTimer);clearTimer=null;}
+function clearArm(){clearTimer&&clearTimeout(clearTimer);clearTimer=setTimeout(clearReset,8000);}
 clearBtn.addEventListener("click",()=>{
-
-  if(!references.length)return;
-
-  if(!confirm("Tüm referans formasyonlar silinsin mi?")){
-    return;
-  }
-
+  if(!references.length){statusEl.textContent="Kütüphane zaten boş.";return;}
+  document.getElementById("clearCount").textContent=references.length;
+  clearBtn.style.display="none";clearConfirm.style.display="block";
+  clearStep1.style.display="block";clearStep2.style.display="none";clearArm();
+});
+clearStep1.addEventListener("click",()=>{clearStep1.style.display="none";clearStep2.style.display="block";clearArm();});
+clearCancel.addEventListener("click",clearReset);
+clearStep2.addEventListener("click",()=>{
+  clearReset();
   references=[];
 
   saveReferences();
@@ -4486,7 +4503,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-02:15";
+const HZ_SURUM="3Kas-02:20";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam

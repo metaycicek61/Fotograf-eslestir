@@ -554,3 +554,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Eklendi: tam ekran görüntüleyici (openZoom). Kütüphane kartına dokununca, En Yakın Eşleşmeler'deki küçük resme dokununca ve "🔍 Formasyonu Büyük Aç (kanallarla)" düğmesiyle açılır. İki parmakla büyütme, kaydırma, çift dokunma 2x/sığdır, Sığdır ve ✕. Telefon yan çevrilince yeniden sığdırır.
 - Kart çizimi refPreview(ref) fonksiyonuna taşındı (aynı çizim kartta, eşleşme listesinde ve büyük görünümde). Eşleşme listesindeki küçük resim artık kanallı orijinal. Kayıtlı görsel ve Tara DEĞİŞMEDİ.
 - 02 USDCHF testi (sürüm 2Kas-07:00 kuralları) hâlâ bekliyor.
+
+## 3 Kasım 02:20 — "Tüm Referansları Sil" güvenliği — sürüm 3Kas-02:20
+- Kullanıcı: düğme daha küçük olsun, silmeden önce iki ayrı onay: 1) sağda "Emin misin?" 2) solda "Onaylıyor musun?".
+- Uygulama: küçük gri düğme (ortada). Basınca "⚠️ N formasyonun tamamı silinecek" + SAĞDA "1) Emin misin?" + Vazgeç. Ona basınca sağdaki kaybolur, SOLDA "2) Onaylıyor musun?" çıkar; ancak buna basınca silinir. 8 sn işlem yapılmazsa onay kapanır. Tek formasyonun "Sil" düğmesi değişmedi.
