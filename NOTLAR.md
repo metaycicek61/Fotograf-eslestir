@@ -486,3 +486,10 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - detectCandles ortak: kamera, Fotoğraf Oku, Hazırla ve kütüphane okuması aynı düzeltmeyi alır.
 - Test (eski ↔ yeni, mum kaybı = 0 her yerde): Nora görseli 14 farklı ölçek → yalnızca kaçan merdiven mumları eklendi (1,33x: 95→97, 0,8x: 97→99, 2,2x: 102→104); BINANCE_TEST foto 34=34, temiz 25=25; 7 hazır formasyon değişmedi, Adım 3 birebir.
 - 03:30 Kullanıcı: "sonraki adıma geçmiyor". Durum: kesimin sağındaki ~60 mum Sahte Mum ile silinmişti, kesim seçilmemiş görünüyordu (Adım 3 düğmesi yok). Kesim modunda silinmiş (✕) bir muma dokunulunca site sessizce hiçbir şey yapmıyordu. Düzeltme: silinmiş muma dokunulursa en yakın silinmemiş mum seçilir; hzRender'da hata olursa ekranda kırmızı uyarı çıkar. Not: kesimin sağı DEVAM'dır (tahmin bundan hesaplanır), silinmemeli; sağ tarafı ayırmak için kesim yeterli.
+
+## 2 Kasım 03:45 — Hazırla akışı sadeleşti (kullanıcı isteği)
+- Kullanıcı: "kullanıcı için zor" — orijinal görselde sahte mum seçmek zor; sahte mum TEMİZ çizimde belli olur.
+- Yeni sıra: 1) görsel yükle → 2) 🔴 Kesim (görsel açılınca varsayılan mod; tek dokunuş, sağ taraf otomatik ayrılır = devam, tahmin için saklanır) → 3) Kes ve Temiz Çiz → temiz çizimde sahte mumlara dokun (sarı) → "🗑️ Sil ve Yeniden Çiz" → "↩️ Silmeleri Geri Al" ile geri dönülebilir → 4) kanallar → 5) kaydet.
+- Temiz çizimin altında numaralar var. Kesim/başlangıç mumu silinirse en yakın sağlam muma kayar.
+- Mod düğmeleri sırası: 🔴 Kesim / 🟢 Başlangıç / ✂️ Sahte Mum (orijinal görselde silme isteğe bağlı olarak duruyor).
+- Test: Nora görseli kesim 58, temizde 3 mum seç → 55 birebir, geri al → 58, Adım 4: 3 kanal.
