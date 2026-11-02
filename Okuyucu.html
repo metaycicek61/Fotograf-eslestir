@@ -4396,7 +4396,7 @@ function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
      doldurur, sola boşluk eklenmez, hiçbir mum kesilmez. */
-  const b=findChartBox(img);
+  const b=hzFindChartBox(img);
   const bw=b?b.w*1.07:HZ_BOX.width,bh=b?b.h*1.12:HZ_BOX.height;
   try{const nw=img.naturalWidth||img.width,nh=img.naturalHeight||img.height,R=v=>Math.round(v);
     document.getElementById("hzDiag").textContent="sürüm "+HZ_SURUM+" • görsel "+nw+"×"+nh+
@@ -4406,8 +4406,64 @@ function hzImageToScan(img){
   try{return hzImageToScan0(img);}
   finally{delete cameraBox.getBoundingClientRect;}
 }
+/* 2 Kasım: KÜTÜPHANE için sağlam grafik sınırı.
+   Eski findChartBox satırda ≥2 renkli piksel arıyordu: 1 px fitil ucu (Nora HH)
+   kesiliyor, iPhone'da renkler farklı çözülünce başlık + grafik birleşip
+   görselin tamamı grafik sayılıyordu (625×585 → 86 sahte dahil mum).
+   Yeni: 1) ÇEKİRDEK bant = satırda ≥ max(3, genişliğin %1'i) renkli piksel
+   (en uzun bant, %4 boşluk toleransı); 2) bantın üstüne/altına yalnızca
+   çekirdeğe BAĞLI renkli pikseller (fitiller, uç mumlar) eklenir — başlık
+   yazıları bağlı değildir, dışarıda kalır. 3) Sütunlar eskisi gibi %0,2/%99,8. */
+function hzFindChartBox(img){
+  const nw=img.naturalWidth||img.width,nh=img.naturalHeight||img.height;
+  /* küçültme 1 px fitili soldurur → 1200 px'e kadar küçültme yok */
+  const s=Math.min(1,1200/nw),w=Math.max(1,Math.round(nw*s)),h=Math.max(1,Math.round(nh*s));
+  const c=document.createElement("canvas");c.width=w;c.height=h;
+  const ctx=c.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
+  const d=ctx.getImageData(0,0,w,h).data;
+  const mask=new Uint8Array(w*h),rowCnt=new Int32Array(h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;
+    if(classifyPixel(d[i],d[i+1],d[i+2])){mask[y*w+x]=1;rowCnt[y]++;}}
+  const thr=Math.max(3,Math.round(w*.01)),gap=Math.max(3,Math.round(h*.04));
+  let best=null,start=-1,last=-1;
+  for(let y=0;y<=h;y++){
+    const on=y<h&&rowCnt[y]>=thr;
+    if(on){if(start<0)start=y;last=y;}
+    else if(start>=0&&(y-last>gap||y===h)){
+      let mass=0;for(let k=start;k<=last;k++)mass+=rowCnt[k];
+      if(!best||mass>best.mass)best={t:start,b:last,mass};
+      start=-1;}
+  }
+  if(!best||best.b-best.t<h*.08)return findChartBox(img);
+  /* bağlı pikselleri yukarı ve aşağı izle (x±1 komşuluk) */
+  const grow=(y0,dir)=>{
+    let act=new Uint8Array(w);for(let x=0;x<w;x++)act[x]=mask[y0*w+x];
+    let y=y0,edge=y0,miss=0;
+    while(true){
+      const ny=y+dir;if(ny<0||ny>=h)break;
+      const nx=new Uint8Array(w);let any=false;
+      for(let x=0;x<w;x++){
+        if(!mask[ny*w+x])continue;
+        if(act[x]||(x>0&&act[x-1])||(x<w-1&&act[x+1])){nx[x]=1;any=true;}
+      }
+      /* aynı satırda bağlı piksele yapışık olanları da ekle (gövde genişliği) */
+      if(any){for(let x=1;x<w;x++)if(!nx[x]&&nx[x-1]&&mask[ny*w+x])nx[x]=1;
+        for(let x=w-2;x>=0;x--)if(!nx[x]&&nx[x+1]&&mask[ny*w+x])nx[x]=1;}
+      if(!any){if(++miss>2)break;y=ny;continue;} /* 2 satıra kadar kopukluk */
+      miss=0;act=nx;y=ny;edge=ny;
+    }
+    return edge;
+  };
+  const top=grow(best.t,-1),bot=grow(best.b,1);
+  const colCnt=new Int32Array(w);let total=0;
+  for(let y=top;y<=bot;y++)for(let x=0;x<w;x++)if(mask[y*w+x]){colCnt[x]++;total++;}
+  let acc=0,left=0,right=w-1;const lo=total*.002,hi=total*.998;
+  for(let x=0;x<w;x++){acc+=colCnt[x];if(acc<=lo)left=x+1;if(acc<hi)right=x+1;}
+  right=Math.min(w-1,right);
+  return{x:left/s,y:top/s,w:(right-left+1)/s,h:(bot-top+1)/s};
+}
 function hzImageToScan0(img){
-  const box=findChartBox(img);
+  const box=hzFindChartBox(img);
   if(!box)return null;
   const bak=document.createElement("canvas");
   bak.width=stillCanvas.width;bak.height=stillCanvas.height;
