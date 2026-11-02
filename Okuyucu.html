@@ -873,11 +873,27 @@ function renderReferences(){
     del.className="refDelete";
     del.textContent="Sil";
 
-    del.onclick=()=>{
-
-      if(!confirm(ref.name+" silinsin mi?"))return;
-
-      references.splice(index,1);
+    /* 3 Kasım: tek formasyon silme de iki onaylı: 1) sağda "Emin misin?" 2) solda "Onaylıyor musun?" */
+    const onay=document.createElement("div");
+    onay.style.cssText="display:none;gap:4px;margin-top:4px";
+    const sol=document.createElement("div"),sag=document.createElement("div");
+    sol.style.flex=sag.style.flex="1";
+    const bs="width:100%;margin:0;padding:6px 4px;font-size:12px;line-height:1.2";
+    const b1=document.createElement("button");b1.textContent="1) Emin misin?";b1.style.cssText=bs+";background:#dc2626";
+    const b2=document.createElement("button");b2.textContent="2) Onaylıyor musun?";b2.style.cssText=bs+";background:#b91c1c;display:none";
+    const vz=document.createElement("button");vz.textContent="Vazgeç";vz.style.cssText=bs+";background:#4b5563;margin-top:4px";
+    sol.appendChild(b2);sag.appendChild(b1);onay.appendChild(sol);onay.appendChild(sag);
+    let tmr=null;
+    const kapat=()=>{onay.style.display="none";vz.style.display="none";del.style.display="";b1.style.display="";b2.style.display="none";clearTimeout(tmr);};
+    const sure=()=>{clearTimeout(tmr);tmr=setTimeout(kapat,8000);};
+    vz.style.display="none";
+    del.onclick=()=>{del.style.display="none";onay.style.display="flex";vz.style.display="";sure();};
+    b1.onclick=()=>{b1.style.display="none";b2.style.display="";sure();};
+    vz.onclick=kapat;
+    b2.onclick=()=>{
+      clearTimeout(tmr);
+      const k=references.indexOf(ref);if(k<0)return;
+      references.splice(k,1);
 
       saveReferences();
       referenceCache.clear();
@@ -890,6 +906,8 @@ function renderReferences(){
     box.appendChild(img);
     box.appendChild(name);
     box.appendChild(del);
+    box.appendChild(onay);
+    box.appendChild(vz);
 
     refsEl.appendChild(box);
   });
@@ -4503,7 +4521,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-02:35";
+const HZ_SURUM="3Kas-02:45";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam

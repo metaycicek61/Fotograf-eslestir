@@ -566,3 +566,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kayıt: hazir.temizOrj (PNG) eklendi; hazir.orijinal da saklanıyor. Büyük görünümde "👁 Orijinal ⇄ 🧹 Temiz" düğmesi (yakınlaştırma korunur).
 - Eski kayıtlarda temizOrj yok → orijinal gösterilir; temiz hâl için formasyonu Hazırla'dan yeniden geçirmek gerekir.
 - Tara/eşleştirme DEĞİŞMEDİ (yine arka plandaki temiz çizimi okur).
+
+## 3 Kasım 02:45 — Tek formasyon silme de iki onaylı — sürüm 3Kas-02:45
+- Kullanıcı: tek silinen formasyonlarda da 2 kez onay.
+- Kartta "Sil" → SAĞDA "1) Emin misin?" + Vazgeç → SOLDA "2) Onaylıyor musun?" → silinir. 8 sn dokunulmazsa kapanır. (confirm() kaldırıldı.)
+- Kullanıcı eski "QM 11-02 23:02" kaydını sildi; temiz hâlle yeniden hazırlanacak.
