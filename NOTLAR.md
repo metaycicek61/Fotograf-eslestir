@@ -584,3 +584,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 ## 3 Kasım 02:27 — Adım 4 dik çizgiler kaldırıldı — sürüm 3Kas-s6
 - Kullanıcı: kanal başlangıcını gösteren dik çizgiler gereksiz; diğer formasyonlarda olmayan bir fark "site hata mı" diye güven sorunu yaratır. Kaldırıldı; kanal başlangıcı yalnızca alttaki renkli numarayla gösteriliyor.
 - İlke (kullanıcı): ekranda gereksiz/tutarsız görsel öğe olmasın; formasyonlar arasında görünüm aynı olsun.
+- 02:28 Karar (kullanıcı): alttaki boş beyaz alan KIRPILMAYACAK. Hâlâ çizim aşamasındayız; diğer formasyonlarda olmayan değişiklik burada da olmasın; ayrıca 02'de aşağı yönlü devam var (boş alan devamın gideceği yer).
