@@ -531,3 +531,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 3. Hazır kütüphaneden 7 formasyon (LO 04–09, SH 01) açılır listeden.
 4. Test: kendi kendine (her formasyon kendi görseliyle geçmeli), çapraz (elenmeli), gerçek Binance (15 dk, 1x/2x).
 5. Açık konular: Fotoğraf Oku hâlâ kamera çerçevesine bağlı (kullanıcı onayıyla düzeltilecek); devam kısmındaki sahte mumlar silinemiyor (tahmine karışır); üst sıradaki "✂️ Sahte Mum" düğmesi kalsın mı kararı; 04'te ortadaki uzun kırmızı mum temiz çizimde eksik görünüyor.
+
+## 2 Kasım 06:10 — Kullanıcı ilk formasyonu kaydetti + 3 düzeltme
+- Kullanıcı temiz 02 USDCHF ile Hazırla'yı baştan sona geçirdi: 53 mum, 4 kanal, devam 54 → kaydedildi (ad "QM 11-02 02:54", yön LO seçilmiş — 02 aslında SH, düzeltilecek).
+- Sorun 1 "Sil ve Yeniden Çiz çalışmıyor": iPhone'da temiz çizime dokunuş için click yerine pointerup; seçilenler yönerge satırında yazıyor ("🟨 Seçili: 11, 21"); düğme seçim yokken soluk.
+- Sorun 2 (bulunan): temiz çizim tekrar okununca bazı mumlar kayıp ("fark var", 02'de 53→49). Sebep gövde genişliği (aralığın %72'si). %50'ye indirildi: 02 53/53, Nora 58/58, 6 QM 30/45/60 mumluk dilimlerin çoğu birebir (02 45→41, 05 60→58 kaldı), 7 hazır formasyon birebir.
+- Sorun 3 "kütüphanede kanallar görünmüyor": kanallar veri olarak kaydediliyordu; artık kütüphane kartında da kesikli çizgi olarak çiziliyor (yalnızca gösterim; kayıtlı görsel ve Tara değişmedi).

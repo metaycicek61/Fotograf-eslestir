@@ -801,8 +801,30 @@ function renderReferences(){
     const box=document.createElement("div");
     box.className="ref";
 
-    const img=document.createElement("img");
+    let img=document.createElement("img");
     img.src=ref.src;
+    /* 2 Kasım: Hazırla'dan gelen formasyonda %20 kanallar kartta da çizilir
+       (yalnızca gösterim; kayıtlı görsel değişmez, Tara temiz görseli okur) */
+    if(ref.hazir&&ref.hazir.kanallar&&ref.hazir.kanallar.length){
+      const K=ref.hazir.kanallar,n=ref.hazir.mum||1,PAD=40,k=2;
+      const cv=document.createElement("canvas");cv.width=TARGET_W*k;cv.height=(TARGET_H+2*PAD)*k;
+      cv.style.width="100%";cv.style.display="block";cv.style.background="#fff";
+      const im=new Image();
+      im.onload=()=>{
+        const ctx=cv.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
+        ctx.drawImage(im,0,PAD*k,TARGET_W*k,TARGET_H*k);
+        const cols={"İnen":"#c026d3","Yatay":"#d97706","Yükselen":"#2563eb"};
+        const pitch=(TARGET_W-60)/n,X=i=>30+pitch*(i-.5);
+        ctx.lineWidth=2.5;ctx.setLineDash([9,6]);
+        K.forEach(c=>{ctx.strokeStyle=cols[c.tur]||"#2563eb";
+          const x0=X(c.mumlar[0])-4,x1=X(c.mumlar[1])+4;
+          [c.ust,c.alt].forEach(off=>{ctx.beginPath();
+            ctx.moveTo(x0*k,(c.egim*x0+c.kesisim+off+PAD)*k);
+            ctx.lineTo(x1*k,(c.egim*x1+c.kesisim+off+PAD)*k);ctx.stroke();});});
+      };
+      im.src=ref.src;
+      img=cv;
+    }
 
     const name=document.createElement("div");
     name.className="refName";
@@ -4391,7 +4413,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="2Kas-04:45";
+const HZ_SURUM="2Kas-06:10";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4704,7 +4726,7 @@ function hzCleanDraw(list){
   const sy=(H-2*PY)/Math.max(1,hi-lo),Y=v=>PY+(v-lo)*sy;
   const pitch=(W-2*PX)/n;
   /* gövde aralığın %72'si: yan yana mumlar birleşmesin (site tekrar okuyabilsin) */
-  const bw=Math.max(1,Math.min(15,Math.round(pitch*.72)));
+  const bw=Math.max(1,Math.min(15,Math.round(pitch*.5)));
   list.forEach((m,i)=>{
     const x=Math.round(PX+pitch*(i+.5));
     const col=m.direction>0?"#089c58":"#e02b3b";
@@ -4757,7 +4779,12 @@ function hzS3Show(){
     if(sel||(i+1)%step===0||i===0||i===n-1){
       x.fillStyle=sel?"#b45309":"#1d4ed8";x.fillText(String(i+1),cx,H+(i%2?22:12));}
   }
-  d.addEventListener("click",ev=>{
+  d.style.cursor="pointer";d.style.touchAction="manipulation";
+  /* iPhone'da dokunuş: pointerup (click bazen gelmiyor); kaydırma ise sayılmaz */
+  let px0=0,py0=0;
+  d.addEventListener("pointerdown",ev=>{px0=ev.clientX;py0=ev.clientY;});
+  d.addEventListener("pointerup",ev=>{
+    if(Math.abs(ev.clientX-px0)>10||Math.abs(ev.clientY-py0)>10)return;
     const r=d.getBoundingClientRect();
     const xi=(ev.clientX-r.left)/r.width*W;
     const i=Math.floor((xi-PX)/pitch);
@@ -4767,6 +4794,10 @@ function hzS3Show(){
   });
   hzS3View.innerHTML="";hzS3View.appendChild(d);
   hzS3Del.disabled=!hz.s3sel.size;
+  hzS3Del.style.opacity=hz.s3sel.size?"1":".45";
+  hzS3Help.innerHTML=hz.s3sel.size
+    ?"🟨 Seçili: <b>"+[...hz.s3sel].sort((a,b)=>a-b).map(i=>i+1).join(", ")+"</b> → \"Sil ve Yeniden Çiz\"e bas. (Tekrar dokunursan seçim kalkar.)"
+    :"✂️ Sahte mum var mı? Temiz çizimde sahte olan mumlara dokun (sarı olur), sonra \"Sil ve Yeniden Çiz\". Yoksa doğrudan Adım 4'e geç.";
   hzS3Del.textContent="🗑️ Sil ve Yeniden Çiz"+(hz.s3sel.size?" ("+hz.s3sel.size+")":"");
   hzS3Undo.disabled=!hz.removed.size;
 }
