@@ -439,8 +439,9 @@ button,.fileButton{
     <div class="hzRow3" style="grid-template-columns:1fr 1fr">
       <button id="hzS3Del" style="background:#b91c1c" disabled>🗑️ Sil ve Yeniden Çiz</button>
       <button id="hzS3Undo" style="background:#6b7280">↩️ Silmeleri Geri Al</button>
+      <button id="hzS3Orj" style="background:#0f766e;grid-column:1/3">👁 Orijinal</button>
     </div>
-    <div class="small" style="margin-top:6px">Görsel orijinal fotoğraftır; yalnızca kesimin sağı atıldı (büyütme/küçültme yok). Mum verisi arka planda saklanır; Tara karşılaştırmayı bu veriyle yapar.</div>
+    <div class="small" style="margin-top:6px">Temiz çizim orijinalle aynı boyuttadır; yalnızca kesimin sağı atıldı (büyütme/küçültme yok), mumlar orijinal yerinde. Mum verisi arka planda saklanır; Tara karşılaştırmayı bu veriyle yapar.</div>
     <button id="hz4Btn" style="background:#0e7490">➡️ Adım 4: %20 Kanallar</button>
   </div>
   <div id="hzStep4" style="display:none;margin-top:10px">
@@ -4521,7 +4522,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s6";
+const HZ_SURUM="3Kas-s7";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4916,6 +4917,7 @@ function hzTemizOrj(Fo,crop,pitchO){
   });
   return c;
 }
+document.addEventListener("click",e=>{if(e.target&&e.target.id==="hzS3Orj"){hz.s3orj=!hz.s3orj;hzS3Show();}});
 function hzS3Show(){
   const C=hz.clean;if(!C)return;
   const O=hzOrig();C.orig=O;
@@ -4924,7 +4926,8 @@ function hzS3Show(){
   const d=document.createElement("canvas");d.width=W;d.height=H+band;
   d.style.width="100%";d.style.display="block";
   const x=d.getContext("2d");
-  x.drawImage(O.crop,0,0);
+  /* 3 Kasım: Adım 3 TEMİZ hâli gösterir (aynı yer/ölçek); "👁 Orijinal" ile kontrol */
+  x.drawImage(hz.s3orj||!O.temiz?O.crop:O.temiz,0,0);
   x.fillStyle="#f3f4f6";x.fillRect(0,H,W,band);
   /* numaralar üst üste binmesin: iki sıra, yazı genişliğine göre seyreltme */
   x.font="bold "+fs+"px sans-serif";x.textAlign="center";
@@ -4956,9 +4959,11 @@ function hzS3Show(){
   hzS3Del.disabled=!hz.s3sel.size;
   hzS3Del.style.opacity=hz.s3sel.size?"1":".45";
   hzS3Del.textContent="🗑️ Sil ve Yeniden Çiz"+(hz.s3sel.size?" ("+hz.s3sel.size+")":"");
+  const hzS3Orj=$hz("hzS3Orj");
   hzS3Help.innerHTML=hz.s3sel.size
     ?"🟨 Seçili: <b>"+[...hz.s3sel].sort((a,b)=>a-b).map(i=>i+1).join(", ")+"</b> → \"Sil\"e bas. (Tekrar dokunursan seçim kalkar.)"
-    :"✂️ Orijinal fotoğraf (yalnızca kesimin sağı atıldı). Sahte mum varsa numarasına/sütununa dokun (sarı olur), sonra \"Sil\". Yoksa Adım 4'e geç.";
+    :(hz.s3orj?"👁 Orijinal gösteriliyor (kontrol için). Sahte mum varsa numarasına/sütununa dokun (sarı olur), sonra \"Sil\".":"🧹 Temiz çizim: ok, yuvarlak, yazı atıldı; mumlar orijinal yerinde. Sahte mum varsa numarasına/sütununa dokun (sarı olur), sonra \"Sil\". Emin değilsen \"👁 Orijinal\" ile bak. Yoksa Adım 4'e geç.");
+  hzS3Orj.textContent=hz.s3orj?"🧹 Temiz":"👁 Orijinal";
   hzS3Undo.disabled=!hz.removed.size;
 }
 hzS3Del.addEventListener("click",()=>{

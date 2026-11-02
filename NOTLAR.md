@@ -585,3 +585,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Kullanıcı: kanal başlangıcını gösteren dik çizgiler gereksiz; diğer formasyonlarda olmayan bir fark "site hata mı" diye güven sorunu yaratır. Kaldırıldı; kanal başlangıcı yalnızca alttaki renkli numarayla gösteriliyor.
 - İlke (kullanıcı): ekranda gereksiz/tutarsız görsel öğe olmasın; formasyonlar arasında görünüm aynı olsun.
 - 02:28 Karar (kullanıcı): alttaki boş beyaz alan KIRPILMAYACAK. Hâlâ çizim aşamasındayız; diğer formasyonlarda olmayan değişiklik burada da olmasın; ayrıca 02'de aşağı yönlü devam var (boş alan devamın gideceği yer).
+
+## 3 Kasım 02:35 — Adım 3 artık TEMİZ çizimi gösterir — sürüm 3Kas-s7
+- Kullanıcı: "Kes ve Temiz Çiz"den sonra sadece kesti; yuvarlak ve oklar duruyordu. (Düğme adı ile ekran çelişiyordu.)
+- Adım 3 görüntüsü temiz orijinal (hzTemizOrj, aynı boyut/yer); "👁 Orijinal ⇄ 🧹 Temiz" düğmesiyle orijinale bakılarak sahte mum kontrol edilir. Seçim/numaralar her iki görünümde aynı.
