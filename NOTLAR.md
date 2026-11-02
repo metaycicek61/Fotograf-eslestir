@@ -520,3 +520,14 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Bulgular: (a) eski findChartBox satırda ≥2 renkli piksel arıyor ve görseli 600 px'e küçültüyordu → Nora HH'nin 1 px fitil ucu (y 159–185) KESİLİYORDU; (b) telefondaki görselde Fotoğraflar işaretlemesi ("hareket", "KESIM" yazıları) var → boş alanı köprüleyip başlıkla grafiği birleştiriyor olabilir (bilgisayarda renk doygunluğu artırılarak tekrarlanamadı).
 - Yeni hzFindChartBox (yalnızca Hazırla): küçültme yok (1200 px'e kadar), çekirdek bant = satırda ≥ max(3, %1 genişlik) renkli piksel, en büyük kütleli bant; üst/alt yalnızca çekirdeğe BAĞLI piksellerle (fitiller, 2 satır kopukluk toleransı) uzatılır. Nora: grafik 5,159 617×388 (HH ucu dahil), 106 mum.
 - Kullanıcıya: telefondaki görsel işaretli kopya; Fotoğraflar → Düzenle → Geri Al (Orijinale Dön) ya da zip'ten çıkan dosya.
+
+## 2 Kasım 05:05 — Oturum sonu: asıl engel bulundu
+- Telefonda Hazırla'ya yüklenen görseller "Kırılım" klasöründen geliyordu: dün kesim yeri işaretlenmiş kopyalar (sarı alan, yeşil "hareket", kırmızı "KESIM" yazıları). Bütün 69/86 mum, "fark var", başlık/eksen sahteleri bu yüzden. Ayrıca "Kırılım" ve "QM_Ortak_6" klasörleri telefonda Son Silinenler'de görünüyor (kullanıcı silmedi; Kurtar gerekebilir).
+- Temiz orijinaller (01, 02, 03, 04, 06) kullanıcıya sohbetten yeniden gönderildi → "QM_Temiz" klasörüne kaydedip Dosyayı Seç ile yüklenecek.
+
+## ▶ SONRAKİ OTURUM (2 Kasım devamı) PLANI
+1. QM_Temiz'den 02 USDCHF ile başla: teşhis satırı "grafik 1,32 619×277", 88 mum beklenir → kesim → Adım 3 "✓ birebir" → sahte sil → Adım 4 kanallar → Kaydet (SH).
+2. Sonra 01 Nora (beklenen ~106 mum, kesim Entry'den sonraki düşüşün 2. mumu), 04, 06, 03 (sahteleri dikkatle). 05 çıkarıldı.
+3. Hazır kütüphaneden 7 formasyon (LO 04–09, SH 01) açılır listeden.
+4. Test: kendi kendine (her formasyon kendi görseliyle geçmeli), çapraz (elenmeli), gerçek Binance (15 dk, 1x/2x).
+5. Açık konular: Fotoğraf Oku hâlâ kamera çerçevesine bağlı (kullanıcı onayıyla düzeltilecek); devam kısmındaki sahte mumlar silinemiyor (tahmine karışır); üst sıradaki "✂️ Sahte Mum" düğmesi kalsın mı kararı; 04'te ortadaki uzun kırmızı mum temiz çizimde eksik görünüyor.
