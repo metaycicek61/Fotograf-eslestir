@@ -4391,9 +4391,13 @@ function hzStillGeom(img,box){
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
 function hzImageToScan(img){
-  const real=cameraBox.getBoundingClientRect.bind(cameraBox);
-  cameraBox.getBoundingClientRect=()=>({left:0,top:0,right:HZ_BOX.width,bottom:HZ_BOX.height,
-    x:0,y:0,width:HZ_BOX.width,height:HZ_BOX.height});
+  /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
+     (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
+     doldurur, sola boşluk eklenmez, hiçbir mum kesilmez. */
+  const b=findChartBox(img);
+  const bw=b?b.w*1.07:HZ_BOX.width,bh=b?b.h*1.12:HZ_BOX.height;
+  const W=330,H=Math.max(1,W*bh/bw);
+  cameraBox.getBoundingClientRect=()=>({left:0,top:0,right:W,bottom:H,x:0,y:0,width:W,height:H});
   try{return hzImageToScan0(img);}
   finally{delete cameraBox.getBoundingClientRect;}
 }
