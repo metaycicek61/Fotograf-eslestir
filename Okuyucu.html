@@ -4522,7 +4522,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s10";
+const HZ_SURUM="3Kas-s11";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4648,7 +4648,13 @@ function hzSetup(){
   const S=viewW/iw*hz.zoom,Sy=S;
   const cssW=Math.round(iw*S);
   const chartH=Math.round((cy1-cy0)*S);
-  const bandH=46;
+  /* 3 Kasım (kullanıcı): numaralar alt şeritte 2–5 sıra hâlinde üst üste; büyütmeden hepsi sırayla görünsün */
+  const pitchCss=pitchI*S,dig=String(R.length).length;
+  /* yazı 11 px; 5 sıraya sığmıyorsa en az 8 px'e kadar küçülür */
+  const nfz=Math.max(8,Math.min(11,(5*pitchCss-4)/(dig*.62)));
+  const nW=dig*nfz*.62+4;
+  const rows=Math.max(2,Math.min(5,Math.ceil(nW/Math.max(.5,pitchCss))));
+  const bandH=10+rows*(nfz+5);
   /* iPhone tuval sınırı (~16 Mpx): büyük yakınlaştırmada çözünürlüğü düşür */
   const dpr=Math.max(.5,Math.min(Math.min(3,window.devicePixelRatio||2),Math.sqrt(15e6/Math.max(1,cssW*(chartH+bandH)))));
   const c=document.createElement("canvas");
@@ -4656,7 +4662,7 @@ function hzSetup(){
   c.style.width=cssW+"px";c.style.height=(chartH+bandH)+"px";
   c.style.maxWidth="none";c.style.display="block";c.style.touchAction="pan-x pan-y";
   hzPinch(c);
-  hz.geo={cx0,cy0,cx1,cy1,S,Sy,dpr,chartH,bandH,pitchI,cssW};
+  hz.geo={cx0,cy0,cx1,cy1,S,Sy,dpr,chartH,bandH,pitchI,cssW,rows,nfz,nW};
   c.addEventListener("click",ev=>{
     const r=c.getBoundingClientRect();
     const xi=(ev.clientX-r.left)/hz.geo.S+hz.geo.cx0;
@@ -4729,13 +4735,13 @@ function hzDraw(){
   }
   /* alt şerit */
   ctx.fillStyle="#f3f4f6";ctx.fillRect(0,CH,c.width,G.bandH*dpr);
-  const fz=12*dpr;ctx.font="bold "+fz+"px sans-serif";ctx.textAlign="center";
+  const fz=G.nfz*dpr,rows=G.rows,rowH=G.nfz+5;ctx.font="bold "+fz+"px sans-serif";ctx.textAlign="center";
   const silMode=hz.mode==="tek"||hz.mode==="ara";
   /* sıkışıkken numaraları seyrelt (her k'ıncı + işaretliler); büyütünce hepsi görünür */
   const pitchPx=G.pitchI*G.S;
-  /* iki sıra dönüşümlü: aynı sıradaki komşu numaralar 2 mum aralığında; en geniş numara sığıyorsa hepsi */
-  const wMax=Math.max(ctx.measureText(String(R.length)).width/dpr+8,18);
-  const step=2*pitchPx>=wMax?1:4*pitchPx>=wMax?2:10*pitchPx>=wMax?5:10;
+  /* sıralar dönüşümlü: aynı sıradaki komşu numaralar "rows" mum aralığında; sığıyorsa hepsi sırayla */
+  const wMax=G.nW;
+  const step=rows*pitchPx>=wMax-.5?1:2*rows*pitchPx>=wMax?2:5*rows*pitchPx>=wMax?5:10;
   R.forEach((m,i)=>{
     const off=hz.removed.has(i),sel=silMode&&hz.sel.has(i);
     const isS=i===hz.start,isK=i===hz.cut,isF=silMode&&i===hz.first;
@@ -4752,13 +4758,14 @@ function hzDraw(){
     if(!isaret&&no%step!==0&&no!==1&&no!==kept.length)return;
     /* mumdan şeride ince kılavuz çizgi (Orijinal modda yalnızca şeritte) */
     ctx.strokeStyle=isaret?col:"rgba(0,0,0,.12)";ctx.lineWidth=1*dpr;
-    ctx.beginPath();ctx.moveTo(X,orj?CH:Q(M.y(m.bottom))+2*dpr);ctx.lineTo(X,CH+(i%2?24:4)*dpr);ctx.stroke();
+    const row=step===1?(i%rows):(Math.floor((no||i+1)/step)%rows);
+    ctx.beginPath();ctx.moveTo(X,orj?CH:Q(M.y(m.bottom))+2*dpr);ctx.lineTo(X,CH+(4+row*rowH)*dpr);ctx.stroke();
     const label=off?"✕":String(no);
-    const ty=CH+(i%2?40:20)*dpr;
-    const lw=Math.max(ctx.measureText(label).width+6*dpr,16*dpr);
+    const ty=CH+(4+row*rowH+G.nfz)*dpr;
+    const lw=ctx.measureText(label).width+3*dpr;
     ctx.fillStyle=isS?"#16a34a":isK?"#dc2626":(sel||isF)?"#fde68a":(off?"#fee2e2":"#fff");
-    ctx.fillRect(X-lw/2,ty-fz,lw,fz+4*dpr);
-    ctx.strokeStyle="#9ca3af";ctx.lineWidth=.6*dpr;ctx.strokeRect(X-lw/2,ty-fz,lw,fz+4*dpr);
+    ctx.fillRect(X-lw/2,ty-fz,lw,fz+3*dpr);
+    ctx.strokeStyle="#9ca3af";ctx.lineWidth=.5*dpr;ctx.strokeRect(X-lw/2,ty-fz,lw,fz+3*dpr);
     ctx.fillStyle=(isS||isK)?"#fff":(off?"#b91c1c":"#1d4ed8");
     ctx.fillText(label,X,ty);
   });
@@ -4935,7 +4942,8 @@ function hzS3Show(){
   const sc=cw/W;
   const dpr=Math.min(3,window.devicePixelRatio||2);
   const cssW=Math.round(W*sc),cssH=Math.round(H*sc);
-  const fs=13,band=40;
+  const pc0=O.pitchO*sc,dig3=String(n).length,fs=Math.max(8,Math.min(11,(5*pc0-4)/(dig3*.62))),nW3=dig3*fs*.62+4;
+  const rows3=Math.max(2,Math.min(5,Math.ceil(nW3/Math.max(.5,pc0)))),rowH3=fs+5,band=10+rows3*rowH3;
   const d=document.createElement("canvas");
   d.width=Math.round(cssW*dpr);d.height=Math.round((cssH+band)*dpr);
   d.style.width=cssW+"px";d.style.height=(cssH+band)+"px";d.style.maxWidth="none";d.style.display="block";
@@ -4947,8 +4955,8 @@ function hzS3Show(){
   x.font="bold "+fs+"px sans-serif";x.textAlign="center";
   /* iki sıra dönüşümlü; aynı sıradaki iki numara arası en geniş numaradan geniş olmalı */
   const pc=O.pitchO*sc;
-  const tw=x.measureText(String(n)).width+6;
-  const step=2*pc>=tw?1:4*pc>=tw?2:10*pc>=tw?5:10;
+  const tw=nW3;
+  const step=rows3*pc>=tw-.5?1:2*rows3*pc>=tw?2:5*rows3*pc>=tw?5:10;
   let lab=0;
   for(let i=0;i<n;i++){
     const cx=O.Fo[i].x*sc,sel=hz.s3sel.has(i);
@@ -4956,7 +4964,9 @@ function hzS3Show(){
       x.strokeStyle="#f59e0b";x.lineWidth=2;x.strokeRect(cx-pc/2,0,pc,cssH);}
     const son=i===n-1;
     if(sel||(i+1)%step===0||i===0||son){
-      x.fillStyle=sel?"#b45309":"#1d4ed8";x.fillText(String(i+1),cx,cssH+(step===1?(i%2?34:17):(lab%2?34:17)));lab++;}
+      x.fillStyle=sel?"#b45309":"#1d4ed8";const row=(step===1?i:lab)%rows3;
+      x.strokeStyle="rgba(0,0,0,.15)";x.lineWidth=.6;x.beginPath();x.moveTo(cx,cssH);x.lineTo(cx,cssH+3+row*rowH3);x.stroke();
+      x.fillText(String(i+1),cx,cssH+4+row*rowH3+fs);lab++;}
   }
   d.style.touchAction="manipulation";
   let px0=0,py0=0;
