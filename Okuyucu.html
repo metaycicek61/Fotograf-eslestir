@@ -4521,7 +4521,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s4";
+const HZ_SURUM="3Kas-s5";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4907,7 +4907,7 @@ function hzTemizOrj(Fo,crop,pitchO){
       const sat=mx-mn+(255-mx)*.3;if(sat>best){best=sat;rgb=[r,g,b];}}
     return"rgb("+(best>40&&rgb?rgb:def)+")";
   };
-  const lw=Math.max(1,Math.round(Math.min(pitchO*.12,(W/400)+1)));
+  const lw=Math.max(1,Math.round(Math.max(W/300,Math.min(pitchO*.16,W/150))));
   Fo.forEach(m=>{
     const col=renk(m);x.fillStyle=col;
     x.fillRect(Math.round(m.x-lw/2),Math.round(m.top),lw,Math.max(1,Math.round(m.bottom-m.top)));
@@ -4927,15 +4927,19 @@ function hzS3Show(){
   x.drawImage(O.crop,0,0);
   x.fillStyle="#f3f4f6";x.fillRect(0,H,W,band);
   /* numaralar üst üste binmesin: iki sıra, yazı genişliğine göre seyreltme */
-  const need=fs*1.4/Math.max(1,O.pitchO);
-  const step=need<=2?1:need<=4?2:need<=10?5:10;
   x.font="bold "+fs+"px sans-serif";x.textAlign="center";
+  /* 3 Kasım: iki sıra dönüşümlü; aynı sıradaki iki numara arası en geniş numaradan geniş olmalı */
+  const tw=x.measureText(String(n)).width*1.25;
+  const need=tw/(2*Math.max(1,O.pitchO));
+  const step=need<=1?1:need<=2?2:need<=5?5:10;
+  let lab=0;
   for(let i=0;i<n;i++){
     const cx=O.Fo[i].x,sel=hz.s3sel.has(i);
     if(sel){x.fillStyle="rgba(250,204,21,.35)";x.fillRect(cx-O.pitchO/2,0,O.pitchO,H);
       x.strokeStyle="#f59e0b";x.lineWidth=Math.max(2,W/300);x.strokeRect(cx-O.pitchO/2,0,O.pitchO,H);}
-    if(sel||(i+1)%step===0||i===0||i===n-1){
-      x.fillStyle=sel?"#b45309":"#1d4ed8";x.fillText(String(i+1),cx,H+(i%2?band*.9:band*.45));}
+    const son=i===n-1&&((n%step)===0||(n%step)*O.pitchO>tw/2);
+    if(sel||(i+1)%step===0||i===0||son){
+      x.fillStyle=sel?"#b45309":"#1d4ed8";x.fillText(String(i+1),cx,H+(lab%2?band*.9:band*.45));lab++;}
   }
   d.style.touchAction="manipulation";
   let px0=0,py0=0;
