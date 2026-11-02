@@ -4522,7 +4522,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s8";
+const HZ_SURUM="3Kas-s9";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4642,10 +4642,9 @@ function hzSetup(){
   /* yatayda görselin tamamı; dikeyde mumların olduğu bant (+ pay) — numaralar mumlara yakın kalsın */
   const cx0=0,cx1=iw,cy0=Math.max(0,t-(b-t)*.10),cy1=Math.min(ih,b+(b-t)*.06);
   const viewW=Math.max(280,hzView.clientWidth||330);
-  /* 3 Kasım: ilk açılışta (zoom=0) her mum numarası sırayla okunacak kadar büyük açılır
-     (mum aralığı ≥ ~15 px); Sığdır tüm görseli gösterir (numaralar seyrelir). */
-  if(!hz.zoom)hz.zoom=Math.max(1,15/Math.max(.1,pitchI*viewW/iw));
-  hz.zoom=Math.min(12,Math.max(1,hz.zoom));
+  /* 3 Kasım (kullanıcı): kesim sayfası ORİJİNAL fotoğraf hâliyle (tamamı, büyütmesiz) açılır;
+     sıkışıkken numaralar seyrelir, ＋ / iki parmakla büyütünce hepsi sırayla görünür. */
+  hz.zoom=Math.min(12,Math.max(1,hz.zoom||1));
   const S=viewW/iw*hz.zoom,Sy=S;
   const cssW=Math.round(iw*S);
   const chartH=Math.round((cy1-cy0)*S);
@@ -4927,11 +4926,10 @@ function hzS3Show(){
   const C=hz.clean;if(!C)return;
   const O=hzOrig();C.orig=O;
   const n=O.Fo.length,W=O.crop.width,H=O.crop.height;
-  /* 3 Kasım: numaralar sırayla (1,2,3…) okunsun diye Adım 3 ekran çözünürlüğünde çizilir;
-     mum aralığı en az ~15 px olacak kadar büyütülür (gerekirse yana kaydırılır, soldan başlar).
-     Görüntü yalnızca orantılı büyütülür: mumların yeri/sırası değişmez. */
+  /* 3 Kasım (kullanıcı): görsel olduğu gibi, tamamı ekran genişliğinde gösterilir (büyütme yok);
+     yalnızca numara şeridi ekran netliğinde çizilir. */
   const cw=Math.max(280,hzS3View.clientWidth||330);
-  const sc=Math.max(cw/W,15/Math.max(.5,O.pitchO));
+  const sc=cw/W;
   const dpr=Math.min(3,window.devicePixelRatio||2);
   const cssW=Math.round(W*sc),cssH=Math.round(H*sc);
   const fs=13,band=40;
@@ -5047,7 +5045,7 @@ async function hzLoad(img,preset){
     const keepC=document.createElement("canvas");
     keepC.width=img.naturalWidth;keepC.height=img.naturalHeight;
     keepC.getContext("2d").drawImage(img,0,0);
-    Object.assign(hz,{zoom:0,orj:false,focus:null,img:keepC,scan,raw:detectCandles(scan),removed:new Set(),sel:new Set(),
+    Object.assign(hz,{zoom:1,orj:false,focus:null,img:keepC,scan,raw:detectCandles(scan),removed:new Set(),sel:new Set(),
       first:-1,mode:"kes",start:-1,cut:-1,clean:null,s3sel:new Set()});
     if(!hz.raw.length){hzInfo.textContent="Mum okunamadı.";return;}
     hz.sug=hzSuggest();
