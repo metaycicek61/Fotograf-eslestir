@@ -494,3 +494,17 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Mod düğmeleri sırası: 🔴 Kesim / 🟢 Başlangıç / ✂️ Sahte Mum (orijinal görselde silme isteğe bağlı olarak duruyor).
 - Test: Nora görseli kesim 58, temizde 3 mum seç → 55 birebir, geri al → 58, Adım 4: 3 kanal.
 - 03:50 Kullanıcı kararı: 🟢 Başlangıç düğmesi KALDIRILDI (formasyonlar zaten tam hâliyle yüklenecek; mum dizilişi yüklenince görünüyor). Formasyon = ilk mum → kesim. Kullanıcının işi: kesim → (varsa) temiz çizimde sahte mum düzeltme → kanal sapma kontrolü → kaydet.
+
+## 2 Kasım 04:00 — QM_Ortak_6 kontrolü (görseller depoda YOK, yalnızca kullanıcı arşivi)
+- Kullanıcının Hazırla'ya yüklediği Nora kopyası işaretli ("KESIM" yazılı) ve kırpıktı → 69 mum, temiz çizimde "fark var" (44→40), LL'ye inen mumlar kayıp. Arşivdeki orijinal Nora (01) ile aynı işlem: 103 mum, kesim 58 → 58/58 birebir.
+- Her görsel sitenin okumasıyla okundu, tüm mumlar temiz çizildi, orijinalle göz kontrolü:
+  | No | Görsel | Mum | Sonuç |
+  |---|---|---|---|
+  | 01 | Nora GBPUSD 1G | 103 | ✅ yapı birebir; sağ kenarda 1–2 sahte (fiyat etiketi) |
+  | 02 | TFlab MT5 USDCHF 15dk | 88 | ✅ iyi; sağ eksende 1 sahte kırmızı çizgi |
+  | 03 | TFlab BTCUSD 1s | 96 | ⚠️ kullanılabilir: zikzak çizimi mumların üstünde, sağ kenarda fiyat etiketlerinden sahte mumlar (devam kısmına düşüyor → tahmini bozabilir) |
+  | 04 | TFlab BTCUSDT 5dk | 81 | ✅ iyi |
+  | 05 | TFlab MT5 GBPUSD 5dk | 55 | ❌ UYGUN DEĞİL: orijinalde ~250 küçük mum, site 55 okuyor; Reverse QM yapısı kayboluyor (dün de "şüpheli" denmişti) |
+  | 06 | TFlab WTI 1s | 80 | ✅ iyi |
+- Karar önerisi: 01, 02, 04, 06 kütüphaneye; 03 dikkatle (sahteler silinir, devamdaki sahteler için ileride çözüm); 05 çıkarılır. Sıfırdan başlamaya gerek yok.
+- Yeni eksik (not): Adım 3'te sahte mum yalnızca formasyonda silinebiliyor; kesimin sağındaki (devam) sahte mumlar silinemiyor → tahmine girer.
