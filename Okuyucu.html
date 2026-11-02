@@ -2691,7 +2691,51 @@ function detectCandles(canvas){
     final.push(candle);
   }
 
-  return addDojis(final,data,medW);
+  return fillGaps(addDojis(final,data,medW),data,medW);
+}
+
+/* 3 Kasım: BOŞLUK DOLDURMA. Küçük gövdeli mumlar (ör. 3×2 px, fitili soluk) alan
+   sınırına (8 px) takılıp atılıyordu; temiz çizimde boşluk kalıyordu (USDCHF QM:
+   ~11 mum). Mum aralığı düzenlidir: iki mum arasında bir/birkaç mumluk boşluk
+   varsa, beklenen yerde duran küçük gövde (en az 4 px, dolu, komşu mumların
+   fiyat bandında) mum kabul edilir. Yalnızca beklenen boşluklarda arandığı için
+   yazı/kesikli çizgi parçaları mum sayılmaz. Okuma kodu her yerde ortak. */
+function fillGaps(candles,data,medW){
+  if(candles.length<6)return candles;
+  const xs=candles.map(c=>c.x).sort((a,b)=>a-b);
+  const dx=[];for(let i=1;i<xs.length;i++)dx.push(xs[i]-xs[i-1]);
+  const pitch=median(dx);
+  if(!pitch||pitch<3)return candles;
+  const {mask,width,height}=data;
+  const comps=[...connectedComponents(data,1),...connectedComponents(data,2)].filter(c=>
+    c.area>=4&&c.area<8+Math.round(medW)&&c.width>=2&&c.width<=Math.max(3,medW*1.4)&&
+    c.height>=2&&c.height<=Math.max(4,medW*1.5)&&c.area/(c.width*c.height)>=.5);
+  if(!comps.length)return candles;
+  const sorted=[...candles].sort((a,b)=>a.x-b.x);
+  const added=[];
+  const tryAt=(ex,ref)=>{
+    const tol=pitch*.35;
+    const lo=Math.min(...ref.map(r=>r.top)),hi=Math.max(...ref.map(r=>r.bottom));
+    const span=Math.max(hi-lo,height*.08);
+    let best=null,bd=Infinity;
+    for(const c of comps){
+      const cx=(c.minX+c.maxX)/2,d=Math.abs(cx-ex);
+      if(d>tol||c.maxY<lo-span||c.minY>hi+span)continue;
+      if(sorted.some(o=>cx>=o.left-1&&cx<=o.right+1)||added.some(o=>Math.abs(o.x-cx)<pitch*.6))continue;
+      if(d<bd){bd=d;best=c;}
+    }
+    if(best)added.push(candleFromBody(best,data));
+  };
+  for(let i=1;i<sorted.length;i++){
+    const a=sorted[i-1],b=sorted[i],gap=b.x-a.x;
+    if(gap<pitch*1.6)continue;
+    const k=Math.round(gap/pitch)-1;
+    if(k<1||k>4)continue;
+    for(let j=1;j<=k;j++)tryAt(a.x+gap*j/(k+1),[a,b]);
+  }
+  /* sol uç: ilk mumdan önce bir mum (sağ uca bakılmaz: fiyat ekseni etiketleri) */
+  tryAt(sorted[0].x-pitch,sorted.slice(0,2));
+  return added.length?[...candles,...added].sort((a,b)=>a.x-b.x):candles;
 }
 
 /* ==== 31 Ekim: AYIRMA DÜZELTMESİ ====
@@ -4522,7 +4566,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s12";
+const HZ_SURUM="3Kas-s13";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
