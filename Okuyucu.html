@@ -439,7 +439,7 @@ button,.fileButton{
       <button id="hzS3Del" style="background:#b91c1c" disabled>🗑️ Sil ve Yeniden Çiz</button>
       <button id="hzS3Undo" style="background:#6b7280">↩️ Silmeleri Geri Al</button>
     </div>
-    <div class="small" style="margin-top:6px">Temiz çizim sitenin kütüphane biçiminde (502×277). Mum verisi de saklanır; Tara'da kamera ile aynı okuma kodundan çıkmış verilerle karşılaştırılacak.</div>
+    <div class="small" style="margin-top:6px">Görsel orijinal fotoğraftır; yalnızca kesimin sağı atıldı (büyütme/küçültme yok). Mum verisi arka planda saklanır; Tara karşılaştırmayı bu veriyle yapar.</div>
     <button id="hz4Btn" style="background:#0e7490">➡️ Adım 4: %20 Kanallar</button>
   </div>
   <div id="hzStep4" style="display:none;margin-top:10px">
@@ -805,7 +805,27 @@ function renderReferences(){
     img.src=ref.src;
     /* 2 Kasım: Hazırla'dan gelen formasyonda %20 kanallar kartta da çizilir
        (yalnızca gösterim; kayıtlı görsel değişmez, Tara temiz görseli okur) */
-    if(ref.hazir&&ref.hazir.kanallar&&ref.hazir.kanallar.length){
+    const Hz=ref.hazir;
+    if(Hz&&Hz.orijinal){
+      /* ORİJİNAL fotoğraf (kesimin sağı atılmış) + %20 kanallar */
+      const cv=document.createElement("canvas");cv.style.width="100%";cv.style.display="block";cv.style.background="#fff";
+      const im=new Image();
+      im.onload=()=>{
+        const K=Hz.kanallarOrj||[],p=Hz.orjPitch||8;
+        let top=0,bot=im.height;
+        K.forEach(c=>[c.x0,c.x1].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-4);bot=Math.max(bot,c.s*x+c.k+c.alt+4);}));
+        top=Math.floor(top);bot=Math.ceil(bot);
+        cv.width=im.width;cv.height=bot-top;
+        const ctx=cv.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
+        ctx.drawImage(im,0,-top);
+        const cols={"İnen":"#c026d3","Yatay":"#d97706","Yükselen":"#2563eb"},lw=Math.max(2,im.width/220);
+        ctx.lineWidth=lw;ctx.setLineDash([lw*4,lw*2.5]);
+        K.forEach(c=>{ctx.strokeStyle=cols[c.tur]||"#2563eb";const X0=c.x0-p*.6,X1=c.x1+p*.6;
+          [c.ust,c.alt].forEach(off=>{ctx.beginPath();ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
+      };
+      im.src=Hz.orijinal;
+      img=cv;
+    }else if(Hz&&Hz.kanallar&&Hz.kanallar.length){
       const K=ref.hazir.kanallar,n=ref.hazir.mum||1,PAD=40,k=2;
       const cv=document.createElement("canvas");cv.width=TARGET_W*k;cv.height=(TARGET_H+2*PAD)*k;
       cv.style.width="100%";cv.style.display="block";cv.style.background="#fff";
@@ -2197,6 +2217,32 @@ function bodyCandidates(data){
   });
 }
 
+/* 2 Kasım: UZUN YATAY ÇİZGİLER. Grafikteki destek/direnç ya da fiyat çizgisi
+   (kırmızı/yeşil, 1–2 px kalınlık, genişliğin %20'sinden uzun) mumlara değince
+   onları tek dev parçaya bağlıyor ve o mumlar atılıyordu (QM 02 USDCHF'de
+   formasyonun 1/3'ü kayıptı). Böyle bir çizginin yalnızca İNCE kısmı silinir:
+   pikselin üstü ve altı aynı renk değilse (mum gövdesinin içi değilse). */
+function removeLongLines(data){
+  const {mask,width,height}=data;
+  const minRun=Math.max(40,Math.round(width*.20));
+  for(let y=0;y<height;y++){
+    let x=0;
+    while(x<width){
+      const t=mask[y*width+x];
+      if(!t){x++;continue;}
+      let e=x;while(e+1<width&&mask[y*width+e+1]===t)e++;
+      if(e-x+1>=minRun){
+        for(let k=x;k<=e;k++){
+          const up=y>1&&mask[(y-1)*width+k]===t&&mask[(y-2)*width+k]===t;
+          const dn=y<height-2&&mask[(y+1)*width+k]===t&&mask[(y+2)*width+k]===t;
+          if(!(up||dn))mask[y*width+k]=0;
+        }
+      }
+      x=e+1;
+    }
+  }
+}
+
 /* 2 Kasım: KÖPRÜ AYIRMA. Merdiven gibi dizilen aynı renk iki mum, aralarındaki
    1 px boşluk bulanınca tek bir satırla (köprü) birleşir. splitWick bu köprüyü
    "gövde", iki uzun gövdeyi "fitil" sanıp ikisini de atıyordu (QM 01 Nora:
@@ -2309,10 +2355,21 @@ function removeAlignedNoise(items,data){
       b.flat&&
       Math.abs(b.c.minY-a.c.minY)<=2&&
       Math.abs(b.c.maxY-a.c.maxY)<=2
-    );
-    if(row.length>=4){
-      row.forEach(b=>noise.add(b.c));
+    ).sort((p,q)=>p.c.minX-q.c.minX);
+    /* 2 Kasım: yalnızca YAN YANA dizilmiş olanlar (yazı harfleri, kesikli çizgi).
+       Grafiğin farklı yerlerinde tesadüfen aynı hizadaki küçük mumlar silinmesin
+       (QM 02'de yatay bölgedeki küçük mumlar bu yüzden kayboluyordu). */
+    let chain=[];
+    const flush=()=>{if(chain.length>=4)chain.forEach(b=>noise.add(b.c));chain=[];};
+    for(const b of row){
+      const prev=chain[chain.length-1];
+      const gapMax=prev?Math.max(10,4*Math.max(prev.c.width,b.c.width)):0;
+      if(prev&&b.c.minX-prev.c.maxX>gapMax)flush();
+      chain.push(b);
     }
+    flush();
+    /* başlık / alt bilgi şeridindeki renkli yazılar: eski kural (hizalı ≥4) */
+    if(row.length>=4&&a.c.maxY<data.height*.10)row.forEach(b=>noise.add(b.c));
   }
 
   return items.filter(c=>!noise.has(c));
@@ -2489,6 +2546,7 @@ function candleFromBody(body,data){
 function detectCandles(canvas){
 
   const data=buildColorMask(canvas);
+  removeLongLines(data);
 
   let bodies=
     bodyCandidates(data);
@@ -4413,7 +4471,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="2Kas-06:20";
+const HZ_SURUM="2Kas-07:00";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4761,65 +4819,63 @@ hzNext.addEventListener("click",()=>{
 });
 /* 2 Kasım (kullanıcı isteği): SAHTE MUM temiz çizimde seçilir — orada kolay görünür.
    Temiz çizim + altta numaralar; dokunulan mum sarı işaretlenir. */
+/* 2 Kasım (kullanıcı kuralı): ORİJİNAL FOTOĞRAFA KESİMDEN BAŞKA DOKUNULMAZ.
+   Görsel büyütülmez/küçültülmez/daraltılmaz; yalnızca kesimin sağı atılır.
+   Sahte mum seçimi ve kanallar bu kırpılmış orijinalin ÜSTÜNDE gösterilir.
+   (Temiz çizim yalnızca arka planda, Tara'nın karşılaştırma verisi için.) */
+function hzOrig(){
+  const C=hz.clean,M=hz.map;
+  const F=C.idx.map(i=>hz.raw[i]);
+  const Fo=F.map(m=>({x:M.x(m.x),top:M.y(m.top),bottom:M.y(m.bottom),
+    bodyTop:M.y(m.bodyTop),bodyBottom:M.y(m.bodyBottom),direction:m.direction}));
+  const kept=hzKeptIdx(),nxt=kept.find(i=>i>C.idx[C.idx.length-1]);
+  const last=F[F.length-1];
+  const pitchO=Fo.length>1?(Fo[Fo.length-1].x-Fo[0].x)/(Fo.length-1):20;
+  let cutX=nxt!=null?(M.x(last.right)+M.x(hz.raw[nxt].left))/2:M.x(last.right)+pitchO*.6;
+  cutX=Math.max(2,Math.min(hz.img.width,Math.round(cutX)));
+  const crop=document.createElement("canvas");crop.width=cutX;crop.height=hz.img.height;
+  crop.getContext("2d").drawImage(hz.img,0,0,cutX,hz.img.height,0,0,cutX,hz.img.height);
+  return{Fo,crop,pitchO};
+}
 function hzS3Show(){
   const C=hz.clean;if(!C)return;
-  const n=C.raw.length,W=TARGET_W,H=TARGET_H,PX=30,band=26,dpr=2;
-  const pitch=(W-2*PX)/n;
-  /* 2 Kasım (kullanıcı: "her adımda resim değişiyor"): üstte ORİJİNAL fotoğrafın
-     kesilen kısmı, temiz çizimle AYNI ölçek ve hizada (ilk/son mum ortaları ve
-     formasyonun en üst/en alt noktası eşleştirilir). Altta temiz çizim + numaralar. */
-  const GAP=18,OY=GAP,CY=GAP+H+GAP;
-  const d=document.createElement("canvas");d.width=W*dpr;d.height=(CY+H+band)*dpr;
+  const O=hzOrig();C.orig=O;
+  const n=O.Fo.length,W=O.crop.width,H=O.crop.height;
+  const fs=Math.max(11,Math.round(W/38)),band=Math.round(fs*2.6);
+  const d=document.createElement("canvas");d.width=W;d.height=H+band;
   d.style.width="100%";d.style.display="block";
-  const x=d.getContext("2d");x.scale(dpr,dpr);
-  x.fillStyle="#fff";x.fillRect(0,0,W,CY+H+band);
-  try{
-    const M=hz.map,F=C.idx.map(i=>hz.raw[i]),PY=22;
-    const xf=M.x(F[0].x),xl=M.x(F[F.length-1].x);
-    let t=Infinity,b=-Infinity;F.forEach(m=>{t=Math.min(t,M.y(m.top));b=Math.max(b,M.y(m.bottom));});
-    const c0=PX+pitch*.5,c1=W-PX-pitch*.5;
-    const kx=n>1&&xl>xf?(c1-c0)/(xl-xf):1,ky=(H-2*PY)/Math.max(1,b-t);
-    x.save();x.beginPath();x.rect(0,OY,W,H);x.clip();
-    x.drawImage(hz.img,c0-xf*kx,OY+PY-t*ky,hz.img.width*kx,hz.img.height*ky);
-    x.restore();
-  }catch(e){console.error(e);}
-  x.font="bold 11px sans-serif";x.textAlign="left";x.fillStyle="#374151";
-  x.fillText("ORİJİNAL (kesilen kısım)",4,12);x.fillText("TEMİZ ÇİZİM (kütüphaneye girecek)",4,CY-5);
-  x.strokeStyle="#d1d5db";x.strokeRect(.5,OY+.5,W-1,H-1);
-  x.drawImage(C.canvas,0,CY);
-  x.fillStyle="#f3f4f6";x.fillRect(0,CY+H,W,band);
-  const step=pitch>=9?1:pitch>=5?2:5;
-  x.font="bold 9px sans-serif";x.textAlign="center";
+  const x=d.getContext("2d");
+  x.drawImage(O.crop,0,0);
+  x.fillStyle="#f3f4f6";x.fillRect(0,H,W,band);
+  /* numaralar üst üste binmesin: iki sıra, yazı genişliğine göre seyreltme */
+  const need=fs*1.4/Math.max(1,O.pitchO);
+  const step=need<=2?1:need<=4?2:need<=10?5:10;
+  x.font="bold "+fs+"px sans-serif";x.textAlign="center";
   for(let i=0;i<n;i++){
-    const cx=PX+pitch*(i+.5),sel=hz.s3sel.has(i);
-    /* ince kılavuz: üstteki orijinal mum ↔ alttaki temiz mum */
-    x.strokeStyle=sel?"#f59e0b":"rgba(0,0,0,.07)";x.lineWidth=sel?2:1;
-    x.beginPath();x.moveTo(cx,OY);x.lineTo(cx,CY+H);x.stroke();
-    if(sel){x.fillStyle="rgba(253,230,138,.35)";x.fillRect(cx-pitch/2+.5,OY,pitch-1,CY+H-OY);}
+    const cx=O.Fo[i].x,sel=hz.s3sel.has(i);
+    if(sel){x.fillStyle="rgba(250,204,21,.35)";x.fillRect(cx-O.pitchO/2,0,O.pitchO,H);
+      x.strokeStyle="#f59e0b";x.lineWidth=Math.max(2,W/300);x.strokeRect(cx-O.pitchO/2,0,O.pitchO,H);}
     if(sel||(i+1)%step===0||i===0||i===n-1){
-      x.textAlign="center";x.font="bold 9px sans-serif";
-      x.fillStyle=sel?"#b45309":"#1d4ed8";x.fillText(String(i+1),cx,CY+H+(i%2?22:12));}
+      x.fillStyle=sel?"#b45309":"#1d4ed8";x.fillText(String(i+1),cx,H+(i%2?band*.9:band*.45));}
   }
-  d.style.cursor="pointer";d.style.touchAction="manipulation";
-  /* iPhone'da dokunuş: pointerup (click bazen gelmiyor); kaydırma ise sayılmaz */
+  d.style.touchAction="manipulation";
   let px0=0,py0=0;
   d.addEventListener("pointerdown",ev=>{px0=ev.clientX;py0=ev.clientY;});
   d.addEventListener("pointerup",ev=>{
     if(Math.abs(ev.clientX-px0)>10||Math.abs(ev.clientY-py0)>10)return;
-    const r=d.getBoundingClientRect();
-    const xi=(ev.clientX-r.left)/r.width*W;
-    const i=Math.floor((xi-PX)/pitch);
-    if(i<0||i>=n)return;
-    if(hz.s3sel.has(i))hz.s3sel.delete(i);else hz.s3sel.add(i);
+    const r=d.getBoundingClientRect(),xi=(ev.clientX-r.left)/r.width*W;
+    let best=-1,bd=Infinity;O.Fo.forEach((m,i)=>{const dd=Math.abs(m.x-xi);if(dd<bd){bd=dd;best=i;}});
+    if(best<0||bd>O.pitchO*.8)return;
+    if(hz.s3sel.has(best))hz.s3sel.delete(best);else hz.s3sel.add(best);
     hzS3Show();
   });
   hzS3View.innerHTML="";hzS3View.appendChild(d);
   hzS3Del.disabled=!hz.s3sel.size;
   hzS3Del.style.opacity=hz.s3sel.size?"1":".45";
-  hzS3Help.innerHTML=hz.s3sel.size
-    ?"🟨 Seçili: <b>"+[...hz.s3sel].sort((a,b)=>a-b).map(i=>i+1).join(", ")+"</b> → \"Sil ve Yeniden Çiz\"e bas. (Tekrar dokunursan seçim kalkar.)"
-    :"✂️ Sahte mum var mı? Temiz çizimde sahte olan mumlara dokun (sarı olur), sonra \"Sil ve Yeniden Çiz\". Yoksa doğrudan Adım 4'e geç.";
   hzS3Del.textContent="🗑️ Sil ve Yeniden Çiz"+(hz.s3sel.size?" ("+hz.s3sel.size+")":"");
+  hzS3Help.innerHTML=hz.s3sel.size
+    ?"🟨 Seçili: <b>"+[...hz.s3sel].sort((a,b)=>a-b).map(i=>i+1).join(", ")+"</b> → \"Sil\"e bas. (Tekrar dokunursan seçim kalkar.)"
+    :"✂️ Orijinal fotoğraf (yalnızca kesimin sağı atıldı). Sahte mum varsa numarasına/sütununa dokun (sarı olur), sonra \"Sil\". Yoksa Adım 4'e geç.";
   hzS3Undo.disabled=!hz.removed.size;
 }
 hzS3Del.addEventListener("click",()=>{
@@ -4946,49 +5002,50 @@ function hz4Render(){
   /* kaydedilecek veri: formasyonun kendi temiz çiziminin okumasından (R0) */
   const R0=hz4.R0.length===nF?hz4.R0:R;
   hz.clean.channels=hz4Segs(R0).map(c=>({mumlar:[c.a+1,c.b],tur:names[c.dir],egim:+c.s.toFixed(4),kesisim:+c.k.toFixed(2),ust:+c.ust.toFixed(2),alt:+c.alt.toFixed(2),pay:.2}));
-  /* çizim */
-  let top=0,bot=show.height;
-  out.forEach(c=>[c.x0-4,c.x1+4].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-6);bot=Math.max(bot,c.s*x+c.k+c.alt+6);}));
-  const k=2,band=26,cv=document.createElement("canvas");
-  cv.width=show.width*k;cv.height=Math.ceil((bot-top)*k)+band*k;
+  /* çizim: ORİJİNAL fotoğraf (kesimin sağı atılmış), kanallar orijinal koordinatlarda */
+  const O=hz.clean.orig||hzOrig();hz.clean.orig=O;
+  const Fo=O.Fo,outO=hz4Segs(Fo),W=O.crop.width,Hh=O.crop.height;
+  outO.forEach(c=>{c.over=[];Fo.slice(c.a,c.b).forEach((m,j)=>{const y=c.s*m.x+c.k;
+    const o=Math.max(y+c.ust-m.top,m.bottom-(y+c.alt),0);
+    if(o>0)c.over.push({no:c.a+j+1,pct:Math.round(100*o/(c.alt-c.ust)),ust:y+c.ust-m.top>0});});});
+  out.splice(0,out.length,...outO);
+  hz.clean.chOrj=outO.map(c=>({tur:names[c.dir],s:c.s,k:c.k,ust:c.ust,alt:c.alt,x0:c.x0,x1:c.x1}));
+  let top=0,bot=Hh;
+  out.forEach(c=>[c.x0-O.pitchO,c.x1+O.pitchO].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-6);bot=Math.max(bot,c.s*x+c.k+c.alt+6);}));
+  top=Math.floor(top);bot=Math.ceil(bot);
+  const fs=Math.max(11,Math.round(W/38)),band=Math.round(fs*2.4),lw=Math.max(2,W/220);
+  const cv=document.createElement("canvas");cv.width=W;cv.height=(bot-top)+band;
   const ctx=cv.getContext("2d");
   ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
-  ctx.drawImage(show,0,-top*k,show.width*k,show.height*k);
-  const CH=Math.ceil((bot-top)*k);
-  if(dv.length&&RA.length>nF){
-    const xc=(RA[nF-1].x+RA[nF].x)/2*k;
-    ctx.fillStyle="rgba(255,215,0,.35)";ctx.fillRect(xc,0,cv.width-xc,CH);
-    ctx.strokeStyle="#dc2626";ctx.lineWidth=2;ctx.setLineDash([7,5]);
-    ctx.beginPath();ctx.moveTo(xc,0);ctx.lineTo(xc,CH);ctx.stroke();ctx.setLineDash([]);
-  }
-  ctx.lineWidth=2.5;ctx.setLineDash([9,6]);
-  out.forEach(c=>{ctx.strokeStyle=cols[c.dir];const X0=c.x0-4,X1=c.x1+4;
+  ctx.drawImage(O.crop,0,-top);
+  const CH=bot-top;
+  ctx.lineWidth=lw;ctx.setLineDash([lw*4,lw*2.5]);
+  out.forEach(c=>{ctx.strokeStyle=cols[c.dir];const X0=c.x0-O.pitchO*.6,X1=c.x1+O.pitchO*.6;
     [c.ust,c.alt].forEach(off=>{ctx.beginPath();
-      ctx.moveTo(X0*k,(c.s*X0+c.k+off-top)*k);ctx.lineTo(X1*k,(c.s*X1+c.k+off-top)*k);ctx.stroke();});});
+      ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
   ctx.setLineDash([]);
-  out.forEach(c=>c.over.forEach(o=>{const m=R[o.no-1];
-    ctx.strokeStyle="#f97316";ctx.lineWidth=3;ctx.beginPath();
-    ctx.arc(m.x*k,((o.ust?m.top:m.bottom)-top)*k,9,0,Math.PI*2);ctx.stroke();}));
-  /* alt şerit: mum numaraları (dokun → buradan yeni kanal) */
-  ctx.fillStyle="#f3f4f6";ctx.fillRect(0,CH,cv.width,band*k);
-  ctx.font="bold "+(10*k)+"px sans-serif";ctx.textAlign="center";
-  R.forEach((m,i)=>{
+  out.forEach(c=>c.over.forEach(o=>{const m=Fo[o.no-1];
+    ctx.strokeStyle="#f97316";ctx.lineWidth=lw*1.2;ctx.beginPath();
+    ctx.arc(m.x,(o.ust?m.top:m.bottom)-top,Math.max(6,O.pitchO*.8),0,Math.PI*2);ctx.stroke();}));
+  ctx.fillStyle="#f3f4f6";ctx.fillRect(0,CH,cv.width,band);
+  ctx.font="bold "+fs+"px sans-serif";ctx.textAlign="center";
+  const need=fs*1.6/Math.max(1,O.pitchO),stp=need<=1?1:need<=2?2:need<=5?5:10;
+  Fo.forEach((m,i)=>{
     const isB=hz4.bounds.includes(i)&&i>0;
     const seg=out.find(c=>i>=c.a&&i<c.b);
     ctx.fillStyle=isB?cols[seg.dir]:"#6b7280";
-    if(i%2===0||isB)ctx.fillText(String(i+1),m.x*k,CH+(isB?18:16)*k);
-    if(isB){ctx.strokeStyle=cols[seg.dir];ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m.x*k-6*k/2,0);ctx.lineTo(m.x*k-6*k/2,CH);ctx.stroke();}
+    if((i+1)%stp===0||i===0||isB)ctx.fillText(String(i+1),m.x,CH+band*.7);
+    if(isB){ctx.strokeStyle=cols[seg.dir];ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(m.x-O.pitchO/2,0);ctx.lineTo(m.x-O.pitchO/2,CH);ctx.stroke();}
   });
   cv.style.width="100%";cv.style.display="block";
   cv.addEventListener("click",ev=>{
     const r=cv.getBoundingClientRect();
-    const x=(ev.clientX-r.left)*(cv.width/r.width)/k;
-    let best=-1,bd=Infinity;R.forEach((m,i)=>{const d=Math.abs(m.x-x);if(d<bd){bd=d;best=i;}});
-    if(best<=0||best>=R.length)return;
+    const x=(ev.clientX-r.left)*(cv.width/r.width);
+    let best=-1,bd=Infinity;Fo.forEach((m,i)=>{const d=Math.abs(m.x-x);if(d<bd){bd=d;best=i;}});
+    if(best<=0||best>=Fo.length)return;
     if(hz4.bounds.includes(best))return;
-    /* her kanal en az 2 mum */
     const B=[...hz4.bounds,best].sort((a,b)=>a-b);
-    const lens=B.map((b,i)=>(i+1<B.length?B[i+1]:R.length)-b);
+    const lens=B.map((b,i)=>(i+1<B.length?B[i+1]:Fo.length)-b);
     if(lens.some(l=>l<2)){$hz("hz4Hint").textContent="Kanal en az 2 mum olmalı; biraz daha ileri/geri bir mum seç.";return;}
     hz4.bounds=B;hz4Render();
   });
@@ -4996,7 +5053,7 @@ function hz4Render(){
   const tot=out.reduce((a,c)=>a+c.over.length,0);
   const kept=hzKeptIdx(),lastNo=kept.length,cutNo=kept.indexOf(hz.cut)+1;
   info.innerHTML="📏 "+out.length+" kanal • %20 sınırını aşan fitil: "+tot+
-    (dv.length?"<br><span style='color:#fde68a'>⚠️ Kesim ("+cutNo+") son mum ("+lastNo+") değil: sağda "+dv.length+" mum var (sarı) → formasyona girmez, devam olarak kaydedilir.</span>":"");
+    (dv.length?"<br><span style='color:#93c5fd'>ℹ️ Kesimin sağındaki "+dv.length+" mum görselden atıldı; yalnızca tahmin için veri olarak saklanır.</span>":"");
   list.innerHTML="<div id='hz4Hint' style='color:#fde68a;font-weight:700;margin-bottom:4px'>✏️ Düzeltme: grafikte bir muma dokun → o mumdan YENİ KANAL başlar. Birleştirmek için ⤴.</div>"+
     out.map((c,n)=>"<div style='margin-top:4px'><span style='color:"+cols[c.dir]+";font-weight:800'>"+(n+1)+". "+names[c.dir]+"</span> (mum "+(c.a+1)+"–"+c.b+")"+
       (c.over.length?" • taşma: "+c.over.map(o=>o.no+": %"+o.pct).join(", "):" • taşma yok")+
@@ -5031,6 +5088,19 @@ $hz("hz4Btn").addEventListener("click",()=>{
    Telefondaki kişisel kütüphaneye (localStorage) eklenir; depoya/siteye
    GİRMEZ. Kaydedilen: temiz görsel (Tara bunu okur), mum sayısı,
    kanallar (%20), devam mumları (öngörülecek kısım). */
+/* kütüphane kartı için ORİJİNAL kırpık görsel + kanallar (görsel boyutu korunur;
+   yalnızca telefon hafızası için 900 px üstü genişlikte orantılı küçültülür) */
+function hzOrjKayit(C){
+  try{
+    const O=C.orig;if(!O)return{};
+    const f=Math.min(1,900/O.crop.width);
+    const c=document.createElement("canvas");c.width=Math.round(O.crop.width*f);c.height=Math.round(O.crop.height*f);
+    c.getContext("2d").drawImage(O.crop,0,0,c.width,c.height);
+    return{orijinal:c.toDataURL("image/jpeg",.88),
+      kanallarOrj:(C.chOrj||[]).map(k=>({tur:k.tur,s:k.s,k:k.k*f,ust:k.ust*f,alt:k.alt*f,x0:k.x0*f,x1:k.x1*f})),
+      orjPitch:O.pitchO*f};
+  }catch(e){console.error(e);return{};}
+}
 $hz("hzSave").addEventListener("click",()=>{
   const C=hz.clean,si=$hz("hzSaveInfo");
   if(!C||!C.channels){si.textContent="Önce Adım 4'ü çalıştır.";return;}
@@ -5041,7 +5111,8 @@ $hz("hzSave").addEventListener("click",()=>{
   references.push({
     name,
     src:C.canvas.toDataURL("image/png"),
-    hazir:{mum:C.raw.length,kanallar:C.channels,devam:strip(C.devam),tahmin:hzTahmin(C.raw,C.devam),tarih:new Date().toISOString()}
+    hazir:{mum:C.raw.length,kanallar:C.channels,devam:strip(C.devam),tahmin:hzTahmin(C.raw,C.devam),tarih:new Date().toISOString(),
+      ...hzOrjKayit(C)}
   });
   try{saveReferences();}catch(e){references.pop();si.textContent="Kaydedilemedi (telefon hafızası dolu olabilir): "+(e&&e.message||e);return;}
   referenceCache.clear();renderReferences();
