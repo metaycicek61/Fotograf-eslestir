@@ -796,7 +796,7 @@ function setNameEl(el,name){
   el.classList.add(y==="LO"?"nameLO":"nameSH");
 }
 
-function refPreview(ref){
+function refPreview(ref,mod){
   let img=document.createElement("img");
     img.src=ref.src;
     /* 2 Kasım: Hazırla'dan gelen formasyonda %20 kanallar kartta da çizilir
@@ -819,7 +819,7 @@ function refPreview(ref){
         K.forEach(c=>{ctx.strokeStyle=cols[c.tur]||"#2563eb";const X0=c.x0-p*.6,X1=c.x1+p*.6;
           [c.ust,c.alt].forEach(off=>{ctx.beginPath();ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
       };
-      im.src=Hz.orijinal;
+      im.src=(mod!=="orijinal"&&Hz.temizOrj)?Hz.temizOrj:Hz.orijinal;
       img=cv;
     }else if(Hz&&Hz.kanallar&&Hz.kanallar.length){
       const K=ref.hazir.kanallar,n=ref.hazir.mum||1,PAD=40,k=2;
@@ -4503,7 +4503,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-02:20";
+const HZ_SURUM="3Kas-02:35";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4859,7 +4859,8 @@ function hzOrig(){
   const C=hz.clean,M=hz.map;
   const F=C.idx.map(i=>hz.raw[i]);
   const Fo=F.map(m=>({x:M.x(m.x),top:M.y(m.top),bottom:M.y(m.bottom),
-    bodyTop:M.y(m.bodyTop),bodyBottom:M.y(m.bodyBottom),direction:m.direction}));
+    bodyTop:M.y(m.bodyTop),bodyBottom:M.y(m.bodyBottom),direction:m.direction,
+    left:M.x(m.left!=null?m.left:m.x-2),right:M.x(m.right!=null?m.right:m.x+2)}));
   const kept=hzKeptIdx(),nxt=kept.find(i=>i>C.idx[C.idx.length-1]);
   const last=F[F.length-1];
   const pitchO=Fo.length>1?(Fo[Fo.length-1].x-Fo[0].x)/(Fo.length-1):20;
@@ -4867,7 +4868,35 @@ function hzOrig(){
   cutX=Math.max(2,Math.min(hz.img.width,Math.round(cutX)));
   const crop=document.createElement("canvas");crop.width=cutX;crop.height=hz.img.height;
   crop.getContext("2d").drawImage(hz.img,0,0,cutX,hz.img.height,0,0,cutX,hz.img.height);
-  return{Fo,crop,pitchO};
+  return{Fo,crop,pitchO,temiz:hzTemizOrj(Fo,crop,pitchO)};
+}
+/* 3 Kasım KURAL (kullanıcı): orijinal mum dizimi ve sırası bozulmadan temizlenir.
+   Aynı boyutta beyaz zemin; her mum ORİJİNALDEKİ yerinde, aynı genişlik/yükseklikte
+   ve orijinalden alınan rengiyle yeniden çizilir. Ok, yuvarlak, çizgi, yazı, eksen
+   gibi her şey düşer. Ölçek/kayma/sıra değişmez; sahte diye silinen mumlar girmez. */
+function hzTemizOrj(Fo,crop,pitchO){
+  const W=crop.width,H=crop.height,c=document.createElement("canvas");c.width=W;c.height=H;
+  const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);
+  let D=null;try{D=crop.getContext("2d").getImageData(0,0,W,H).data;}catch(e){}
+  const renk=m=>{
+    const def=m.direction==="up"||m.direction===1||m.direction==="bull"?[38,166,154]:[239,83,80];
+    if(!D)return"rgb("+def+")";
+    const x0=Math.max(0,Math.round(m.left)),x1=Math.min(W-1,Math.round(m.right));
+    const y0=Math.max(0,Math.round(Math.min(m.bodyTop,m.bodyBottom))),y1=Math.min(H-1,Math.round(Math.max(m.bodyTop,m.bodyBottom)));
+    let best=-1,rgb=null;
+    for(let yy=y0;yy<=y1;yy+=Math.max(1,(y1-y0)>>3))for(let xx=x0;xx<=x1;xx++){
+      const i=(yy*W+xx)*4,r=D[i],g=D[i+1],b=D[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+      const sat=mx-mn+(255-mx)*.3;if(sat>best){best=sat;rgb=[r,g,b];}}
+    return"rgb("+(best>40&&rgb?rgb:def)+")";
+  };
+  const lw=Math.max(1,Math.round(Math.min(pitchO*.12,(W/400)+1)));
+  Fo.forEach(m=>{
+    const col=renk(m);x.fillStyle=col;
+    x.fillRect(Math.round(m.x-lw/2),Math.round(m.top),lw,Math.max(1,Math.round(m.bottom-m.top)));
+    const bt=Math.min(m.bodyTop,m.bodyBottom),bb=Math.max(m.bodyTop,m.bodyBottom);
+    x.fillRect(Math.round(m.left),Math.round(bt),Math.max(1,Math.round(m.right-m.left)),Math.max(1,Math.round(bb-bt)));
+  });
+  return c;
 }
 function hzS3Show(){
   const C=hz.clean;if(!C)return;
@@ -5049,7 +5078,7 @@ function hz4Render(){
   const cv=document.createElement("canvas");cv.width=W;cv.height=(bot-top)+band;
   const ctx=cv.getContext("2d");
   ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
-  ctx.drawImage(O.crop,0,-top);
+  ctx.drawImage(O.temiz||O.crop,0,-top);
   const CH=bot-top;
   ctx.lineWidth=lw;ctx.setLineDash([lw*4,lw*2.5]);
   out.forEach(c=>{ctx.strokeStyle=cols[c.dir];const X0=c.x0-O.pitchO*.6,X1=c.x1+O.pitchO*.6;
@@ -5128,7 +5157,10 @@ function hzOrjKayit(C){
     const f=Math.min(1,900/O.crop.width);
     const c=document.createElement("canvas");c.width=Math.round(O.crop.width*f);c.height=Math.round(O.crop.height*f);
     c.getContext("2d").drawImage(O.crop,0,0,c.width,c.height);
-    return{orijinal:c.toDataURL("image/jpeg",.88),
+    let temiz=null;
+    if(O.temiz){const t=document.createElement("canvas");t.width=c.width;t.height=c.height;
+      t.getContext("2d").drawImage(O.temiz,0,0,t.width,t.height);temiz=t.toDataURL("image/png");}
+    return{orijinal:c.toDataURL("image/jpeg",.88),temizOrj:temiz,
       kanallarOrj:(C.chOrj||[]).map(k=>({tur:k.tur,s:k.s,k:k.k*f,ust:k.ust*f,alt:k.alt*f,x0:k.x0*f,x1:k.x1*f})),
       orjPitch:O.pitchO*f};
   }catch(e){console.error(e);return{};}
@@ -5258,6 +5290,7 @@ function tahminText(t){
   <div id="zoomStage" style="position:absolute;left:0;top:0;transform-origin:0 0"></div>
   <div style="position:absolute;left:0;right:0;top:0;display:flex;gap:8px;align-items:center;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;background:rgba(0,0,0,.6);color:#fff;font:14px -apple-system,sans-serif">
     <div id="zoomTitle" style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+    <button id="zoomMod" style="width:auto;margin:0;padding:8px 12px;background:#0f766e;display:none">👁 Orijinal</button>
     <button id="zoomFit" style="width:auto;margin:0;padding:8px 12px;background:#374151">Sığdır</button>
     <button id="zoomClose" style="width:auto;margin:0;padding:8px 14px;background:#dc2626">✕</button>
   </div>
@@ -5274,16 +5307,21 @@ function tahminText(t){
     tx=(innerWidth-w*sc)/2;ty=(innerHeight-h*sc)/2;apply();}
   function zoomAt(f,cx,cy){const ns=Math.max(fit*.5,Math.min(sc*f,fit*12));
     tx=cx-(cx-tx)*ns/sc;ty=cy-(cy-ty)*ns/sc;sc=ns;apply();}
-  window.openZoom=function(ref){
-    if(!ref)return;
-    el=window.refPreview(ref);el.style.width="";el.style.maxWidth="none";el.style.display="block";
+  let curRef=null,mod="temiz";const MB=document.getElementById("zoomMod");
+  MB.onclick=()=>{mod=mod==="temiz"?"orijinal":"temiz";show(false);};
+  window.openZoom=function(ref){if(!ref)return;curRef=ref;mod="temiz";show(true);};
+  function show(refit){const ref=curRef;
+    const has=!!(ref.hazir&&ref.hazir.temizOrj&&ref.hazir.orijinal);
+    MB.style.display=has?"":"none";MB.textContent=mod==="temiz"?"👁 Orijinal":"🧹 Temiz";
+    const keep={sc,tx,ty};
+    el=window.refPreview(ref,mod);el.style.width="";el.style.maxWidth="none";el.style.display="block";
     S.innerHTML="";S.appendChild(el);
     document.getElementById("zoomTitle").textContent=ref.name||"";
     V.style.display="block";document.body.style.overflow="hidden";
-    const ready=()=>{if(V.style.display==="block")doFit();};
+    const ready=()=>{if(V.style.display!=="block")return;if(refit)doFit();else{sc=keep.sc;tx=keep.tx;ty=keep.ty;apply();}};
     if(el.tagName==="IMG"){el.complete?ready():el.onload=ready;}
     else{ready();let n=0;const t=setInterval(()=>{ready();if(++n>10)clearInterval(t);},80);}
-  };
+  }
   function close(){V.style.display="none";document.body.style.overflow="";S.innerHTML="";pts.clear();}
   document.getElementById("zoomClose").onclick=close;
   document.getElementById("zoomFit").onclick=doFit;

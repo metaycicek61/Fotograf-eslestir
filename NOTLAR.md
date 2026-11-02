@@ -558,3 +558,11 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 ## 3 Kasım 02:20 — "Tüm Referansları Sil" güvenliği — sürüm 3Kas-02:20
 - Kullanıcı: düğme daha küçük olsun, silmeden önce iki ayrı onay: 1) sağda "Emin misin?" 2) solda "Onaylıyor musun?".
 - Uygulama: küçük gri düğme (ortada). Basınca "⚠️ N formasyonun tamamı silinecek" + SAĞDA "1) Emin misin?" + Vazgeç. Ona basınca sağdaki kaybolur, SOLDA "2) Onaylıyor musun?" çıkar; ancak buna basınca silinir. 8 sn işlem yapılmazsa onay kapanır. Tek formasyonun "Sil" düğmesi değişmedi.
+
+## 3 Kasım 02:35 — KURAL DEĞİŞTİ: orijinal, dizilim bozulmadan TEMİZLENİR — sürüm 3Kas-02:35
+- Kullanıcı (büyük görünümde ok/yuvarlak/zikzak duruyordu): "Orijinal mum dizimi ve sırası bozulmadan temizlenip kanallar eklensin."
+- Yeni kural (2 Kasım kuralının yerine): orijinalle AYNI boyutta beyaz zemin; her mum orijinaldeki yerinde, aynı genişlik/yükseklikte, orijinalden örneklenen rengiyle yeniden çizilir (hzTemizOrj). Ok, yuvarlak, çizgi, yazı, eksen, araç çubuğu düşer. Ölçek/kayma/sıra değişmez; Adım 3'te sahte diye silinen mumlar girmez.
+- Nerede: Adım 4 (kanallar temiz orijinal üstünde), kütüphane kartı, eşleşme listesi, büyük görünüm. Adım 3 sahte mum seçimi için ORİJİNALİ göstermeye devam ediyor.
+- Kayıt: hazir.temizOrj (PNG) eklendi; hazir.orijinal da saklanıyor. Büyük görünümde "👁 Orijinal ⇄ 🧹 Temiz" düğmesi (yakınlaştırma korunur).
+- Eski kayıtlarda temizOrj yok → orijinal gösterilir; temiz hâl için formasyonu Hazırla'dan yeniden geçirmek gerekir.
+- Tara/eşleştirme DEĞİŞMEDİ (yine arka plandaki temiz çizimi okur).
