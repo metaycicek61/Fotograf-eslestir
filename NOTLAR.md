@@ -493,3 +493,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Temiz çizimin altında numaralar var. Kesim/başlangıç mumu silinirse en yakın sağlam muma kayar.
 - Mod düğmeleri sırası: 🔴 Kesim / 🟢 Başlangıç / ✂️ Sahte Mum (orijinal görselde silme isteğe bağlı olarak duruyor).
 - Test: Nora görseli kesim 58, temizde 3 mum seç → 55 birebir, geri al → 58, Adım 4: 3 kanal.
+- 03:50 Kullanıcı kararı: 🟢 Başlangıç düğmesi KALDIRILDI (formasyonlar zaten tam hâliyle yüklenecek; mum dizilişi yüklenince görünüyor). Formasyon = ilk mum → kesim. Kullanıcının işi: kesim → (varsa) temiz çizimde sahte mum düzeltme → kanal sapma kontrolü → kaydet.

@@ -409,9 +409,8 @@ button,.fileButton{
     <option value="">📚 veya Hazır Kütüphaneden yükle (tam hâli)…</option>
   </select>
   <div id="hzInfo" style="margin-top:10px;font-size:17px;font-weight:800"></div>
-  <div id="hzModes" class="hzRow3" style="display:none">
+  <div id="hzModes" class="hzRow3" style="display:none;grid-template-columns:1fr 1fr">
     <button data-m="kes" class="hzMode on">🔴 Kesim</button>
-    <button data-m="bas" class="hzMode">🟢 Başlangıç</button>
     <button data-m="tek" class="hzMode">✂️ Sahte Mum</button>
   </div>
   <div id="hzHelp" class="small" style="margin-top:6px;font-weight:700;color:#fde68a"></div>
@@ -4604,14 +4603,14 @@ function hzRender0(){
   if(hz.cut>=0&&st>=0){
     const f=kept.filter(i=>i>=st&&i<=hz.cut).length;
     const d=kept.filter(i=>i>hz.cut).length;
-    hzCut.innerHTML=(hz.start<0?"<span style='color:#fde68a'>Başlangıç seçilmedi → ilk mum (1) alındı.</span><br>":"")+
+    hzCut.innerHTML=
       (silMode0&&hz.sel.size?"<span style='color:#fde68a'>⚠️ "+hz.sel.size+" mum sarı seçili ama SİLİNMEDİ (silmek için ✂️ moduna dön → Seçilileri Sil).</span><br>":"")+
       "📐 Formasyon: <span style='color:#4ade80'>"+num(st)+"</span> → <span style='color:#f87171'>"+num(hz.cut)+
       "</span> (kesim dahil) = <b>"+f+" mum</b>"+(f>SHOT_LIMIT_2X?" → çekimde 1x":" → çekimde 2x")+
       "<br>Devam (sarı, öngörülecek): "+d+" mum";
     hzNext.style.display="block";
   }else{
-    hzCut.innerHTML="📐 Adım 2: 🔴 Kesim mumunu seç (🟢 Başlangıç isteğe bağlı; seçilmezse ilk mum).";
+    hzCut.innerHTML="📐 Adım 2: 🔴 Kesim mumuna dokun (formasyon ilk mumdan kesime kadar).";
     hzNext.style.display="none";
   }
 }
