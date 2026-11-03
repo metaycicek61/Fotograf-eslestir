@@ -4614,7 +4614,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s17";
+const HZ_SURUM="3Kas-s18";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5242,6 +5242,35 @@ function hz4Segs(R){
   return out;
 }
 
+/* 3 Kasım ⭐ ASIL HEDEF (kullanıcı): hedef bölgesi kesim mumunun yönüne ve zaman akışına
+   bağlıdır. Kesim "hareket başı + 2 mum" yapıldığı için son 3 mum gidilecek yönü tayin eder.
+   Hedef kanalı kesimden başlar, o yönde (son 3 mumun eğimiyle) formasyon boyunun %20'si
+   kadar ileri uzar; genişliği son kanalınki kadardır. Karşılaştırmada beklenen hedef budur. */
+function hzHedef(F,segs,pitch){
+  const n=F.length;if(n<3||!segs||!segs.length)return null;
+  const lastSeg=segs[segs.length-1];
+  const op=m=>m.direction>0?m.bodyBottom:m.bodyTop,cl=m=>m.direction>0?m.bodyTop:m.bodyBottom;
+  const a=F[n-3],z=F[n-1];
+  let hareket=cl(z)-op(a);               /* + = aşağı (y aşağı büyür) */
+  const govde=Math.abs(z.bodyBottom-z.bodyTop);
+  if(Math.abs(hareket)<govde*.5)hareket=(z.direction>0?-1:1)*Math.max(govde,1);
+  const yon=hareket<0?1:-1;              /* 1 yukarı, -1 aşağı */
+  /* eğim: formasyonda bu yöne giden EN SON kanalın eğimi (formasyonun kendi dalgası);
+     yoksa son 3 mumun eğimi, kanalların ortalama dikliğiyle sınırlı */
+  const ayni=[...segs].reverse().find(g=>g.dir===yon);
+  let s;
+  if(ayni)s=ayni.s;
+  else{
+    const dx=Math.max(1,z.x-a.x);s=hareket/dx;
+    const ort=segs.reduce((t,g)=>t+Math.abs(g.s),0)/segs.length||Math.abs(s);
+    if(Math.abs(s)>ort*1.5)s=Math.sign(s)*ort*1.5;
+  }
+  const L=Math.max(1,Math.round(n*.2));
+  const x0=z.x,x1=z.x+L*pitch,y0=cl(z);
+  const gen=Math.max(1,lastSeg.alt-lastSeg.ust);
+  return{yon,mum:L,s,k:y0-s*x0,ust:-gen/2,alt:gen/2,x0,x1};
+}
+
 function hz4Render(){
   const info=$hz("hz4Info"),view=$hz("hz4View"),list=$hz("hz4List");
   const names={"-1":"İnen","0":"Yatay","1":"Yükselen"};
@@ -5265,11 +5294,18 @@ function hz4Render(){
     if(o>0)c.over.push({no:c.a+j+1,pct:Math.round(100*o/(c.alt-c.ust)),ust:y+c.ust-m.top>0});});});
   out.splice(0,out.length,...outO);
   hz.clean.chOrj=outO.map(c=>({tur:names[c.dir],s:c.s,k:c.k,ust:c.ust,alt:c.alt,x0:c.x0,x1:c.x1}));
+  const hd=hzHedef(Fo,outO,O.pitchO);
+  hz.clean.hedefOrj=hd;
+  {const R0b=hz4.R0.length===nF?hz4.R0:R,S0=hz4Segs(R0b),pt=R0b.length>1?(R0b[R0b.length-1].x-R0b[0].x)/(R0b.length-1):10;
+    const h0=hzHedef(R0b,S0,pt);
+    hz.clean.hedef=h0?{yon:h0.yon>0?"yukarı":"aşağı",mum:h0.mum,egim:+h0.s.toFixed(4),kesisim:+h0.k.toFixed(2),ust:+h0.ust.toFixed(2),alt:+h0.alt.toFixed(2),x0:h0.x0,x1:h0.x1,pay:.2}:null;}
   let top=0,bot=Hh;
   out.forEach(c=>[c.x0-O.pitchO,c.x1+O.pitchO].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-6);bot=Math.max(bot,c.s*x+c.k+c.alt+6);}));
+  if(hd)[hd.x0,hd.x1].forEach(x=>{top=Math.min(top,hd.s*x+hd.k+hd.ust-6);bot=Math.max(bot,hd.s*x+hd.k+hd.alt+6);});
   top=Math.floor(top);bot=Math.ceil(bot);
+  const Wv=hd?Math.max(W,Math.ceil(hd.x1+O.pitchO)):W;
   const fs=Math.max(11,Math.round(W/38)),band=Math.round(fs*2.4),lw=Math.max(2,W/220);
-  const cv=document.createElement("canvas");cv.width=W;cv.height=(bot-top)+band;
+  const cv=document.createElement("canvas");cv.width=Wv;cv.height=(bot-top)+band;
   const ctx=cv.getContext("2d");
   ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
   ctx.drawImage(O.temiz||O.crop,0,-top);
@@ -5278,6 +5314,16 @@ function hz4Render(){
   out.forEach(c=>{ctx.strokeStyle=cols[c.dir];const X0=c.x0-O.pitchO*.6,X1=c.x1+O.pitchO*.6;
     [c.ust,c.alt].forEach(off=>{ctx.beginPath();
       ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
+  if(hd){
+    const col=hd.yon>0?"#16a34a":"#dc2626",Y=(x,o)=>hd.s*x+hd.k+o-top;
+    ctx.setLineDash([]);ctx.fillStyle=hd.yon>0?"rgba(22,163,74,.13)":"rgba(220,38,38,.13)";
+    ctx.beginPath();ctx.moveTo(hd.x0,Y(hd.x0,hd.ust));ctx.lineTo(hd.x1,Y(hd.x1,hd.ust));
+    ctx.lineTo(hd.x1,Y(hd.x1,hd.alt));ctx.lineTo(hd.x0,Y(hd.x0,hd.alt));ctx.closePath();ctx.fill();
+    ctx.strokeStyle=col;ctx.setLineDash([lw*4,lw*2.5]);
+    [hd.ust,hd.alt].forEach(o=>{ctx.beginPath();ctx.moveTo(hd.x0,Y(hd.x0,o));ctx.lineTo(hd.x1,Y(hd.x1,o));ctx.stroke();});
+    ctx.setLineDash([]);ctx.fillStyle=col;ctx.font="bold "+Math.max(11,Math.round(W/34))+"px sans-serif";ctx.textAlign="center";
+    ctx.fillText("🎯 Hedef",(hd.x0+hd.x1)/2,Math.max(14,Math.min(bot-top-4,Y((hd.x0+hd.x1)/2,hd.yon>0?hd.ust-6:hd.alt+18))));
+  }
   ctx.setLineDash([]);
   out.forEach(c=>c.over.forEach(o=>{const m=Fo[o.no-1];
     ctx.strokeStyle="#f97316";ctx.lineWidth=lw*1.2;ctx.beginPath();
@@ -5308,6 +5354,8 @@ function hz4Render(){
   const tot=out.reduce((a,c)=>a+c.over.length,0);
   const kept=hzKeptIdx(),lastNo=kept.length,cutNo=kept.indexOf(hz.cut)+1;
   info.innerHTML="📏 "+out.length+" kanal • %20 sınırını aşan fitil: "+tot+
+    (hd?"<br><span style='color:"+(hd.yon>0?"#4ade80":"#f87171")+";font-weight:800'>🎯 Hedef: "+(hd.yon>0?"▲ yukarı":"▼ aşağı")+
+      " • kesimden "+hd.mum+" mum ileri (formasyonun %20'si), son 3 mumun yönünde</span>":"")+
     (dv.length?"<br><span style='color:#93c5fd'>ℹ️ Kesimin sağındaki "+dv.length+" mum görselden atıldı; yalnızca tahmin için veri olarak saklanır.</span>":"");
   list.innerHTML="<div id='hz4Hint' style='color:#fde68a;font-weight:700;margin-bottom:4px'>✏️ Düzeltme: grafikte bir muma dokun → o mumdan YENİ KANAL başlar. Birleştirmek için ⤴.</div>"+
     out.map((c,n)=>"<div style='margin-top:4px'><span style='color:"+cols[c.dir]+";font-weight:800'>"+(n+1)+". "+names[c.dir]+"</span> (mum "+(c.a+1)+"–"+c.b+")"+
@@ -5360,6 +5408,7 @@ function hzOrjKayit(C){
       t.getContext("2d").drawImage(O.temiz,0,0,t.width,t.height);temiz=t.toDataURL("image/png");}
     return{orijinal:c.toDataURL("image/jpeg",.88),temizOrj:temiz,
       kanallarOrj:(C.chOrj||[]).map(k=>({tur:k.tur,s:k.s,k:k.k*f,ust:k.ust*f,alt:k.alt*f,x0:k.x0*f,x1:k.x1*f})),
+      hedefOrj:C.hedefOrj?{yon:C.hedefOrj.yon,mum:C.hedefOrj.mum,s:C.hedefOrj.s,k:C.hedefOrj.k*f,ust:C.hedefOrj.ust*f,alt:C.hedefOrj.alt*f,x0:C.hedefOrj.x0*f,x1:C.hedefOrj.x1*f}:null,
       orjPitch:O.pitchO*f};
   }catch(e){console.error(e);return{};}
 }
@@ -5373,7 +5422,7 @@ $hz("hzSave").addEventListener("click",()=>{
   references.push({
     name,
     src:C.canvas.toDataURL("image/png"),
-    hazir:{mum:C.raw.length,kanallar:C.channels,devam:strip(C.devam),tahmin:hzTahmin(C.raw,C.devam),tarih:new Date().toISOString(),
+    hazir:{mum:C.raw.length,kanallar:C.channels,hedef:C.hedef||null,devam:strip(C.devam),tahmin:hzTahmin(C.raw,C.devam),tarih:new Date().toISOString(),
       ...hzOrjKayit(C)}
   });
   try{saveReferences();}catch(e){references.pop();si.textContent="Kaydedilemedi (telefon hafızası dolu olabilir): "+(e&&e.message||e);return;}
