@@ -4622,7 +4622,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s19";
+const HZ_SURUM="3Kas-s20";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5093,7 +5093,9 @@ function hzS3Show(){
   const rows3=Math.max(2,Math.min(5,Math.ceil(nW3/Math.max(.5,pc0)))),rowH3=fs+5,band=10+rows3*rowH3;
   const d=document.createElement("canvas");
   d.width=Math.round(cssW*dpr);d.height=Math.round((cssH+band)*dpr);
-  d.style.width=cssW+"px";d.style.height=(cssH+band)+"px";d.style.maxWidth="none";d.style.display="block";
+  /* 3 Kasım (s20): kutu genişliğine tam oturur (gizliyken ölçülen genişlik telefondan geniş
+     çıkıp sağdaki son mumları ekran dışına itiyordu → "kesim bozuldu" görünüyordu) */
+  d.style.width="100%";d.style.height="auto";d.style.maxWidth="100%";d.style.display="block";
   const x=d.getContext("2d");x.scale(dpr,dpr);
   x.imageSmoothingQuality="high";
   /* 3 Kasım: Adım 3 TEMİZ hâli gösterir (aynı yer/ölçek); "👁 Orijinal" ile kontrol */
