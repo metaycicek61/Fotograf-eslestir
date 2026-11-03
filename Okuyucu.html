@@ -811,14 +811,21 @@ function refPreview(ref,mod){
         const K=Hz.kanallarOrj||[],p=Hz.orjPitch||8;
         let top=0,bot=im.height;
         K.forEach(c=>[c.x0,c.x1].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-4);bot=Math.max(bot,c.s*x+c.k+c.alt+4);}));
+        const hd=Hz.hedefOrj;
+        if(hd)[hd.x0,hd.x1].forEach(x=>{top=Math.min(top,hd.s*x+hd.k+hd.ust-4);bot=Math.max(bot,hd.s*x+hd.k+hd.alt+4);});
         top=Math.floor(top);bot=Math.ceil(bot);
-        cv.width=im.width;cv.height=bot-top;
+        cv.width=hd?Math.max(im.width,Math.ceil(hd.x1+p)):im.width;cv.height=bot-top;
         const ctx=cv.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);
         ctx.drawImage(im,0,-top);
         const cols={"İnen":"#c026d3","Yatay":"#d97706","Yükselen":"#2563eb"},lw=Math.max(2,im.width/220);
         ctx.lineWidth=lw;ctx.setLineDash([lw*4,lw*2.5]);
         K.forEach(c=>{ctx.strokeStyle=cols[c.tur]||"#2563eb";const X0=c.x0-p*.6,X1=c.x1+p*.6;
           [c.ust,c.alt].forEach(off=>{ctx.beginPath();ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
+        if(hd){const Y=(x,o)=>hd.s*x+hd.k+o-top,col=hd.yon>0?"#16a34a":"#dc2626";
+          ctx.setLineDash([]);ctx.fillStyle=hd.yon>0?"rgba(22,163,74,.13)":"rgba(220,38,38,.13)";
+          ctx.beginPath();ctx.moveTo(hd.x0,Y(hd.x0,hd.ust));ctx.lineTo(hd.x1,Y(hd.x1,hd.ust));ctx.lineTo(hd.x1,Y(hd.x1,hd.alt));ctx.lineTo(hd.x0,Y(hd.x0,hd.alt));ctx.closePath();ctx.fill();
+          ctx.strokeStyle=col;ctx.setLineDash([lw*4,lw*2.5]);
+          [hd.ust,hd.alt].forEach(o=>{ctx.beginPath();ctx.moveTo(hd.x0,Y(hd.x0,o));ctx.lineTo(hd.x1,Y(hd.x1,o));ctx.stroke();});}
       };
       im.src=(mod!=="orijinal"&&Hz.temizOrj)?Hz.temizOrj:Hz.orijinal;
       img=cv;
@@ -4167,7 +4174,7 @@ function renderResults(results){
   if(hepsiElendi){
     bestName.textContent="Eşleşme yok";
     bestScore.textContent="—";
-    bestDetail.innerHTML="Tüm formasyonlar %20 kanal kuralıyla elendi: grafiğin son mumları hiçbir formasyonun kanallarına uymuyor. En yakın: "+best.name+
+    bestDetail.innerHTML="Tüm formasyonlar elendi (%20 kanal ya da hedef yönü): grafiğin son mumları hiçbir formasyonun kanallarına veya hedef yönüne uymuyor. En yakın: "+best.name+
       (best.k20&&!best.k20.az?" ("+best.k20.ic+"/"+best.k20.n+" mum içeride)":"")+".";
   }
 
@@ -4177,8 +4184,9 @@ function renderResults(results){
 
   bestDetail.innerHTML=
     (best.k20?(best.k20.az?"%20 kanal: <b>az mum ("+best.k20.var+"/"+best.k20.n+")</b><br>"
-      :"%20 kanal: <b>"+best.k20.ic+"/"+best.k20.n+" mum içeride "+(best.k20.elendi?"❌ elendi":"✅")+"</b> • Hareket uyumu: <b>"+pct(best.k20.hareket)+"%</b>"+
+      :"%20 kanal: <b>"+best.k20.ic+"/"+best.k20.n+" mum içeride "+(best.k20.kanalElendi?"❌ elendi":"✅")+"</b> • Hareket uyumu: <b>"+pct(best.k20.hareket)+"%</b>"+
         (best.k20.otomatik?" <i>(kanallar otomatik)</i>":"")+"<br>"+
+        (best.k20.hedef?"<b>"+hedefText(best.k20)+"</b><br>":"")+
         (best.k20.elendi?"":(best.k20.tahmin?"<b>"+tahminText(best.k20.tahmin)+"</b><br>":"🔮 Tahmin yok (bu formasyonda devam kısmı kaydedilmemiş)<br>"))):"")+
     "Kanal: <b>"+
     pct(best.channelScore||0)+
@@ -4240,8 +4248,8 @@ function renderResults(results){
 
     detail.textContent=
       (result.k20?(result.k20.az?"%20 kanal: az mum ("+result.k20.var+"/"+result.k20.n+") • "
-        :(result.k20.elendi?"❌ ELENDİ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • "
-          :"✅ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • hareket "+pct(result.k20.hareket)+"% • "))+(result.k20.otomatik?"(kanal otomatik) ":""):"")+
+        :(result.k20.elendi?(result.k20.kanalElendi?"❌ ELENDİ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • ":"❌ ELENDİ yön ters • ")
+          :"✅ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • hareket "+pct(result.k20.hareket)+"% • "+(result.k20.hedef?"🎯 "+(result.k20.hedef.yon>0?"▲":"▼")+" • ":"")))+(result.k20.otomatik?"(kanal otomatik) ":""):"")+
       "Kanal "+
       pct(result.channelScore||0)+
       "% • Mum "+
@@ -4614,7 +4622,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s18";
+const HZ_SURUM="3Kas-s19";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5246,15 +5254,21 @@ function hz4Segs(R){
    bağlıdır. Kesim "hareket başı + 2 mum" yapıldığı için son 3 mum gidilecek yönü tayin eder.
    Hedef kanalı kesimden başlar, o yönde (son 3 mumun eğimiyle) formasyon boyunun %20'si
    kadar ileri uzar; genişliği son kanalınki kadardır. Karşılaştırmada beklenen hedef budur. */
-function hzHedef(F,segs,pitch){
-  const n=F.length;if(n<3||!segs||!segs.length)return null;
-  const lastSeg=segs[segs.length-1];
+/* son 3 mumun yönü (1 yukarı, -1 aşağı): kesim de kamera da aynı ölçütle */
+function sonYon(F){
+  const n=F.length;if(n<3)return null;
   const op=m=>m.direction>0?m.bodyBottom:m.bodyTop,cl=m=>m.direction>0?m.bodyTop:m.bodyBottom;
   const a=F[n-3],z=F[n-1];
   let hareket=cl(z)-op(a);               /* + = aşağı (y aşağı büyür) */
   const govde=Math.abs(z.bodyBottom-z.bodyTop);
   if(Math.abs(hareket)<govde*.5)hareket=(z.direction>0?-1:1)*Math.max(govde,1);
-  const yon=hareket<0?1:-1;              /* 1 yukarı, -1 aşağı */
+  return{yon:hareket<0?1:-1,hareket,a,z};
+}
+function hzHedef(F,segs,pitch){
+  const n=F.length;if(n<3||!segs||!segs.length)return null;
+  const lastSeg=segs[segs.length-1];
+  const cl=m=>m.direction>0?m.bodyTop:m.bodyBottom;
+  const SY=sonYon(F),yon=SY.yon,hareket=SY.hareket,a=SY.a,z=SY.z;
   /* eğim: formasyonda bu yöne giden EN SON kanalın eğimi (formasyonun kendi dalgası);
      yoksa son 3 mumun eğimi, kanalların ortalama dikliğiyle sınırlı */
   const ayni=[...segs].reverse().find(g=>g.dir===yon);
@@ -5520,9 +5534,24 @@ function kanal20Kontrol(detected,ref,prepared){
   }
   const oran=ic/n,hareket=ht?ha/ht:0;
   const skor=clamp(.6*oran+.4*hareket);
-  return{n,ic,oran,hareket,skor,elendi:oran<KANAL20_ESIK,otomatik:!!H.otomatik,tahmin:H.tahmin};
+  /* 3 Kasım ⭐ ASIL HEDEF: grafiğin son 3 mumu formasyonun hedef yönüyle aynı yöne gitmeli
+     (zaman akışı kesimden devam eder). Ters yöndeyse formasyon elenir. */
+  let hedef=null,yonUyum=true,kamYon=null;
+  if(H.hedef){
+    const hy=H.hedef.yon==="yukarı"?1:-1;
+    const k=sonYon(win);kamYon=k?k.yon:null;
+    yonUyum=kamYon===null||kamYon===hy;
+    hedef={yon:hy,mum:H.hedef.mum};
+  }
+  return{n,ic,oran,hareket,skor,elendi:oran<KANAL20_ESIK||!yonUyum,kanalElendi:oran<KANAL20_ESIK,yonUyum,kamYon,hedef,otomatik:!!H.otomatik,tahmin:H.tahmin};
 }
 
+function hedefText(k){
+  if(!k||!k.hedef)return "";
+  const y=v=>v>0?"▲ yukarı":"▼ aşağı";
+  return k.yonUyum?"🎯 Hedef: "+y(k.hedef.yon)+" • sonraki "+k.hedef.mum+" mum (son mumların yönü uyuyor)"
+    :"❌ Yön ters: grafiğin son mumları "+y(k.kamYon)+", formasyonun hedefi "+y(k.hedef.yon);
+}
 function tahminText(t){
   if(!t)return "";
   const ad={"▲":"yükseliş","▼":"düşüş","◆":"yatay"}[t.yon];
