@@ -659,3 +659,11 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - s28 (kullanıcı: "kanallar tepe/dipte kesişiyor ve uzuyor; görselde kesişme olmasın; %20 pay yeter, uzama payı genişletiyor"). Yedek: dal `yedek-s27-dal`.
   Kanal çizgileri yalnızca kendi mumları üzerinde (±0,45 mum; eskiden ±0,6 → komşu kanalla kesişiyordu). Hedef alanı son kanal çizgisinin bittiği yerden başlar. "En az %15 genişlik" kuralı kaldırıldı: kanal = en uç fitiller + %20 pay (hem görüntü hem karşılaştırma).
   Kontrol: 4 formasyonda kanal bölümleri aynı; yalnızca BTC 1s 44–48 kanalı daraldı (49→35, %15 kuralı yalnız orada devredeydi). Kendi grafiğiyle eşleşme 55/55, 55/55, 61/61, 63/63; aynı grafiğin başka bölümleri 0 geçiş (eleme seçici).
+
+## ▶️ YARIN (4 Kasım) — buradan başla
+1. Sayfayı ?v=28 ile aç, başlık altında "sürüm 3Kas-s28" olduğunu doğrula.
+2. Kütüphaneyi sil, 5 formasyonu yeniden yükle (BTC 5dk'yı 10:00–16:00 arası kırp). Her biri için çizim benzerlik skorunu değerlendir (önceki ort. ~%88).
+3. Hata çıkarsa düzelt (her değişiklikten önce yedek dalı, 2 kez kontrol).
+4. Binance denemesi: Binance'ten çekilen resimle karşılaştırma → eşleşme oranı = ilk analiz sonucu.
+- Bekleyen soru: siteye tek şifreyle (PIN) giriş. Seçenekler: basit PIN ekranı (kolay, ama depo herkese açıksa kod okunabilir; kütüphane zaten yalnızca telefonda) / gerçek koruma için Cloudflare Access vb. Kullanıcının kararı bekleniyor.
+- Açık küçük hata: Adım 4 numara şeridinde sınır numaraları üst üste biniyor.
