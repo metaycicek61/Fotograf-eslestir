@@ -678,7 +678,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 
 ## 📋 YAPILACAKLAR — sıra (3 Kasım 21:34, kullanıcı)
 1. Kamera testi + Binance testi (karşılaştırma ve eşleşme oranı).
-2. ⏭️ BU TESTLERDEN SONRA İLK KONTROL: kütüphane görsellerinde MUM BİRLEŞMESİ.
+2. ⏭️ BU TESTLERDEN SONRA İLK KONTROL: kütüphane görsellerinde MUM BİRLEŞMESİ. (Kullanıcı 21:35: "kütüphane için şimdilik büyük sorun değil" — düşük öncelik.)
    - Neden (bulundu): site resmi 502 px'e küçültüyor; sık mumlu görsellerde (~110+ mum) gövde 2 px, boşluk 0–1 px. Ayırma kodu (splitWideBodies) yalnızca gövde ≥3 px (merdiven bölme ≥4 px) iken çalışıyor → devreye girmiyor. Örnek: kesim ekranında 83, 84, 88, 90, 93 kutuları 2 mum.
    - Kullanıcı kararı: Binance/kamera okuması ve karşılaştırması yeterliyse, kütüphane görselleri için KAMERA OKUMASI DEĞİŞTİRİLMEYECEK (kütüphane düzenlemesi bir kez yapılır, kamera okuması sürekli kullanılır). O zaman çözüm kütüphane tarafında: görseli ~80–90 muma kırpmak.
    - Kamera da yetersiz kalırsa: sık mumda daha yüksek çözünürlükte okuma düşünülür (yedek + 2 kez kontrol, kullanıcının orijinal görseliyle test).
