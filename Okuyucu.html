@@ -334,7 +334,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s29</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s30</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -401,7 +401,7 @@ button,.fileButton{
      Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
-  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s29)</span></h2>
+  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s30)</span></h2>
   <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
@@ -3994,7 +3994,7 @@ function lineFit(xs,ys,a,b){
   return{s,k,e};
 }
 
-/* s29 (kullanıcı: "kanallar çok yukarıda/aşağıda, kesişiyor"): kanal çizgisi kendi
+/* s30 (kullanıcı: "s28 kalsın, yalnız çizgilerin boyu kısalsın, kesişmesin"): kanal çizgisi kendi
    mumlarının en üst/en alt fitilinden %20 paydan daha ileri gitmez — dik kanalda
    çizgi bu sınıra gelince kesilir. c.yUst/c.yAlt yoksa (eski kayıt) çizgi tam çizilir. */
 function kanalUc(c,off,X0,X1){
@@ -4087,32 +4087,6 @@ function findChannels(raw){
     for(let i=1;i<segs.length;i++){
       if(segs[i].dir!==0&&segs[i].dir===segs[i-1].dir){
         segs.splice(i-1,2,mk([segs[i-1].a,segs[i].b]));ch=true;break;}
-    }
-  }
-  /* s29 (kullanıcı: "kanallar hâlâ çok yukarıda/aşağıda, kesişiyor"): tek düz kanala
-     sığmayan bölüm (ör. sert düşüş + yatay taban) çok geniş kanal veriyordu.
-     Kanalın fitil genişliği formasyon yüksekliğinin %35'ini aşarsa, kapladığı alanı
-     en az %20 azaltan en iyi yerden ikiye bölünür (iniş → yatay → çıkış). Yalnızca biri eğimli (iniş/çıkış), diğeri
-     YATAY ise bölünür; aynı yöndeki parçalar tek kanal kalır (eğilme olmaz). */
-  const yon=g=>{const r=-g.s*(g.b-1-g.a)/rng;return Math.abs(r)<.12?0:(r>0?1:-1);};
-  /* parçalardan biri eğimli, diğeri YATAY olmalı (her iki ölçütle) */
-  const farkli=(A,B)=>(A.dir===0)!==(B.dir===0)&&(yon(A)===0)!==(yon(B)===0)&&(A.dir||B.dir)===(yon(A)||yon(B));
-  for(let ch=true,say=0;ch&&say<8;say++){
-    ch=false;
-    for(let i=0;i<segs.length;i++){
-      const g=segs[i],w=g.lo-g.up;
-      if(w<=rng*.35||g.b-g.a<6)continue;
-      let iyi=null;
-      for(let t=g.a+3;t<=g.b-3;t++){
-        const A=mk([g.a,t]),B=mk([t,g.b]);
-        if(!farkli(A,B))continue;
-        /* yeni yatay parça komşu yatay kanalın yanına düşmesin (yatay+yatay olmaz) */
-        if((A.dir===0&&i>0&&segs[i-1].dir===0)||(B.dir===0&&i+1<segs.length&&segs[i+1].dir===0))continue;
-        /* kanalın kapladığı alan (genişlik × mum sayısı) */
-        const m=(A.lo-A.up)*(A.b-A.a)+(B.lo-B.up)*(B.b-B.a);
-        if(!iyi||m<iyi.m)iyi={m,A,B};
-      }
-      if(iyi&&iyi.m<w*(g.b-g.a)*.8){segs.splice(i,1,iyi.A,iyi.B);ch=true;break;}
     }
   }
   return{segs,top,rng,n};
@@ -4680,7 +4654,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s29";
+const HZ_SURUM="3Kas-s30";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam

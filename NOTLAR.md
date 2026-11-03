@@ -668,8 +668,6 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Bekleyen (en sona): siteye giriş koruması. Kullanıcı PIN değiştirmede Gmail onayı istiyor. Seçenekler: (1) PIN + Firebase e-posta onayı, (2) Cloudflare Access — her girişte Gmail'e kod, PIN gereksiz, gerçek koruma (önerilen). Kütüphane + Binance testi bittikten sonra karar verilecek. Eski not: Seçenekler: basit PIN ekranı (kolay, ama depo herkese açıksa kod okunabilir; kütüphane zaten yalnızca telefonda) / gerçek koruma için Cloudflare Access vb. Kullanıcının kararı bekleniyor.
 - Açık küçük hata: Adım 4 numara şeridinde sınır numaraları üst üste biniyor.
 
-- s29 (kullanıcı: "kanallar hâlâ çok yukarıda/aşağıda, kesişmesin ve yükselmesin"). Yedek: dal `yedek-s28-dal`.
-  Neden: sert düşüş + yatay taban gibi tek düz kanala sığmayan bölümler eğik ve çok geniş kanal veriyordu; dik kanalda çizgi uçları mumların çok üstüne/altına uzuyordu.
-  1) Geniş kanal bölme: kanal fitil genişliği formasyon yüksekliğinin %35'ini aşarsa, kapladığı alanı en az %20 azaltan yerden ikiye bölünür — yalnızca biri eğimli, diğeri YATAY ise (iniş → yatay → çıkış). Aynı yön birleşik kalır; yatay+yatay yan yana oluşmaz. (findChannels → kamera/Tara ve kütüphane ortak.)
-  2) Çizgi kırpma: kanal çizgisi kendi mumlarının en üst/en alt fitilinden %20 paydan ileri gitmez (kanalUc/kanalCizgi). Adım 4 ve kütüphane kartında. %20 kuralı ve taşma hesabı DEĞİŞMEDİ.
-  Kontrol (ekran görüntüsünden okunan 55 mum): 23–39 İnen → 25–34 İnen + 35–41 Yatay; 45–55 İnen → 47–50 İnen + 51–55 Yatay; çizgiler mum alanında kalıyor, kesişme yok. Eski kayıtlar (yUst/yAlt yok) kırpılmadan çizilir → formasyonlar yeniden kaydedilmeli.
+- s29 (kanalları iniş+yatay diye bölme + çizgi kırpma) denendi; kullanıcı beğenmedi: "s28 daha sade ve görsel, karşılaştırma için avantajlı; s29 karmaşık". Bölme GERİ ALINDI.
+- s30 (kullanıcı: "s28'e dön, yalnızca kanal çizgileri üst üste kesişmesin diye boylarını kısalt"). Yedek: dal `yedek-s28-dal` (s28'in tam hâli).
+  Kanal bölümleri, eğimler, %20 pay, taşma hesabı, karşılaştırma s28 ile AYNI. Tek fark çizim: kanal çizgisi kendi mumlarının en üst/en alt fitilinden %20 paydan ileri gitmez, dik kanalda o sınırda kesilir (kanalUc/kanalCizgi; Adım 4 ve kütüphane kartı). Eski kayıtlar (yUst/yAlt yok) kırpılmadan çizilir → formasyonlar yeniden kaydedilmeli.
