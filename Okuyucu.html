@@ -4027,7 +4027,9 @@ function findChannels(raw){
   for(let j=n;j>0;j=prev[j])cuts.push([prev[j],j]);
   cuts.reverse();
 
-  const segs=cuts.map(([a,b])=>{
+  /* 3 Kasım (s17, kullanıcı: "eğilme olmasın"): aynı yöne giden ardışık iki kanal
+     (İnen+İnen, Yükselen+Yükselen) tek düz kanalda birleştirilir; kırık çizgi olmaz. */
+  const mk=([a,b])=>{
     const f=lineFit(xs,ys,a,b);
     let up=Infinity,lo=-Infinity;
     for(let i=a;i<b;i++){
@@ -4039,7 +4041,15 @@ function findChannels(raw){
     const rise=-f.s*(b-a)/rng;
     const dir=Math.abs(rise)<.18?0:(rise>0?1:-1);
     return{a,b,s:f.s,k:f.k,up,lo,rise,dir};
-  });
+  };
+  let segs=cuts.map(mk);
+  for(let ch=true;ch;){
+    ch=false;
+    for(let i=1;i<segs.length;i++){
+      if(segs[i].dir!==0&&segs[i].dir===segs[i-1].dir){
+        segs.splice(i-1,2,mk([segs[i-1].a,segs[i].b]));ch=true;break;}
+    }
+  }
   return{segs,top,rng,n};
 }
 
@@ -4604,7 +4614,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s16";
+const HZ_SURUM="3Kas-s17";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5213,10 +5223,14 @@ function hzEnv(R,a,b){
   const P=R.slice(a,b);
   const xs=P.map(c=>c.x),ys=P.map(c=>(c.bodyTop+c.bodyBottom)/2);
   const f=P.length>1?lineFit(xs,ys,0,P.length):{s:0,k:ys[0]};
+  /* 3 Kasım (s17, kullanıcı: "mesafeli olsun, son mumlara bitişik olmasın"):
+     kanal çizgileri en tepedeki ve en dipteki mumun FİTİL ucundan + %20 pay */
   let up=Infinity,dn=-Infinity;
-  P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.bodyTop-m);dn=Math.max(dn,c.bodyBottom-m);});
-  const w=Math.max(1,dn-up);
+  P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.top-m);dn=Math.max(dn,c.bottom-m);});
   let top=Infinity,bot=-Infinity;R.forEach(c=>{top=Math.min(top,c.top);bot=Math.max(bot,c.bottom);});
+  /* kanal en az formasyon yüksekliğinin %15'i genişliğinde (dik kanallar mumlara yapışmasın) */
+  {const wm=.15*Math.max(1,bot-top),ek=Math.max(0,wm-(dn-up))/2;up-=ek;dn+=ek;}
+  const w=Math.max(1,dn-up);
   const rise=-f.s*(xs[xs.length-1]-xs[0])/Math.max(1,bot-top);
   const dir=Math.abs(rise)<.12?0:(rise>0?1:-1);
   return{a,b,s:f.s,k:f.k,ust:up-.2*w,alt:dn+.2*w,dir,x0:xs[0],x1:xs[xs.length-1]};
@@ -5319,6 +5333,10 @@ $hz("hz4Btn").addEventListener("click",()=>{
   const ch=findChannels(hz4.R);
   if(!ch){$hz("hz4Info").textContent="Kanal bulunamadı (en az 4 mum gerekir).";$hz("hz4View").innerHTML="";$hz("hz4List").innerHTML="";return;}
   hz4.sug=ch.segs.map(g=>g.a);
+  /* ekranda da aynı yöne giden ardışık kanallar birleşir (eğilme yok) */
+  for(let k=true;k;){k=false;hz4.bounds=hz4.sug;
+    const S=hz4Segs(hz4.R);
+    for(let i=1;i<S.length;i++)if(S[i].dir!==0&&S[i].dir===S[i-1].dir){hz4.sug=hz4.sug.filter((x,j)=>j!==i);k=true;break;}}
   hz4.bounds=hz4.sug.slice();
   hz4Render();
   if(!$hz("hzAd").value)$hz("hzAd").value="QM "+(()=>{const d=new Date(),z=n=>String(n).padStart(2,"0");return z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes());})();
@@ -5385,7 +5403,8 @@ function hzKanallar(R){
     const xs=P.map(c=>c.x),ys=P.map(c=>(c.bodyTop+c.bodyBottom)/2);
     const f=lineFit(xs,ys,0,P.length);
     let up=Infinity,dn=-Infinity;
-    P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.bodyTop-m);dn=Math.max(dn,c.bodyBottom-m);});
+    P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.top-m);dn=Math.max(dn,c.bottom-m);});
+    {const wm=.15*ch.rng,ek=Math.max(0,wm-(dn-up))/2;up-=ek;dn+=ek;}
     const w=Math.max(1,dn-up);
     return{mumlar:[g.a+1,g.b],tur:names[g.dir],egim:f.s,kesisim:f.k,ust:up-.2*w,alt:dn+.2*w,pay:.2};
   });
