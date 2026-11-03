@@ -622,3 +622,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 1. Diğer formasyonları kütüphaneye ekle (yön sorusu → kesim → kanallar + hedef → kaydet); hata çıkarsa düzelt.
 2. Hepsi hatasız yüklenince: Binance'ten çekilen orijinal resmi kütüphaneye ekle, sitenin onu bulup karşılaştırmasını dene.
 3. Bu eşleşme oranı = ilk analiz yeteneği sonucu.
+
+## Kontrol edilecek (3 Kasım) — temizlik: koyu kırmızı zikzak çizgisi
+- BTC/USD 1h QM (TradingFinder, Head and Shoulders) görselinde orijinaldeki KOYU KIRMIZI zikzak çizgisi mum rengine benzediği için temizlikte tamamen silinmedi; ilk tepenin yanında ve dipte ince kahverengi çizgi parçaları kaldı. Çizim benzerliği ~%85.
+- Olası çözüm: koyu/kahverengi kırmızı (düşük parlaklık) pikselleri mum kırmızısından ayırmak; mum sütununun dışındaki çapraz ince çizgileri almamak.
+- Çizim benzerlik oranları: GBPUSD QMR (LO) ~%90, USDCHF QM (SH) ~%92, BTC/USD QM (SH) ~%85.
