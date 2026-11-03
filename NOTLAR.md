@@ -635,3 +635,12 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Kural: mum pikseli, mumun kendi renginin zemine doğru tonları üstünde olmalı (renk uzaklığı < 48); zikzak/gösterge çizgileri (koyu kırmızı, saf yeşil) farklı tonda → alınmaz. Gövde satırlarında yalnızca gövde genişliği (+1 px). Fitil dik olmalı (aynı sütunda üst/alt komşu). İnce gövdeli mumlar için görselin genel mum rengi de kabul.
   Kontrol 1 (görsel, 5 formasyon): BTC 1s/5dk koyu kırmızı ve WTI yeşil zikzak parçaları büyük ölçüde gitti; gövdeler bozulmadı (ilk denemede küçük gövde ve doji kayboluyordu, düzeltildi; eşik 32/24 gövdeleri boşaltıyordu, 48 seçildi).
   Kontrol 2 (tam akış, 5 formasyon + 7 kütüphane + 2 Binance testi): mum sayısı, kanallar, hedef yönü 14/14 AYNI; kütüphane ve Binance temiz görselinde piksel farkı %0, Binance fotoğrafında %-2 (görsel olarak aynı); zikzaklı görsellerde %-0,1…-4,6 (silinen = zikzak).
+
+## ▶️ KALDIĞIMIZ YER (3 Kasım 05:00) — buradan devam
+- Site sürümü: 3Kas-s25. Geri dönüş yedeği: dal `yedek-s24-dal` (zikzak düzeltmesinden önceki hâl).
+- Kütüphanede 5 formasyon var (GBPUSD QMR LO, USDCHF QM SH, BTC/USD 1s QM SH, BTC/USDT 5dk QM SH, WTI 1s QM LO); çizim benzerliği ort. ~%88.
+- SIRADAKİ ADIMLAR:
+  1. s25 temizliğini telefonda kontrol et (BTC ve WTI'de zikzak parçaları gitti mi).
+  2. Beğenilirse 5 formasyonu yeniden kaydet (kartlardaki temiz görüntü kayıt anından geliyor).
+  3. Binance'ten çekilen orijinal resmi kütüphaneye ekle → sitenin bulup karşılaştırmasını dene → eşleşme oranı = ilk analiz sonucu.
+- Bekleyen / sonraya: kesim önerisi kullanıcının kesiminden 1–2 mum erken (öneri olduğu gibi kalacak); hedef alanının yüksekliği gerçekleşen hareketten kısa (ileride devam mumlarıyla ölçülecek); dip/taban kanalı = profesyonel aşama.
