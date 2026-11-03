@@ -651,3 +651,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 2. Kutular gövdeden büyük (WTI kesim ekranı): bazı kutular fitili de kapsıyor, bir doji (+) kutusuz. Aynı düşük çözünürlük etkisi; kanallar fitil ucuna göre çizildiği için eşleştirmeye etkisi küçük.
 3. BTC 5dk temiz çizimde tepenin solunda koyu kırmızı zikzak parçası hâlâ var (s25 açık tonlu kenar piksellerini tam ayıklamıyor; mum birleşmesiyle de ilişkili olabilir).
 4. Adım 4 numara şeridinde kanal sınırı numaraları normal numaraların üstüne biniyor ("1920", "4041", "2323"). Yalnızca görüntü.
+- s27 NET TEMİZLİK (yalnızca temizlik; okuma/kamera/kanallar DEĞİŞMEDİ). Yedek: dal `yedek-s26-dal`.
+  Mumun yeri ve boyu orijinal piksellerden (gövde, gövde genişliğinin %60'ı dolu satırlar boyunca; çizgi kesikleri atlanır), rengi grafiğin tam mum rengiyle DÜZ boyanır: gövde dolu dikdörtgen, fitil tek renk çizgi. Renkli kutu altındaki soluk mumlar net çıkar. Rengi grafiğin mum renginden çok farklı "mum" (zikzak/gösterge çizgisi) çizilmez. Okumada birleşmiş yan yana gövdeler boş sütundan ayrı çizilir.
+  Kontrol 1 (görsel): GBPUSD pembe kutu altı mumlar net; BTC 1s/WTI zikzak parçaları gitti; USDCHF, Binance fotoğrafı, LO_09, SH_01 orijinalle aynı ve net.
+  Kontrol 2 (tam akış, 14 görsel): mum sayısı, kanallar, hedef 14/14 AYNI.
+  Kalan (okuma kaynaklı, temizlik değil): BTC 1s'te zikzak üstünde sahte bir kırmızı "mum" okunuyor (temizlikte çizilmiyor ama veride var; yanındaki küçük yeşil mum yerine geçmiş); BTC 5dk birleşme → kırpma kararı.
