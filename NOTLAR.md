@@ -673,3 +673,5 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Kanal bölümleri, eğimler, %20 pay, taşma hesabı, karşılaştırma s28 ile AYNI. Tek fark çizim: kanal çizgisi kendi mumlarının en üst/en alt fitilinden %20 paydan ileri gitmez, dik kanalda o sınırda kesilir (kanalUc/kanalCizgi; Adım 4 ve kütüphane kartı). Eski kayıtlar (yUst/yAlt yok) kırpılmadan çizilir → formasyonlar yeniden kaydedilmeli.
 - s30 telefonda onaylandı (3 Kasım 21:14): "şimdilik süper, karşılaştırma yapınca daha net değerlendirilecek". Kanal çizimi bu hâliyle kalıyor.
 - SIRADAKİ: kalan formasyonları s30 ile yeniden kaydet → Binance resmiyle karşılaştırma → eşleşme oranı = ilk analiz sonucu.
+- s31 (kullanıcı: "aynı paralelde uzanan üst/alt kanal çizgileri aynı boyda olmalı"; seçenekler: ikisi uzun / ikisi kısa / ORTALAMA → ortalama seçildi). Yedek: dal `yedek-s30-dal`.
+  Her kanalda üst ve alt çizginin s30 kırpma uçları hesaplanır, ortalaması alınır; iki çizgi de bu ortak aralıkta çizilir. Kanallar, %20, karşılaştırma DEĞİŞMEDİ (yalnız çizim).

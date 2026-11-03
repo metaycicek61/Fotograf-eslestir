@@ -334,7 +334,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s30</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s31</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -401,7 +401,7 @@ button,.fileButton{
      Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
-  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s30)</span></h2>
+  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s31)</span></h2>
   <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
@@ -3997,9 +3997,8 @@ function lineFit(xs,ys,a,b){
 /* s30 (kullanıcı: "s28 kalsın, yalnız çizgilerin boyu kısalsın, kesişmesin"): kanal çizgisi kendi
    mumlarının en üst/en alt fitilinden %20 paydan daha ileri gitmez — dik kanalda
    çizgi bu sınıra gelince kesilir. c.yUst/c.yAlt yoksa (eski kayıt) çizgi tam çizilir. */
-function kanalUc(c,off,X0,X1){
+function kanalUcTek(c,off,X0,X1){
   let a=X0,b=X1;
-  if(c.yUst==null||c.yAlt==null||Math.abs(c.s)<1e-9)return[a,b];
   const y=x=>c.s*x+c.k+off;
   for(const L of [c.yUst,c.yAlt]){
     const xl=(L-c.k-off)/c.s;
@@ -4008,6 +4007,13 @@ function kanalUc(c,off,X0,X1){
     if(disari(a))a=xl;else if(disari(b))b=xl;
   }
   return[a,b];
+}
+/* s31 (kullanıcı: "aynı paraleldeki üst ve alt çizgi aynı boyda olmalı", seçim: ORTALAMA boy):
+   üst ve alt çizginin kırpılmış uçlarının ortalaması alınır; ikisi de bu ortak aralıkta çizilir. */
+function kanalUc(c,off,X0,X1){
+  if(c.yUst==null||c.yAlt==null||Math.abs(c.s)<1e-9)return[X0,X1];
+  const u=kanalUcTek(c,c.ust,X0,X1),d=kanalUcTek(c,c.alt,X0,X1);
+  return[(u[0]+d[0])/2,(u[1]+d[1])/2];
 }
 function kanalCizgi(ctx,c,off,X0,X1,top){
   const[a,b]=kanalUc(c,off,X0,X1);if(b<=a)return;
@@ -4654,7 +4660,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s30";
+const HZ_SURUM="3Kas-s31";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
