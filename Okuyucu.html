@@ -4633,7 +4633,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s23";
+const HZ_SURUM="3Kas-s24";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5438,9 +5438,15 @@ $hz("hz4Btn").addEventListener("click",()=>{
   if(!ch){$hz("hz4Info").textContent="Kanal bulunamadı (en az 4 mum gerekir).";$hz("hz4View").innerHTML="";$hz("hz4List").innerHTML="";return;}
   hz4.sug=ch.segs.map(g=>g.a);
   /* ekranda da aynı yöne giden ardışık kanallar birleşir (eğilme yok) */
+  /* s24: ekranda çizilen (orijinal koordinatlı) kanallara göre de birleştir — ikisi farklı yön verebiliyordu */
+  if(!hz.clean.orig)hz.clean.orig=hzOrig();
+  const Fo4=hz.clean.orig.Fo;
   for(let k=true;k;){k=false;hz4.bounds=hz4.sug;
-    const S=hz4Segs(hz4.R);
-    for(let i=1;i<S.length;i++)if(S[i].dir!==0&&S[i].dir===S[i-1].dir){hz4.sug=hz4.sug.filter((x,j)=>j!==i);k=true;break;}}
+    const S=hz4Segs(hz4.R),So=Fo4.length===hz4.R.length?hz4Segs(Fo4):S;
+    for(let i=1;i<S.length;i++){
+      const ayni=(A,j)=>A[j]&&A[j-1]&&A[j].dir!==0&&A[j].dir===A[j-1].dir;
+      if(ayni(S,i)||ayni(So,i)){hz4.sug=hz4.sug.filter((x,j)=>j!==i);k=true;break;}
+    }}
   hz4.bounds=hz4.sug.slice();
   hz4Render();
   if(!$hz("hzAd").value)$hz("hzAd").value="QM "+(()=>{const d=new Date(),z=n=>String(n).padStart(2,"0");return z(d.getMonth()+1)+"-"+z(d.getDate())+" "+z(d.getHours())+":"+z(d.getMinutes());})();
