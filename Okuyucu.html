@@ -3983,16 +3983,42 @@ function findChannels(raw){
   let top=Infinity,bot=-Infinity;
   raw.forEach(c=>{top=Math.min(top,c.top);bot=Math.max(bot,c.bottom);});
   const rng=Math.max(1,bot-top);
-  const minLen=Math.max(3,Math.round(n*.12));
-  const pen=Math.pow(rng*.06,2)*n*.5;
+  /* 3 Kasım (s16, kullanıcı: "dalgalanma çok, sadece 2 kanal çizdi"): kanallar
+     DALGALARI izler. Kanal sınırları yalnızca gerçek dönüş noktalarında olabilir:
+     zikzak (formasyon yüksekliğinin %20'si kadar geri dönüş = dönüş noktası).
+     Bu noktalar arasından en iyi parçalama seçilir (düz bölgeler tek yatay kanal kalır). */
+  /* dönüş noktasındaki sınır ucuz; başka yerde (düz bölgenin başı/sonu) eski ölçüt geçerli */
+  const minLen=3,minLenEski=Math.max(3,Math.round(n*.12));
+  const pen=Math.pow(rng*.02,2)*n*.5,penEski=Math.pow(rng*.06,2)*n*.5;
+  const th=rng*.20;
+  const cand=[0];
+  {let d=0,hi=0,lo=0,ext=0;
+    for(let i=1;i<n;i++){
+      if(d===0){
+        if(ys[i]<ys[lo])lo=i;if(ys[i]>ys[hi])hi=i;
+        if(ys[hi]-ys[lo]>=th){d=lo>hi?1:-1;const f=Math.min(hi,lo);if(f>0)cand.push(f);ext=Math.max(hi,lo);}
+      }else if(d===1){
+        if(ys[i]<ys[ext])ext=i;else if(ys[i]-ys[ext]>=th){cand.push(ext);d=-1;ext=i;}
+      }else{
+        if(ys[i]>ys[ext])ext=i;else if(ys[ext]-ys[i]>=th){cand.push(ext);d=1;ext=i;}
+      }
+    }
+    if(d!==0&&ext>0&&ext<n)cand.push(ext);
+  }
+  cand.push(n);
+  const C=[...new Set(cand)].sort((a,b)=>a-b);
 
   const best=new Array(n+1).fill(Infinity);
   const prev=new Array(n+1).fill(-1);
   best[0]=0;
-  for(let j=minLen;j<=n;j++){
-    for(let i=0;i<=j-minLen;i++){
+  const isP=new Set(C);
+  for(let j=1;j<=n;j++){
+    for(let i=0;i<j;i++){
       if(best[i]===Infinity)continue;
-      const v=best[i]+lineFit(xs,ys,i,j).e+pen;
+      /* parçanın başladığı sınır gerçek bir dönüş noktasıysa ucuz */
+      const piv=i>0&&isP.has(i),kisa=piv||(j<n&&isP.has(j));
+      if(j-i<(kisa?minLen:minLenEski))continue;
+      const v=best[i]+lineFit(xs,ys,i,j).e+(piv?pen:penEski);
       if(v<best[j]){best[j]=v;prev[j]=i;}
     }
   }
@@ -4578,7 +4604,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s15";
+const HZ_SURUM="3Kas-s16";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
