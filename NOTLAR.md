@@ -645,3 +645,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   3. Binance'ten çekilen orijinal resmi kütüphaneye ekle → sitenin bulup karşılaştırmasını dene → eşleşme oranı = ilk analiz sonucu.
 - Bekleyen / sonraya: kesim önerisi kullanıcının kesiminden 1–2 mum erken (öneri olduğu gibi kalacak); hedef alanının yüksekliği gerçekleşen hareketten kısa (ileride devam mumlarıyla ölçülecek); dip/taban kanalı = profesyonel aşama.
 - s26: sürüm sayfanın en üstünde (başlığın altında, sarı) ve Formasyon Hazırla başlığında görünüyor — telefonda eski sürüm açılıp açılmadığı kolay kontrol edilsin. Kod değişikliği yok.
+
+## s26 yeniden yükleme — bulunan hatalar (3 Kasım 06:43)
+1. MUM BİRLEŞMESİ (asıl sorun, BTC/USDT 5dk): görselde ~153 mum var, site 97 okudu. Okuma görseli 502 px genişliğe küçültüyor; 153 mum için mum aralığı ~3 px → yan yana mumlar tek kutu oluyor (kesim ekranında 84, 87–90 kutuları 2 mumu kapsıyor). Diğer görseller (~100 mum) sorunsuz. Okuma kodu kamera ile ortak → çözüm kullanıcı kararı bekliyor (seçenekler: kütüphanede ~100 mumdan sık görselleri kırpmak / okuma çözünürlüğünü artırmak).
+2. Kutular gövdeden büyük (WTI kesim ekranı): bazı kutular fitili de kapsıyor, bir doji (+) kutusuz. Aynı düşük çözünürlük etkisi; kanallar fitil ucuna göre çizildiği için eşleştirmeye etkisi küçük.
+3. BTC 5dk temiz çizimde tepenin solunda koyu kırmızı zikzak parçası hâlâ var (s25 açık tonlu kenar piksellerini tam ayıklamıyor; mum birleşmesiyle de ilişkili olabilir).
+4. Adım 4 numara şeridinde kanal sınırı numaraları normal numaraların üstüne biniyor ("1920", "4041", "2323"). Yalnızca görüntü.
