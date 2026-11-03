@@ -627,4 +627,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - BTC/USD 1h QM (TradingFinder, Head and Shoulders) görselinde orijinaldeki KOYU KIRMIZI zikzak çizgisi mum rengine benzediği için temizlikte tamamen silinmedi; ilk tepenin yanında ve dipte ince kahverengi çizgi parçaları kaldı. Çizim benzerliği ~%85.
 - Olası çözüm: koyu/kahverengi kırmızı (düşük parlaklık) pikselleri mum kırmızısından ayırmak; mum sütununun dışındaki çapraz ince çizgileri almamak.
 - Not 2 (aynı sorun): BTC/USDT 5m QM (TFlab/TradingFinder, Binance) — tepenin solunda koyu kırmızı zikzak parçası kaldı; yoğun 5 dk grafikte birkaç minik mum silik. Çizim benzerliği ~%88.
-- Çizim benzerlik oranları: GBPUSD QMR (LO) ~%90, USDCHF QM (SH) ~%92, BTC/USD 1h QM (SH) ~%85, BTC/USDT 5m QM (SH) ~%88.
+- Not 3 (aynı sorun, YEŞİL): WTI 1h QM (TFlab, LO) — yeşil zikzak parçaları ilk düşüşün üstünde ve 21 Şubat tepkisinin yanında kaldı. ~%85.
+- ETKİ: kalıntılar yalnızca kütüphane GÖRÜNTÜSÜNDE (piksel kopya). Karşılaştırma mum verisinden yeniden çizilen temiz görüntüyle yapılır → kalıntı girmez. Tek risk: zikzak mumun üstünden/altından geçerse fitil uzun ölçülür → kanal (fitil ucuna göre) biraz genişler, %20 kuralı az gevşer.
+- ÇÖZÜM (tüm formasyonlar yüklendikten sonra tek seferde): mum renginde (kırmızı VE yeşil) çizilmiş çapraz ince çizgileri hem okumada hem temizlikte ayıkla. Düzeltmeden sonra formasyonlar yeniden kaydedilmeli.
+- 5 formasyon yüklendi. Çizim benzerlik oranları: GBPUSD QMR (LO) ~%90, USDCHF QM (SH) ~%92, BTC/USD 1h QM (SH) ~%85, BTC/USDT 5m QM (SH) ~%88, WTI 1h QM (LO) ~%85 → ortalama ~%88.
