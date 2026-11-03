@@ -675,3 +675,11 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - SIRADAKİ: kalan formasyonları s30 ile yeniden kaydet → Binance resmiyle karşılaştırma → eşleşme oranı = ilk analiz sonucu.
 - s31 (kullanıcı: "aynı paralelde uzanan üst/alt kanal çizgileri aynı boyda olmalı"; seçenekler: ikisi uzun / ikisi kısa / ORTALAMA → ortalama seçildi). Yedek: dal `yedek-s30-dal`.
   Her kanalda üst ve alt çizginin s30 kırpma uçları hesaplanır, ortalaması alınır; iki çizgi de bu ortak aralıkta çizilir. Kanallar, %20, karşılaştırma DEĞİŞMEDİ (yalnız çizim).
+
+## 📋 YAPILACAKLAR — sıra (3 Kasım 21:34, kullanıcı)
+1. Kamera testi + Binance testi (karşılaştırma ve eşleşme oranı).
+2. ⏭️ BU TESTLERDEN SONRA İLK KONTROL: kütüphane görsellerinde MUM BİRLEŞMESİ.
+   - Neden (bulundu): site resmi 502 px'e küçültüyor; sık mumlu görsellerde (~110+ mum) gövde 2 px, boşluk 0–1 px. Ayırma kodu (splitWideBodies) yalnızca gövde ≥3 px (merdiven bölme ≥4 px) iken çalışıyor → devreye girmiyor. Örnek: kesim ekranında 83, 84, 88, 90, 93 kutuları 2 mum.
+   - Kullanıcı kararı: Binance/kamera okuması ve karşılaştırması yeterliyse, kütüphane görselleri için KAMERA OKUMASI DEĞİŞTİRİLMEYECEK (kütüphane düzenlemesi bir kez yapılır, kamera okuması sürekli kullanılır). O zaman çözüm kütüphane tarafında: görseli ~80–90 muma kırpmak.
+   - Kamera da yetersiz kalırsa: sık mumda daha yüksek çözünürlükte okuma düşünülür (yedek + 2 kez kontrol, kullanıcının orijinal görseliyle test).
+3. Bekleyen (en sona): siteye giriş koruması (PIN + Gmail onayı / Cloudflare Access).
