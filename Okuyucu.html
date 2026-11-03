@@ -4578,7 +4578,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s14";
+const HZ_SURUM="3Kas-s15";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4966,27 +4966,72 @@ function hzOrig(){
    ve orijinalden alınan rengiyle yeniden çizilir. Ok, yuvarlak, çizgi, yazı, eksen
    gibi her şey düşer. Ölçek/kayma/sıra değişmez; sahte diye silinen mumlar girmez. */
 function hzTemizOrj(Fo,crop,pitchO){
+  /* 3 Kasım (s15, kullanıcı): temizlik mumu YENİDEN ÇİZMEZ (yeniden çizim gövdeyi
+     küçültüp fitili kısaltıyordu). Her mumun piksel(ler)i orijinalden AYNEN kopyalanır;
+     yalnızca mum dışındaki şeyler (ok, yuvarlak, yazı, çizgi) atılır. Mumun sütunu
+     komşusuyla ortadaki sınırdan ayrılır; sütunda mumun renginde, gövdeye fitil
+     boyunca bağlı pikseller alınır. Uzun yatay çizginin sütundan geçen ince kısmı alınmaz. */
   const W=crop.width,H=crop.height,c=document.createElement("canvas");c.width=W;c.height=H;
   const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);
   let D=null;try{D=crop.getContext("2d").getImageData(0,0,W,H).data;}catch(e){}
-  const renk=m=>{
-    const def=m.direction==="up"||m.direction===1||m.direction==="bull"?[38,166,154]:[239,83,80];
-    if(!D)return"rgb("+def+")";
-    const x0=Math.max(0,Math.round(m.left)),x1=Math.min(W-1,Math.round(m.right));
-    const y0=Math.max(0,Math.round(Math.min(m.bodyTop,m.bodyBottom))),y1=Math.min(H-1,Math.round(Math.max(m.bodyTop,m.bodyBottom)));
-    let best=-1,rgb=null;
-    for(let yy=y0;yy<=y1;yy+=Math.max(1,(y1-y0)>>3))for(let xx=x0;xx<=x1;xx++){
-      const i=(yy*W+xx)*4,r=D[i],g=D[i+1],b=D[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);
-      const sat=mx-mn+(255-mx)*.3;if(sat>best){best=sat;rgb=[r,g,b];}}
-    return"rgb("+(best>40&&rgb?rgb:def)+")";
+  if(!D)return c;
+  const out=x.getImageData(0,0,W,H),O=out.data;
+  /* gevşek renk sınıfı: soluk fitil pikselleri de (açık pembe / açık yeşil) */
+  const tip=(px,py)=>{
+    if(px<0||py<0||px>=W||py>=H)return 0;
+    const k=(py*W+px)*4,r=D[k],g=D[k+1],b=D[k+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),dl=mx-mn;
+    if(dl<14||mx<40)return 0;
+    let h=mx===r?60*(((g-b)/dl)%6):mx===g?60*((b-r)/dl+2):60*((r-g)/dl+4);if(h<0)h+=360;
+    const sat=dl/mx;
+    if(sat>.10&&(h<=25||h>=335))return 1;
+    if(sat>.10&&h>=85&&h<=178)return 2;
+    return 0;
   };
-  const lw=Math.max(1,Math.round(Math.max(W/300,Math.min(pitchO*.16,W/150))));
-  Fo.forEach(m=>{
-    const col=renk(m);x.fillStyle=col;
-    x.fillRect(Math.round(m.x-lw/2),Math.round(m.top),lw,Math.max(1,Math.round(m.bottom-m.top)));
-    const bt=Math.min(m.bodyTop,m.bodyBottom),bb=Math.max(m.bodyTop,m.bodyBottom);
-    x.fillRect(Math.round(m.left),Math.round(bt),Math.max(1,Math.round(m.right-m.left)),Math.max(1,Math.round(bb-bt)));
+  const xs=Fo.map(m=>m.x);
+  Fo.forEach((m,n)=>{
+    const want=m.direction>0?2:1;
+    const lb=n>0?(xs[n-1]+m.x)/2:m.x-pitchO/2,rb=n<Fo.length-1?(m.x+xs[n+1])/2:m.x+pitchO/2;
+    const a=Math.max(0,Math.ceil(Math.max(lb,m.x-pitchO*.55))),e=Math.min(W-1,Math.floor(Math.min(rb,m.x+pitchO*.55)));
+    if(e<a)return;
+    const cx=Math.round(m.x);
+    /* satır: sütunda mum renginde piksel var mı (yatay çizgi değilse) */
+    const bt=Math.round(Math.min(m.bodyTop,m.bodyBottom)),bb=Math.round(Math.max(m.bodyTop,m.bodyBottom));
+    const line=y=>tip(a-1,y)===want&&tip(e+1,y)===want&&tip(a-2,y)===want&&tip(e+2,y)===want&&
+      tip(cx,y-2)!==want&&tip(cx,y+2)!==want;
+    /* gövde satırları sütun genişliğinde; fitil satırları yalnızca orta sütunda (±1) */
+    const inBody=y=>y>=bt-1&&y<=bb+1;
+    const span=y=>inBody(y)?[a,e]:[Math.max(a,cx-1),Math.min(e,cx+1)];
+    const rowHas=y=>{if(!inBody(y)&&line(y))return false;
+      const [p,q]=span(y);for(let k=p;k<=q;k++)if(tip(k,y)===want)return true;return false;};
+    /* gövdeden yukarı/aşağı fitil boyunca büyü (2 px boşluk serbest) */
+    let top=bt,bot=bb;
+    {let gap=0;for(let y=bt-1;y>=0;y--){if(rowHas(y)){top=y;gap=0;}else if(++gap>2)break;}}
+    {let gap=0;for(let y=bb+1;y<H;y++){if(rowHas(y)){bot=y;gap=0;}else if(++gap>2)break;}}
+    for(let y=Math.max(0,top);y<=Math.min(H-1,bot);y++){
+      if(!inBody(y)&&line(y))continue;
+      const [p,q2]=span(y);
+      for(let k=p;k<=q2;k++){
+        if(tip(k,y)!==want)continue;
+        const q=(y*W+k)*4;O[q]=D[q];O[q+1]=D[q+1];O[q+2]=D[q+2];O[q+3]=255;
+      }
+    }
+    /* üstünden çizgi/yuvarlak geçen yerler: aynı sütunda yukarısı ve aşağısı mum
+       rengindeyse (4 px içinde) aradaki pikseller mumun rengiyle doldurulur */
+    for(let k=a;k<=e;k++){
+      let last=-1;
+      for(let y=Math.max(0,top);y<=Math.min(H-1,bot);y++){
+        const q=(y*W+k)*4;
+        if(O[q+3]===255&&!(O[q]===255&&O[q+1]===255&&O[q+2]===255)&&tip(k,y)===want){
+          if(last>=0&&y-last>1&&y-last<=5){
+            const s0=(last*W+k)*4;
+            for(let yy=last+1;yy<y;yy++){const t=(yy*W+k)*4;O[t]=D[s0];O[t+1]=D[s0+1];O[t+2]=D[s0+2];O[t+3]=255;}
+          }
+          last=y;
+        }
+      }
+    }
   });
+  x.putImageData(out,0,0);
   return c;
 }
 document.addEventListener("click",e=>{if(e.target&&e.target.id==="hzS3Orj"){hz.s3orj=!hz.s3orj;hzS3Show();}});
