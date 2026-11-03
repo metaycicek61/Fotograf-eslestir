@@ -334,6 +334,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s26</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -400,7 +401,7 @@ button,.fileButton{
      Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
-  <h2>🛠️ Formasyon Hazırla</h2>
+  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s26)</span></h2>
   <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
@@ -4633,7 +4634,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s25";
+const HZ_SURUM="3Kas-s26";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam

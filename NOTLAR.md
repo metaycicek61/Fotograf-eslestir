@@ -644,3 +644,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   2. Beğenilirse 5 formasyonu yeniden kaydet (kartlardaki temiz görüntü kayıt anından geliyor).
   3. Binance'ten çekilen orijinal resmi kütüphaneye ekle → sitenin bulup karşılaştırmasını dene → eşleşme oranı = ilk analiz sonucu.
 - Bekleyen / sonraya: kesim önerisi kullanıcının kesiminden 1–2 mum erken (öneri olduğu gibi kalacak); hedef alanının yüksekliği gerçekleşen hareketten kısa (ileride devam mumlarıyla ölçülecek); dip/taban kanalı = profesyonel aşama.
+- s26: sürüm sayfanın en üstünde (başlığın altında, sarı) ve Formasyon Hazırla başlığında görünüyor — telefonda eski sürüm açılıp açılmadığı kolay kontrol edilsin. Kod değişikliği yok.
