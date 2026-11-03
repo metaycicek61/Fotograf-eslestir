@@ -2706,23 +2706,35 @@ function fillGaps(candles,data,medW){
   const dx=[];for(let i=1;i<xs.length;i++)dx.push(xs[i]-xs[i-1]);
   const pitch=median(dx);
   if(!pitch||pitch<3)return candles;
-  const {mask,width,height}=data;
+  const bw=Math.max(2,Math.round(medW));
+  const {height}=data;
   const comps=[...connectedComponents(data,1),...connectedComponents(data,2)].filter(c=>
-    c.area>=4&&c.area<8+Math.round(medW)&&c.width>=2&&c.width<=Math.max(3,medW*1.4)&&
-    c.height>=2&&c.height<=Math.max(4,medW*1.5)&&c.area/(c.width*c.height)>=.5);
+    c.area>=3&&c.height<=height*.55&&c.width<=data.width*.10);
   if(!comps.length)return candles;
   const sorted=[...candles].sort((a,b)=>a.x-b.x);
   const added=[];
+  /* beklenen yerdeki gövde: dar parça → fitilden ayrılmış gövdesi; komşusuyla
+     birleşmiş geniş parça → yalnızca beklenen sütunlar */
+  const bodyAt=(c,ex)=>{
+    if(c.width<=bw*1.4)return c.height>c.width*2?splitWick(c,data):c;
+    const a=Math.max(c.minX,Math.round(ex-bw/2)),e=Math.min(c.maxX,a+bw-1);
+    return e-a+1>=2?partBody(data,c.type,a,e,c.minY,c.maxY):null;
+  };
+  const ok=b=>b&&b.width>=2&&b.area>=3&&b.area/(b.width*b.height)>=.45&&
+    (b.height>=2||b.width>=3)&&b.width<=bw*1.4;
   const tryAt=(ex,ref)=>{
     const tol=pitch*.35;
     const lo=Math.min(...ref.map(r=>r.top)),hi=Math.max(...ref.map(r=>r.bottom));
     const span=Math.max(hi-lo,height*.08);
+    if(added.some(o=>Math.abs(o.x-ex)<pitch*.6))return;
     let best=null,bd=Infinity;
     for(const c of comps){
-      const cx=(c.minX+c.maxX)/2,d=Math.abs(cx-ex);
-      if(d>tol||c.maxY<lo-span||c.minY>hi+span)continue;
-      if(sorted.some(o=>cx>=o.left-1&&cx<=o.right+1)||added.some(o=>Math.abs(o.x-cx)<pitch*.6))continue;
-      if(d<bd){bd=d;best=c;}
+      if(c.maxX<ex-tol||c.minX>ex+tol)continue;
+      const b=bodyAt(c,ex);if(!ok(b))continue;
+      const cx=(b.minX+b.maxX)/2,d=Math.abs(cx-ex);
+      if(d>tol||b.maxY<lo-span||b.minY>hi+span)continue;
+      if(sorted.some(o=>cx>=o.left-1&&cx<=o.right+1))continue;
+      if(d<bd){bd=d;best=b;}
     }
     if(best)added.push(candleFromBody(best,data));
   };
@@ -4566,7 +4578,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s13";
+const HZ_SURUM="3Kas-s14";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
