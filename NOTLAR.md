@@ -665,5 +665,5 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 2. Kütüphaneyi sil, 5 formasyonu yeniden yükle (BTC 5dk'yı 10:00–16:00 arası kırp). Her biri için çizim benzerlik skorunu değerlendir (önceki ort. ~%88).
 3. Hata çıkarsa düzelt (her değişiklikten önce yedek dalı, 2 kez kontrol).
 4. Binance denemesi: Binance'ten çekilen resimle karşılaştırma → eşleşme oranı = ilk analiz sonucu.
-- Bekleyen soru: siteye tek şifreyle (PIN) giriş. Seçenekler: basit PIN ekranı (kolay, ama depo herkese açıksa kod okunabilir; kütüphane zaten yalnızca telefonda) / gerçek koruma için Cloudflare Access vb. Kullanıcının kararı bekleniyor.
+- Bekleyen (en sona): siteye giriş koruması. Kullanıcı PIN değiştirmede Gmail onayı istiyor. Seçenekler: (1) PIN + Firebase e-posta onayı, (2) Cloudflare Access — her girişte Gmail'e kod, PIN gereksiz, gerçek koruma (önerilen). Kütüphane + Binance testi bittikten sonra karar verilecek. Eski not: Seçenekler: basit PIN ekranı (kolay, ama depo herkese açıksa kod okunabilir; kütüphane zaten yalnızca telefonda) / gerçek koruma için Cloudflare Access vb. Kullanıcının kararı bekleniyor.
 - Açık küçük hata: Adım 4 numara şeridinde sınır numaraları üst üste biniyor.
