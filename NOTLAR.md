@@ -688,3 +688,9 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Düzeltme: mum ancak gövdenin ORTANCA rengi de genel renkten uzaksa atılır. Kontrol: kullanıcının fotoğrafında tüm mumlar geri geldi; BINANCE_TEST foto/temiz + 7 kütüphane görselinde temiz çizim piksel farkı 0 (değişiklik yok). Okuma, kanallar, kamera DEĞİŞMEDİ.
   Not: kanallar (Adım 4) zaten okuma verisinden hesaplanıyordu, yalnız arka plandaki temiz görüntü eksikti. "⚠️ Çelişki" uyarısı kesim 42'den (sağ kenardaki yarım mum, son mumlar ▼) geliyordu; site önerisi kesim 18.
 - Kullanıcı (3 Kasım 22:03): kütüphaneye bazen formasyonları TELEFONLA ÇEKİP yükleyecek; ayrıca EKRAN GÖRÜNTÜSÜ testi de yapılacak → temizlik/okuma her iki kaynakla (telefon fotoğrafı + ekran görüntüsü) test edilmeli.
+- s33: Eşleşme kartında yazılar fotoğrafın ALTINDA (yanda ekrandan taşıyordu). Yalnız görünüm. Yedek: `yedek-s32-dal`.
+## İLK BİNANCE TESTİ (3 Kasım 22:10) — sonuç %84
+- Kullanıcı Binance BTC fotoğrafını (36 mum) kütüphaneye ekledi, aynı grafiği kamerayla (2x) taradı: kamera 35 mum, en iyi eşleşme LO QM %84 (kanal profili), şekil aynı: Yükselen → İnen → Yükselen → Yatay. Kullanıcı: "aynı grafik, 95 üstü olmamalı mı?"
+- Ölçüm (sitenin kendi koduyla): aynı fotoğraf ↔ kendisi %100; aynı grafiğin başka açıdan fotoğrafı %89; baştan/sondan 1 mum eksik %88–89; kamera (bulanık, 35 mum) %84.
+- Neden: (1) %20 kanal testi ÇALIŞMADI — kamera 35 < formasyon 36 mum → "az mum", skor kanal profiline düştü. Formasyon ekranın tamamı olduğu için kamera (kenar payı) hiçbir zaman tüm mumları göremiyor. (2) Kanal profili karşılaştırması 1 mumluk kaymaya ve açı farkına hassas (her biri ~%10 düşürüyor).
+- Önerilen (kullanıcı onayı bekliyor): A) kamera formasyonun en az ~%85'ini görüyorsa %20 testi sağdan hizalanarak çalışsın (eksik baş mumlar atlanır); B) kanal profili ±1 mum kaymayı tolere etsin. Sonra aynı grafik 95+ beklenir; FARKLI grafiklerin skorunun yükselmediği de kontrol edilecek.
