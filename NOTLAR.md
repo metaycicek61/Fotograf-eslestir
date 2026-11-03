@@ -613,3 +613,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - SONRAKİ DENEME B: sitenin kesim önerisine göre aynı test.
 - s20: Adım 3 tuvali kutu genişliğine tam oturuyor. Kutu gizliyken genişlik ölçülemiyor (330 varsayılıyordu); telefonda kutu daha dar olduğu için sağdaki son mumlar (49–55) ekran dışında kalıyor, kesim bozulmuş gibi görünüyordu. Kesimin kendisi doğruydu.
 - s21 (kullanıcı: "hedef çok uzun, formasyonla alakasız; kesimdeki son mumun uzunluğu kadar"): hedef alanı boyunca toplam iniş/çıkış = kesim mumunun boyu (fitil ucundan fitil ucuna). Yön yine son 3 mum, boy yine formasyonun %20'si kadar mum.
+- s22 (kullanıcı: "son 2 mum belirlesin"): hedef alanının kalınlığı = son 2 mumun kapladığı yükseklik (en üst fitil ucu → en alt fitil ucu); son kanalın genişliği artık kullanılmıyor. Hedef: yön son 3 mum, eğim kesim mumu boyu, kalınlık son 2 mum, uzunluk formasyonun %20'si.

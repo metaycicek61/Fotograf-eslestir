@@ -4622,7 +4622,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s21";
+const HZ_SURUM="3Kas-s22";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5278,7 +5278,9 @@ function hzHedef(F,segs,pitch){
   const s=(yon>0?-1:1)*boy/Math.max(1,Lm*pitch);
   const L=Math.max(1,Math.round(n*.2));
   const x0=z.x,x1=z.x+L*pitch,y0=cl(z);
-  const gen=Math.max(1,lastSeg.alt-lastSeg.ust);
+  /* s22 (kullanıcı: "son 2 mum belirlesin"): alanın kalınlığı = son 2 mumun kapladığı
+     yükseklik (en üst fitil ucundan en alt fitil ucuna); son kanalın genişliği kullanılmaz */
+  const y2=F.slice(-2),gen=Math.max(1,Math.max(...y2.map(m=>m.bottom))-Math.min(...y2.map(m=>m.top)));
   return{yon,mum:L,s,k:y0-s*x0,ust:-gen/2,alt:gen/2,x0,x1};
 }
 
@@ -5366,7 +5368,7 @@ function hz4Render(){
   const kept=hzKeptIdx(),lastNo=kept.length,cutNo=kept.indexOf(hz.cut)+1;
   info.innerHTML="📏 "+out.length+" kanal • %20 sınırını aşan fitil: "+tot+
     (hd?"<br><span style='color:"+(hd.yon>0?"#4ade80":"#f87171")+";font-weight:800'>🎯 Hedef: "+(hd.yon>0?"▲ yukarı":"▼ aşağı")+
-      " • kesimden "+hd.mum+" mum ileri (formasyonun %20'si), son 3 mumun yönünde, kesim mumunun boyu kadar</span>":"")+
+      " • kesimden "+hd.mum+" mum ileri (formasyonun %20'si), son 3 mumun yönünde, kesim mumunun boyu kadar; kalınlık son 2 mum</span>":"")+
     (dv.length?"<br><span style='color:#93c5fd'>ℹ️ Kesimin sağındaki "+dv.length+" mum görselden atıldı; yalnızca tahmin için veri olarak saklanır.</span>":"");
   list.innerHTML="<div id='hz4Hint' style='color:#fde68a;font-weight:700;margin-bottom:4px'>✏️ Düzeltme: grafikte bir muma dokun → o mumdan YENİ KANAL başlar. Birleştirmek için ⤴.</div>"+
     out.map((c,n)=>"<div style='margin-top:4px'><span style='color:"+cols[c.dir]+";font-weight:800'>"+(n+1)+". "+names[c.dir]+"</span> (mum "+(c.a+1)+"–"+c.b+")"+
