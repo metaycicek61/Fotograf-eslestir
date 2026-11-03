@@ -4633,7 +4633,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s24";
+const HZ_SURUM="3Kas-s25";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5043,6 +5043,31 @@ function hzTemizOrj(Fo,crop,pitchO){
     if(sat>.10&&h>=85&&h<=178)return 2;
     return 0;
   };
+  /* 3 Kasım (s25) ZİKZAK AYIKLAMA: fitil pikseli mumun KENDİ renginde (ya da o rengin
+     zemine doğru soluk hâlinde) olmalı. Zikzak/gösterge çizgileri mum rengine benzer ama
+     farklı tondadır (koyu kırmızı, saf yeşil) → fitil sayılmaz, alınmaz. */
+  const bgC=(()=>{const cnt=new Map();let best=null,bn=0;
+    for(let i=0;i<300;i++){const px=Math.floor((i*7919)%W),py=Math.floor((i*104729)%H),k=(py*W+px)*4;
+      const key=(D[k]>>3)+","+(D[k+1]>>3)+","+(D[k+2]>>3),v=(cnt.get(key)||0)+1;cnt.set(key,v);
+      if(v>bn){bn=v;best=[D[k],D[k+1],D[k+2]];}}
+    return best||[255,255,255];})();
+  const karisim=(k,B)=>{ /* P'nin B→zemin doğrusuna uzaklığı */
+    const P=[D[k],D[k+1],D[k+2]],d=[B[0]-bgC[0],B[1]-bgC[1],B[2]-bgC[2]];
+    const L=d[0]*d[0]+d[1]*d[1]+d[2]*d[2]||1;
+    let t=((P[0]-bgC[0])*d[0]+(P[1]-bgC[1])*d[1]+(P[2]-bgC[2])*d[2])/L;t=Math.max(0,Math.min(1,t));
+    return Math.hypot(P[0]-bgC[0]-t*d[0],P[1]-bgC[1]-t*d[1],P[2]-bgC[2]-t*d[2]);
+  };
+  const ZIK_ESIK=48;
+  /* tüm görseldeki mum rengi (tip başına, zeminden en uzak %90'lık dilim): gövdesi
+     çok ince mumlarda (doji) yerel renk soluk kalabilir → genel renk de kabul edilir */
+  const Bgen={};
+  {const L={1:[],2:[]};
+    for(let i=0;i<W*H;i+=3){const px=i%W,py=(i/W)|0,t=tip(px,py);if(!t)continue;const q=i*4;
+      L[t].push([Math.hypot(D[q]-bgC[0],D[q+1]-bgC[1],D[q+2]-bgC[2]),D[q],D[q+1],D[q+2]]);}
+    [1,2].forEach(t=>{const A=L[t];if(!A.length)return;A.sort((p,q)=>p[0]-q[0]);
+      /* ortanca güçlü renk: mum gövdeleri çoğunluktadır, ince çizgiler azınlık */
+      const s=A.slice(Math.floor(A.length*.5));const md=j=>s.map(v=>v[j]).sort((p,q)=>p-q)[s.length>>1];
+      Bgen[t]=[md(1),md(2),md(3)];});}
   const xs=Fo.map(m=>m.x);
   Fo.forEach((m,n)=>{
     const want=m.direction>0?2:1;
@@ -5056,9 +5081,22 @@ function hzTemizOrj(Fo,crop,pitchO){
       tip(cx,y-2)!==want&&tip(cx,y+2)!==want;
     /* gövde satırları sütun genişliğinde; fitil satırları yalnızca orta sütunda (±1) */
     const inBody=y=>y>=bt-1&&y<=bb+1;
-    const span=y=>inBody(y)?[a,e]:[Math.max(a,cx-1),Math.min(e,cx+1)];
+    /* gövde satırlarında yalnızca gövdenin kendi genişliği (+1 px); yandan geçen çizgi alınmaz */
+    const gL=Math.max(a,Math.floor(m.left)-1),gR=Math.min(e,Math.ceil(m.right)+1);
+    const span=y=>inBody(y)?[gL,gR]:[Math.max(a,cx-1),Math.min(e,cx+1)];
+    /* mumun rengi: gövdedeki mum renkli piksellerden zeminden EN UZAK olanlar (%90'lık dilim);
+       zemin→bu renk doğrusu üstündeki her ton (soluk fitil dahil) mumundur */
+    const B=(()=>{const L=[];
+      for(let y=Math.max(0,bt);y<=Math.min(H-1,bb);y++)for(let k=gL;k<=gR;k++)if(tip(k,y)===want){const q=(y*W+k)*4;
+        L.push([Math.hypot(D[q]-bgC[0],D[q+1]-bgC[1],D[q+2]-bgC[2]),D[q],D[q+1],D[q+2]]);}
+      if(!L.length)return null;L.sort((p,q)=>p[0]-q[0]);const t=L[Math.floor((L.length-1)*.9)];return[t[1],t[2],t[3]];})();
+    const ok0=(k,y)=>{if(tip(k,y)!==want)return false;if(!B)return true;const q=(y*W+k)*4;
+      return karisim(q,B)<ZIK_ESIK||(Bgen[want]&&karisim(q,Bgen[want])<ZIK_ESIK);};
+    /* fitil DİKTİR: fitil satırındaki piksel, hemen üstünde ya da altında (aynı sütun) da
+       mum pikseli varsa sayılır; eğik çizginin tek tek noktaları elenir */
+    const ok=(k,y)=>ok0(k,y)&&(inBody(y)||ok0(k,y-1)||ok0(k,y+1));
     const rowHas=y=>{if(!inBody(y)&&line(y))return false;
-      const [p,q]=span(y);for(let k=p;k<=q;k++)if(tip(k,y)===want)return true;return false;};
+      const [p,q]=span(y);for(let k=p;k<=q;k++)if(ok(k,y))return true;return false;};
     /* gövdeden yukarı/aşağı fitil boyunca büyü (2 px boşluk serbest) */
     let top=bt,bot=bb;
     {let gap=0;for(let y=bt-1;y>=0;y--){if(rowHas(y)){top=y;gap=0;}else if(++gap>2)break;}}
@@ -5067,7 +5105,7 @@ function hzTemizOrj(Fo,crop,pitchO){
       if(!inBody(y)&&line(y))continue;
       const [p,q2]=span(y);
       for(let k=p;k<=q2;k++){
-        if(tip(k,y)!==want)continue;
+        if(!ok(k,y))continue;
         const q=(y*W+k)*4;O[q]=D[q];O[q+1]=D[q+1];O[q+2]=D[q+2];O[q+3]=255;
       }
     }
