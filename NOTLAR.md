@@ -617,3 +617,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - s23 (kullanıcı): Formasyon Hazırla'da görsel seçilince ÖNCE yön sorulur (LO ▲ long / SH ▼ short; hazır kütüphanede dosya adından). Seçilen yön üstte görünür ve Adım 5'teki yön kutusuna yazılır. Kesimden sonra (Adım 3 ve 4) son 3 mumun yönü seçimle karşılaştırılır: uyuyorsa '✅ Yön uyumlu', çelişiyorsa '⚠️ Çelişki … kesimi kontrol et ya da yönü değiştir' uyarısı; yön kutusu değişince uyarı yenilenir. Engellemez, devam edilebilir.
 - s24: Uyarı testi başarılı (LO seçip 55'te kesince '⚠️ Çelişki' çıktı). Adım 4'te art arda iki İnen kanal görüldü: birleştirme okuma koordinatlarına göre yapılıyordu, ekrandaki (orijinal koordinatlı) kanallar farklı yön verebiliyordu. Artık ikisine göre de birleştiriliyor.
 - Kullanıcı (3 Kasım): taban/fiyat aralığı ayrıntısı şimdilik gereksiz; öncelik BİTMİŞ formasyonların eşleştirilmesi. Taban kanalı ayırma önerisi rafa kaldırıldı.
+
+## Yol haritası (3 Kasım, kullanıcı)
+1. Diğer formasyonları kütüphaneye ekle (yön sorusu → kesim → kanallar + hedef → kaydet); hata çıkarsa düzelt.
+2. Hepsi hatasız yüklenince: Binance'ten çekilen orijinal resmi kütüphaneye ekle, sitenin onu bulup karşılaştırmasını dene.
+3. Bu eşleşme oranı = ilk analiz yeteneği sonucu.
