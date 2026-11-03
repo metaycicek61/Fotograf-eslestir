@@ -698,3 +698,10 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   kanal20Kontrol: kamera formasyondan az mum görürse (en fazla formasyonun %15'i eksik) kameranın mumları formasyonun SON mumlarıyla sağdan hizalanır (son mum = kesim mumu); görülemeyen baş mumlar atlanır, her mum kendi %20 kanalında kontrol edilir. Temiz çizim formasyonun yerleşimiyle yapılır (hzCleanDraw(list,nTop,off)). %15'ten fazla eksikse yine "az mum". Sonuçta "(soldan N mum düşüldü)" yazar. Fotoğraf, bezik/kütüphane hazırlama, kamera okuması DEĞİŞMEDİ.
   Kontrol (Binance BTC fotoğrafı = formasyon, 36 mum): aynı %100; başka açı %98; 1 eksik %100 (önce "az mum"); başka açı 1 eksik %98; 3 eksik %100; 6 eksik → az mum; ilk fotoğraf (farklı an) %79. FARKLI grafikler (LO_04, LO_09, SH_01): %48–56 → %80 eşiğinin altında, elenir (seçicilik korunuyor).
 - ⏸ Kullanıcı ara verdi; s34 telefonda sonra denenecek (aynı Binance grafiği kamerayla Tara → beklenen 95+).
+
+## ✅ BİNANCE TESTİ 2 (4 Kasım 02:58) — s34 başarılı
+- Formasyon: Binance BTC iPhone fotoğrafı (2x), 41 mum, LO QM 11-04 02:42.
+- Sitede 2x tarama: 26 mum → "az mum" (%73). Neden: site kamerası video (16:9) açıyor, iPhone fotoğrafı 3:4 → sitenin 2x'i yatayda fotoğrafın ~%70'ini görüyor. iPhone 2x ≠ site 2x.
+- Sitenin önerisiyle 1x (formasyon 41 > 33): 2 deneme → %97 (45 mum algılandı, %20 kanal 40/41, hareket %96) ve %90 (60 mum, 40/41, hareket %79). Hedef ▼ aşağı, son mumların yönü uyuyor. İlk analiz sonucu: aynı grafik %90–97.
+- Fark: 60 mumlu karede (grafik dışı alan, tarih/gösterge yazıları kadraja girmiş) mumlar küçülüyor → hareket uyumu düşüyor. Kadraj grafiği doldurursa sonuç daha iyi.
+- Karar: kamera 3:4 değişikliği ŞİMDİLİK YAPILMADI (sitenin 1x önerisi sorunu karşılıyor). Not: 33 eşiği sitenin kendi kamerasına göre; iPhone fotoğrafıyla hazırlanan formasyonlarda site önerisine uyulmalı.
