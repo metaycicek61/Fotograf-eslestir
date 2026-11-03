@@ -334,7 +334,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s28</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s29</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -401,7 +401,7 @@ button,.fileButton{
      Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
-  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s28)</span></h2>
+  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s29)</span></h2>
   <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
@@ -822,7 +822,7 @@ function refPreview(ref,mod){
       im.onload=()=>{
         const K=Hz.kanallarOrj||[],p=Hz.orjPitch||8;
         let top=0,bot=im.height;
-        K.forEach(c=>[c.x0,c.x1].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-4);bot=Math.max(bot,c.s*x+c.k+c.alt+4);}));
+        K.forEach(c=>[c.ust,c.alt].forEach(off=>kanalUc(c,off,c.x0-p*.45,c.x1+p*.45).forEach(x=>{const y=c.s*x+c.k+off;top=Math.min(top,y-4);bot=Math.max(bot,y+4);})));
         const hd=Hz.hedefOrj;
         if(hd)[hd.x0,hd.x1].forEach(x=>{top=Math.min(top,hd.s*x+hd.k+hd.ust-4);bot=Math.max(bot,hd.s*x+hd.k+hd.alt+4);});
         top=Math.floor(top);bot=Math.ceil(bot);
@@ -832,7 +832,7 @@ function refPreview(ref,mod){
         const cols={"İnen":"#c026d3","Yatay":"#d97706","Yükselen":"#2563eb"},lw=Math.max(2,im.width/220);
         ctx.lineWidth=lw;ctx.setLineDash([lw*4,lw*2.5]);
         K.forEach(c=>{ctx.strokeStyle=cols[c.tur]||"#2563eb";const X0=c.x0-p*.45,X1=c.x1+p*.45; /* s28: komşu kanalla kesişmez */
-          [c.ust,c.alt].forEach(off=>{ctx.beginPath();ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
+          [c.ust,c.alt].forEach(off=>kanalCizgi(ctx,c,off,X0,X1,top));});
         if(hd){const Y=(x,o)=>hd.s*x+hd.k+o-top,col=hd.yon>0?"#16a34a":"#dc2626";
           ctx.setLineDash([]);ctx.fillStyle=hd.yon>0?"rgba(22,163,74,.13)":"rgba(220,38,38,.13)";
           ctx.beginPath();ctx.moveTo(hd.x0,Y(hd.x0,hd.ust));ctx.lineTo(hd.x1,Y(hd.x1,hd.ust));ctx.lineTo(hd.x1,Y(hd.x1,hd.alt));ctx.lineTo(hd.x0,Y(hd.x0,hd.alt));ctx.closePath();ctx.fill();
@@ -3994,6 +3994,26 @@ function lineFit(xs,ys,a,b){
   return{s,k,e};
 }
 
+/* s29 (kullanıcı: "kanallar çok yukarıda/aşağıda, kesişiyor"): kanal çizgisi kendi
+   mumlarının en üst/en alt fitilinden %20 paydan daha ileri gitmez — dik kanalda
+   çizgi bu sınıra gelince kesilir. c.yUst/c.yAlt yoksa (eski kayıt) çizgi tam çizilir. */
+function kanalUc(c,off,X0,X1){
+  let a=X0,b=X1;
+  if(c.yUst==null||c.yAlt==null||Math.abs(c.s)<1e-9)return[a,b];
+  const y=x=>c.s*x+c.k+off;
+  for(const L of [c.yUst,c.yAlt]){
+    const xl=(L-c.k-off)/c.s;
+    if(!(xl>a&&xl<b))continue;
+    const disari=x=>L===c.yUst?y(x)<L:y(x)>L;
+    if(disari(a))a=xl;else if(disari(b))b=xl;
+  }
+  return[a,b];
+}
+function kanalCizgi(ctx,c,off,X0,X1,top){
+  const[a,b]=kanalUc(c,off,X0,X1);if(b<=a)return;
+  ctx.beginPath();ctx.moveTo(a,c.s*a+c.k+off-top);ctx.lineTo(b,c.s*b+c.k+off-top);ctx.stroke();
+}
+
 function findChannels(raw){
   const n=raw.length;
   if(n<4)return null;
@@ -4067,6 +4087,32 @@ function findChannels(raw){
     for(let i=1;i<segs.length;i++){
       if(segs[i].dir!==0&&segs[i].dir===segs[i-1].dir){
         segs.splice(i-1,2,mk([segs[i-1].a,segs[i].b]));ch=true;break;}
+    }
+  }
+  /* s29 (kullanıcı: "kanallar hâlâ çok yukarıda/aşağıda, kesişiyor"): tek düz kanala
+     sığmayan bölüm (ör. sert düşüş + yatay taban) çok geniş kanal veriyordu.
+     Kanalın fitil genişliği formasyon yüksekliğinin %35'ini aşarsa, kapladığı alanı
+     en az %20 azaltan en iyi yerden ikiye bölünür (iniş → yatay → çıkış). Yalnızca biri eğimli (iniş/çıkış), diğeri
+     YATAY ise bölünür; aynı yöndeki parçalar tek kanal kalır (eğilme olmaz). */
+  const yon=g=>{const r=-g.s*(g.b-1-g.a)/rng;return Math.abs(r)<.12?0:(r>0?1:-1);};
+  /* parçalardan biri eğimli, diğeri YATAY olmalı (her iki ölçütle) */
+  const farkli=(A,B)=>(A.dir===0)!==(B.dir===0)&&(yon(A)===0)!==(yon(B)===0)&&(A.dir||B.dir)===(yon(A)||yon(B));
+  for(let ch=true,say=0;ch&&say<8;say++){
+    ch=false;
+    for(let i=0;i<segs.length;i++){
+      const g=segs[i],w=g.lo-g.up;
+      if(w<=rng*.35||g.b-g.a<6)continue;
+      let iyi=null;
+      for(let t=g.a+3;t<=g.b-3;t++){
+        const A=mk([g.a,t]),B=mk([t,g.b]);
+        if(!farkli(A,B))continue;
+        /* yeni yatay parça komşu yatay kanalın yanına düşmesin (yatay+yatay olmaz) */
+        if((A.dir===0&&i>0&&segs[i-1].dir===0)||(B.dir===0&&i+1<segs.length&&segs[i+1].dir===0))continue;
+        /* kanalın kapladığı alan (genişlik × mum sayısı) */
+        const m=(A.lo-A.up)*(A.b-A.a)+(B.lo-B.up)*(B.b-B.a);
+        if(!iyi||m<iyi.m)iyi={m,A,B};
+      }
+      if(iyi&&iyi.m<w*(g.b-g.a)*.8){segs.splice(i,1,iyi.A,iyi.B);ch=true;break;}
     }
   }
   return{segs,top,rng,n};
@@ -4634,7 +4680,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s28";
+const HZ_SURUM="3Kas-s29";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5314,14 +5360,14 @@ function hzEnv(R,a,b){
   const f=P.length>1?lineFit(xs,ys,0,P.length):{s:0,k:ys[0]};
   /* 3 Kasım (s17, kullanıcı: "mesafeli olsun, son mumlara bitişik olmasın"):
      kanal çizgileri en tepedeki ve en dipteki mumun FİTİL ucundan + %20 pay */
-  let up=Infinity,dn=-Infinity;
-  P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.top-m);dn=Math.max(dn,c.bottom-m);});
+  let up=Infinity,dn=-Infinity,yT=Infinity,yB=-Infinity;
+  P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.top-m);dn=Math.max(dn,c.bottom-m);yT=Math.min(yT,c.top);yB=Math.max(yB,c.bottom);});
   let top=Infinity,bot=-Infinity;R.forEach(c=>{top=Math.min(top,c.top);bot=Math.max(bot,c.bottom);});
   /* s28 (kullanıcı): ek genişletme yok — yalnızca en uç fitiller + %20 pay */
   const w=Math.max(1,dn-up);
   const rise=-f.s*(xs[xs.length-1]-xs[0])/Math.max(1,bot-top);
   const dir=Math.abs(rise)<.12?0:(rise>0?1:-1);
-  return{a,b,s:f.s,k:f.k,ust:up-.2*w,alt:dn+.2*w,dir,x0:xs[0],x1:xs[xs.length-1]};
+  return{a,b,s:f.s,k:f.k,ust:up-.2*w,alt:dn+.2*w,dir,x0:xs[0],x1:xs[xs.length-1],yUst:yT-.2*w,yAlt:yB+.2*w};
 }
 
 function hz4Segs(R){
@@ -5385,14 +5431,14 @@ function hz4Render(){
     const o=Math.max(y+c.ust-m.top,m.bottom-(y+c.alt),0);
     if(o>0)c.over.push({no:c.a+j+1,pct:Math.round(100*o/(c.alt-c.ust)),ust:y+c.ust-m.top>0});});});
   out.splice(0,out.length,...outO);
-  hz.clean.chOrj=outO.map(c=>({tur:names[c.dir],s:c.s,k:c.k,ust:c.ust,alt:c.alt,x0:c.x0,x1:c.x1}));
+  hz.clean.chOrj=outO.map(c=>({tur:names[c.dir],s:c.s,k:c.k,ust:c.ust,alt:c.alt,x0:c.x0,x1:c.x1,yUst:c.yUst,yAlt:c.yAlt}));
   const hd=hzHedef(Fo,outO,O.pitchO);
   hz.clean.hedefOrj=hd;
   {const R0b=hz4.R0.length===nF?hz4.R0:R,S0=hz4Segs(R0b),pt=R0b.length>1?(R0b[R0b.length-1].x-R0b[0].x)/(R0b.length-1):10;
     const h0=hzHedef(R0b,S0,pt);
     hz.clean.hedef=h0?{yon:h0.yon>0?"yukarı":"aşağı",mum:h0.mum,egim:+h0.s.toFixed(4),kesisim:+h0.k.toFixed(2),ust:+h0.ust.toFixed(2),alt:+h0.alt.toFixed(2),x0:h0.x0,x1:h0.x1,pay:.2}:null;}
   let top=0,bot=Hh;
-  out.forEach(c=>[c.x0-O.pitchO,c.x1+O.pitchO].forEach(x=>{top=Math.min(top,c.s*x+c.k+c.ust-6);bot=Math.max(bot,c.s*x+c.k+c.alt+6);}));
+  out.forEach(c=>[c.ust,c.alt].forEach(off=>kanalUc(c,off,c.x0-O.pitchO*.45,c.x1+O.pitchO*.45).forEach(x=>{const y=c.s*x+c.k+off;top=Math.min(top,y-6);bot=Math.max(bot,y+6);})));
   if(hd)[hd.x0,hd.x1].forEach(x=>{top=Math.min(top,hd.s*x+hd.k+hd.ust-6);bot=Math.max(bot,hd.s*x+hd.k+hd.alt+6);});
   top=Math.floor(top);bot=Math.ceil(bot);
   const Wv=hd?Math.max(W,Math.ceil(hd.x1+O.pitchO)):W;
@@ -5404,8 +5450,7 @@ function hz4Render(){
   const CH=bot-top;
   ctx.lineWidth=lw;ctx.setLineDash([lw*4,lw*2.5]);
   out.forEach(c=>{ctx.strokeStyle=cols[c.dir];const X0=c.x0-O.pitchO*.45,X1=c.x1+O.pitchO*.45; /* s28: komşu kanalla kesişmez */
-    [c.ust,c.alt].forEach(off=>{ctx.beginPath();
-      ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
+    [c.ust,c.alt].forEach(off=>kanalCizgi(ctx,c,off,X0,X1,top));});
   if(hd){
     const col=hd.yon>0?"#16a34a":"#dc2626",Y=(x,o)=>hd.s*x+hd.k+o-top;
     ctx.setLineDash([]);ctx.fillStyle=hd.yon>0?"rgba(22,163,74,.13)":"rgba(220,38,38,.13)";
@@ -5505,7 +5550,7 @@ function hzOrjKayit(C){
     if(O.temiz){const t=document.createElement("canvas");t.width=c.width;t.height=c.height;
       t.getContext("2d").drawImage(O.temiz,0,0,t.width,t.height);temiz=t.toDataURL("image/png");}
     return{orijinal:c.toDataURL("image/jpeg",.88),temizOrj:temiz,
-      kanallarOrj:(C.chOrj||[]).map(k=>({tur:k.tur,s:k.s,k:k.k*f,ust:k.ust*f,alt:k.alt*f,x0:k.x0*f,x1:k.x1*f})),
+      kanallarOrj:(C.chOrj||[]).map(k=>({tur:k.tur,s:k.s,k:k.k*f,ust:k.ust*f,alt:k.alt*f,x0:k.x0*f,x1:k.x1*f,yUst:k.yUst!=null?k.yUst*f:null,yAlt:k.yAlt!=null?k.yAlt*f:null})),
       hedefOrj:C.hedefOrj?{yon:C.hedefOrj.yon,mum:C.hedefOrj.mum,s:C.hedefOrj.s,k:C.hedefOrj.k*f,ust:C.hedefOrj.ust*f,alt:C.hedefOrj.alt*f,x0:C.hedefOrj.x0*f,x1:C.hedefOrj.x1*f}:null,
       orjPitch:O.pitchO*f};
   }catch(e){console.error(e);return{};}
