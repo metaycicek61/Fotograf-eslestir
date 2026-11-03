@@ -334,7 +334,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s27</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s28</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -401,7 +401,7 @@ button,.fileButton{
      Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
-  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s27)</span></h2>
+  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s28)</span></h2>
   <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
@@ -831,7 +831,7 @@ function refPreview(ref,mod){
         ctx.drawImage(im,0,-top);
         const cols={"İnen":"#c026d3","Yatay":"#d97706","Yükselen":"#2563eb"},lw=Math.max(2,im.width/220);
         ctx.lineWidth=lw;ctx.setLineDash([lw*4,lw*2.5]);
-        K.forEach(c=>{ctx.strokeStyle=cols[c.tur]||"#2563eb";const X0=c.x0-p*.6,X1=c.x1+p*.6;
+        K.forEach(c=>{ctx.strokeStyle=cols[c.tur]||"#2563eb";const X0=c.x0-p*.45,X1=c.x1+p*.45; /* s28: komşu kanalla kesişmez */
           [c.ust,c.alt].forEach(off=>{ctx.beginPath();ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
         if(hd){const Y=(x,o)=>hd.s*x+hd.k+o-top,col=hd.yon>0?"#16a34a":"#dc2626";
           ctx.setLineDash([]);ctx.fillStyle=hd.yon>0?"rgba(22,163,74,.13)":"rgba(220,38,38,.13)";
@@ -4634,7 +4634,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s27";
+const HZ_SURUM="3Kas-s28";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5317,8 +5317,7 @@ function hzEnv(R,a,b){
   let up=Infinity,dn=-Infinity;
   P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.top-m);dn=Math.max(dn,c.bottom-m);});
   let top=Infinity,bot=-Infinity;R.forEach(c=>{top=Math.min(top,c.top);bot=Math.max(bot,c.bottom);});
-  /* kanal en az formasyon yüksekliğinin %15'i genişliğinde (dik kanallar mumlara yapışmasın) */
-  {const wm=.15*Math.max(1,bot-top),ek=Math.max(0,wm-(dn-up))/2;up-=ek;dn+=ek;}
+  /* s28 (kullanıcı): ek genişletme yok — yalnızca en uç fitiller + %20 pay */
   const w=Math.max(1,dn-up);
   const rise=-f.s*(xs[xs.length-1]-xs[0])/Math.max(1,bot-top);
   const dir=Math.abs(rise)<.12?0:(rise>0?1:-1);
@@ -5356,11 +5355,12 @@ function hzHedef(F,segs,pitch){
   const boy=Math.max(1,z.bottom-z.top);
   const s=(yon>0?-1:1)*boy/Math.max(1,Lm*pitch);
   const L=Math.max(1,Math.round(n*.2));
-  const x0=z.x,x1=z.x+L*pitch,y0=cl(z);
+  /* s28: hedef alanı son kanal çizgisinin bittiği yerden başlar (kesişme yok) */
+  const x0=z.x+pitch*.45,x1=z.x+L*pitch,y0=cl(z);
   /* s22 (kullanıcı: "son 2 mum belirlesin"): alanın kalınlığı = son 2 mumun kapladığı
      yükseklik (en üst fitil ucundan en alt fitil ucuna); son kanalın genişliği kullanılmaz */
   const y2=F.slice(-2),gen=Math.max(1,Math.max(...y2.map(m=>m.bottom))-Math.min(...y2.map(m=>m.top)));
-  return{yon,mum:L,s,k:y0-s*x0,ust:-gen/2,alt:gen/2,x0,x1};
+  return{yon,mum:L,s,k:y0-s*z.x,ust:-gen/2,alt:gen/2,x0,x1};
 }
 
 function hz4Render(){
@@ -5403,7 +5403,7 @@ function hz4Render(){
   ctx.drawImage(O.temiz||O.crop,0,-top);
   const CH=bot-top;
   ctx.lineWidth=lw;ctx.setLineDash([lw*4,lw*2.5]);
-  out.forEach(c=>{ctx.strokeStyle=cols[c.dir];const X0=c.x0-O.pitchO*.6,X1=c.x1+O.pitchO*.6;
+  out.forEach(c=>{ctx.strokeStyle=cols[c.dir];const X0=c.x0-O.pitchO*.45,X1=c.x1+O.pitchO*.45; /* s28: komşu kanalla kesişmez */
     [c.ust,c.alt].forEach(off=>{ctx.beginPath();
       ctx.moveTo(X0,c.s*X0+c.k+off-top);ctx.lineTo(X1,c.s*X1+c.k+off-top);ctx.stroke();});});
   if(hd){
@@ -5551,7 +5551,7 @@ function hzKanallar(R){
     const f=lineFit(xs,ys,0,P.length);
     let up=Infinity,dn=-Infinity;
     P.forEach(c=>{const m=f.s*c.x+f.k;up=Math.min(up,c.top-m);dn=Math.max(dn,c.bottom-m);});
-    {const wm=.15*ch.rng,ek=Math.max(0,wm-(dn-up))/2;up-=ek;dn+=ek;}
+
     const w=Math.max(1,dn-up);
     return{mumlar:[g.a+1,g.b],tur:names[g.dir],egim:f.s,kesisim:f.k,ust:up-.2*w,alt:dn+.2*w,pay:.2};
   });

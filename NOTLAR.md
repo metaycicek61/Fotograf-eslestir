@@ -656,3 +656,6 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Kontrol 1 (görsel): GBPUSD pembe kutu altı mumlar net; BTC 1s/WTI zikzak parçaları gitti; USDCHF, Binance fotoğrafı, LO_09, SH_01 orijinalle aynı ve net.
   Kontrol 2 (tam akış, 14 görsel): mum sayısı, kanallar, hedef 14/14 AYNI.
   Kalan (okuma kaynaklı, temizlik değil): BTC 1s'te zikzak üstünde sahte bir kırmızı "mum" okunuyor (temizlikte çizilmiyor ama veride var; yanındaki küçük yeşil mum yerine geçmiş); BTC 5dk birleşme → kırpma kararı.
+- s28 (kullanıcı: "kanallar tepe/dipte kesişiyor ve uzuyor; görselde kesişme olmasın; %20 pay yeter, uzama payı genişletiyor"). Yedek: dal `yedek-s27-dal`.
+  Kanal çizgileri yalnızca kendi mumları üzerinde (±0,45 mum; eskiden ±0,6 → komşu kanalla kesişiyordu). Hedef alanı son kanal çizgisinin bittiği yerden başlar. "En az %15 genişlik" kuralı kaldırıldı: kanal = en uç fitiller + %20 pay (hem görüntü hem karşılaştırma).
+  Kontrol: 4 formasyonda kanal bölümleri aynı; yalnızca BTC 1s 44–48 kanalı daraldı (49→35, %15 kuralı yalnız orada devredeydi). Kendi grafiğiyle eşleşme 55/55, 55/55, 61/61, 63/63; aynı grafiğin başka bölümleri 0 geçiş (eleme seçici).
