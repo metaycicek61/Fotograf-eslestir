@@ -336,7 +336,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s33</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s34</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -403,7 +403,7 @@ button,.fileButton{
      Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
-  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s33)</span></h2>
+  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s34)</span></h2>
   <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
@@ -4224,7 +4224,7 @@ function renderResults(results){
 
   bestDetail.innerHTML=
     (best.k20?(best.k20.az?"%20 kanal: <b>az mum ("+best.k20.var+"/"+best.k20.n+")</b><br>"
-      :"%20 kanal: <b>"+best.k20.ic+"/"+best.k20.n+" mum içeride "+(best.k20.kanalElendi?"❌ elendi":"✅")+"</b> • Hareket uyumu: <b>"+pct(best.k20.hareket)+"%</b>"+
+      :"%20 kanal: <b>"+best.k20.ic+"/"+best.k20.n+" mum içeride "+(best.k20.kanalElendi?"❌ elendi":"✅")+"</b>"+(best.k20.eksik?" <span style='color:#93c5fd'>(soldan "+best.k20.eksik+" mum düşüldü)</span>":"")+" • Hareket uyumu: <b>"+pct(best.k20.hareket)+"%</b>"+
         (best.k20.otomatik?" <i>(kanallar otomatik)</i>":"")+"<br>"+
         (best.k20.hedef?"<b>"+hedefText(best.k20)+"</b><br>":"")+
         (best.k20.elendi?"":(best.k20.tahmin?"<b>"+tahminText(best.k20.tahmin)+"</b><br>":"🔮 Tahmin yok (bu formasyonda devam kısmı kaydedilmemiş)<br>"))):"")+
@@ -4289,7 +4289,7 @@ function renderResults(results){
     detail.textContent=
       (result.k20?(result.k20.az?"%20 kanal: az mum ("+result.k20.var+"/"+result.k20.n+") • "
         :(result.k20.elendi?(result.k20.kanalElendi?"❌ ELENDİ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • ":"❌ ELENDİ yön ters • ")
-          :"✅ %20 kanal "+result.k20.ic+"/"+result.k20.n+" • hareket "+pct(result.k20.hareket)+"% • "+(result.k20.hedef?"🎯 "+(result.k20.hedef.yon>0?"▲":"▼")+" • ":"")))+(result.k20.otomatik?"(kanal otomatik) ":""):"")+
+          :"✅ %20 kanal "+result.k20.ic+"/"+result.k20.n+(result.k20.eksik?" (soldan "+result.k20.eksik+" düşüldü)":"")+" • hareket "+pct(result.k20.hareket)+"% • "+(result.k20.hedef?"🎯 "+(result.k20.hedef.yon>0?"▲":"▼")+" • ":"")))+(result.k20.otomatik?"(kanal otomatik) ":""):"")+
       "Kanal "+
       pct(result.channelScore||0)+
       "% • Mum "+
@@ -4662,7 +4662,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s33";
+const HZ_SURUM="3Kas-s34";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -4979,8 +4979,10 @@ function hzRender0(){
 }
 
 /* ---- Adım 3: kes + temiz çiz + doğrula ---- */
-function hzCleanDraw(list){
-  const W=TARGET_W,H=TARGET_H,PX=30,PY=22,n=list.length;
+function hzCleanDraw(list,nTop,off=0){
+  /* nTop/off (s34): eksik baş mumlu kamera penceresi formasyonun yerleşimiyle çizilir
+     (aralık nTop muma göre, ilk mum off. sıradan başlar) */
+  const W=TARGET_W,H=TARGET_H,PX=30,PY=22,n=nTop||list.length;
   const c=document.createElement("canvas");c.width=W;c.height=H;
   const ctx=c.getContext("2d");
   ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);
@@ -4991,7 +4993,7 @@ function hzCleanDraw(list){
   /* gövde aralığın %72'si: yan yana mumlar birleşmesin (site tekrar okuyabilsin) */
   const bw=Math.max(1,Math.min(15,Math.round(pitch*.5)));
   list.forEach((m,i)=>{
-    const x=Math.round(PX+pitch*(i+.5));
+    const x=Math.round(PX+pitch*(i+off+.5));
     const col=m.direction>0?"#089c58":"#e02b3b";
     ctx.fillStyle=col;
     ctx.fillRect(x,Math.round(Y(m.top)),1,Math.max(1,Math.round(Y(m.bottom)-Y(m.top))));
@@ -5627,14 +5629,20 @@ function kanal20Kontrol(detected,ref,prepared){
   const H=prepared?hazirOf(ref,prepared):(ref&&ref.hazir);
   if(!H||!H.kanallar||!H.kanallar.length)return null;
   const n=H.mum;
-  if(detected.length<n)return{az:true,var:detected.length,n,otomatik:!!H.otomatik,tahmin:H.tahmin};
-  const win=detected.slice(-n);
-  const R=detectCandles(hzCleanDraw(win));
-  const m=Math.min(R.length,n);
+  /* s34 (kullanıcı): kamera formasyonun başındaki mumları göremiyorsa (formasyon ekranın tamamı)
+     karşılaştırma SOLDAN eksiltilir: kameranın mumları formasyonun SON mumlarıyla sağdan hizalanır
+     (kameranın son mumu = kesim mumu), görülemeyen baş mumlar atlanır. Sağ taraf hiç kesilmez.
+     En fazla formasyonun %15'i düşülebilir; daha azı görülürse "az mum". */
+  const eksikIzin=Math.floor(n*.15);
+  if(detected.length<n-eksikIzin)return{az:true,var:detected.length,n,otomatik:!!H.otomatik,tahmin:H.tahmin};
+  const off=Math.max(0,n-detected.length);
+  const win=off?detected.slice():detected.slice(-n);
+  const R=detectCandles(off?hzCleanDraw(win,n,off):hzCleanDraw(win));
+  const m=Math.min(R.length,n-off);
   let ic=0;
   for(let j=0;j<m;j++){
-    const c=R[j];
-    const ch=H.kanallar.find(k=>j+1>=k.mumlar[0]&&j+1<=k.mumlar[1])||H.kanallar[H.kanallar.length-1];
+    const c=R[j],no=j+off+1;
+    const ch=H.kanallar.find(k=>no>=k.mumlar[0]&&no<=k.mumlar[1])||H.kanallar[H.kanallar.length-1];
     const y=ch.egim*c.x+ch.kesisim;
     if(c.bodyTop>=y+ch.ust-1&&c.bodyBottom<=y+ch.alt+1)ic++;
   }
@@ -5642,14 +5650,14 @@ function kanal20Kontrol(detected,ref,prepared){
   let ha=0,ht=0;
   const RR=H._R||[];
   const mid=c=>(c.bodyTop+c.bodyBottom)/2;
-  const mm=Math.min(m,RR.length);
+  const mm=Math.min(m,RR.length-off);
   for(let j=1;j<mm;j++){
-    const dq=mid(R[j])-mid(R[j-1]),dr=mid(RR[j])-mid(RR[j-1]);
+    const dq=mid(R[j])-mid(R[j-1]),dr=mid(RR[j+off])-mid(RR[j+off-1]);
     const eps=2;
     const sq=Math.abs(dq)<eps?0:Math.sign(dq),sr=Math.abs(dr)<eps?0:Math.sign(dr);
     ht++;if(sq===sr)ha++;else if(sq===0||sr===0)ha+=.5;
   }
-  const oran=ic/n,hareket=ht?ha/ht:0;
+  const oran=ic/(n-off),hareket=ht?ha/ht:0;
   const skor=clamp(.6*oran+.4*hareket);
   /* 3 Kasım ⭐ ASIL HEDEF: grafiğin son 3 mumu formasyonun hedef yönüyle aynı yöne gitmeli
      (zaman akışı kesimden devam eder). Ters yöndeyse formasyon elenir. */
@@ -5660,7 +5668,7 @@ function kanal20Kontrol(detected,ref,prepared){
     yonUyum=kamYon===null||kamYon===hy;
     hedef={yon:hy,mum:H.hedef.mum};
   }
-  return{n,ic,oran,hareket,skor,elendi:oran<KANAL20_ESIK||!yonUyum,kanalElendi:oran<KANAL20_ESIK,yonUyum,kamYon,hedef,otomatik:!!H.otomatik,tahmin:H.tahmin};
+  return{n:n-off,nForm:n,eksik:off,ic,oran,hareket,skor,elendi:oran<KANAL20_ESIK||!yonUyum,kanalElendi:oran<KANAL20_ESIK,yonUyum,kamYon,hedef,otomatik:!!H.otomatik,tahmin:H.tahmin};
 }
 
 function hedefText(k){
