@@ -336,7 +336,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s43</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s44</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -1360,23 +1360,17 @@ function renderShotAdvice(){
   let html;
   let rec=2;
 
-  if(!refCounts.length){
-    html="📐 <b>Çekim önerisi: 2x</b> (varsayılan). Kütüphane yüklenince formasyonların mum sayısına göre yeniden hesaplanır.";
-  }else{
+  /* s44 (kullanıcı): öneri metni sade — 1x: 33–90 mum arası, kısa formasyonlarda 2x */
+  html="📐 <b>Çekim önerisi</b><br>• <b>1x</b>: 33 ile 90 mum arası formasyonlar<br>• <b>2x</b>: kısa formasyonlar (33 mumdan az)";
+  if(refCounts.length){
     const need=Math.max(...refCounts);
-    const n2=refCounts.filter(c=>c<=SHOT_LIMIT_2X).length;
-    const n1=refCounts.length-n2;
     rec=need>SHOT_LIMIT_2X?1:2;
-    html="📐 <b>Çekim önerisi: "+rec+"x</b> — en uzun formasyon "+need+
-      " mum (sınır "+SHOT_LIMIT_2X+").";
-    html+="<br>Kütüphane: "+n2+" formasyon 2x"+(n1?", "+n1+" formasyon 1x":"")+".";
-    if(rec===1)html+="<br>Sadece kısa formasyonlara bakacaksan 2x de seçebilirsin.";
+    html+="<br>Kütüphanede en uzun formasyon "+need+" mum → <b>"+rec+"x</b>";
   }
   const sel=(typeof selectedZoom==="number"&&selectedZoom)?selectedZoom:rec;
   if(typeof selectedZoom==="number"&&selectedZoom){
-    html+="<br>✅ Seçimin: <b>"+sel+"x</b>"+(sel!==rec?" (öneri "+rec+"x)":"")+".";
+    html+="<br>✅ Seçimin: <b>"+sel+"x</b>";
   }
-  html+="<br>🖼️ Fotoğraf Oku ile çekerken iPhone kamerasında da <b>"+sel+"x</b> seç.";
 
   document.querySelectorAll(".zoomBtn").forEach(b=>{
     b.classList.toggle("rec",Number(b.dataset.z)===sel);
@@ -4761,7 +4755,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s43";
+const HZ_SURUM="3Kas-s44";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
