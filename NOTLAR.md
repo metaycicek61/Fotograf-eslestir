@@ -732,3 +732,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Formasyon Hazırla kartı → "📚 Kütüphane ▾" düğmesi (kapalı açılır). İçinde: 🖼️ Görsel Ekle (arşiv/dosya) + 📷 Fotoğraf Tara (capture=environment, doğrudan iPhone kamerası) + hazır kütüphane listesi. İkisi aynı akış (hzGorselIsle → yön sorusu → kesim → temizlik → kanallar → kaydet). Açıklama yazısı kaldırıldı. Test: iki düğme de 52/36 mum okuyup Adım 2'yi açtı, hata yok.
   Not: iPhone, "Görsel Ekle" menüsünde "Fotoğraf Çek" seçeneğini de gösterir (Safari bunu gizlemeye izin vermiyor).
 - s44 (kullanıcı): çekim önerisi metni sadeleşti: "1x: 33 ile 90 mum arası formasyonlar • 2x: kısa formasyonlar (33 mumdan az)" + kütüphanedeki en uzun formasyona göre öneri + seçimin. Eşik (33) ve 1x/2x seçimi DEĞİŞMEDİ. Yedek: `yedek-s43-dal`.
+- s45 (kullanıcı): çekim önerisine "🖼️ Fotoğraf Oku: iPhone'da 1x seç" satırı eklendi. Yedek: `yedek-s44-dal`.

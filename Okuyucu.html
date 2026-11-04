@@ -336,7 +336,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s44</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s45</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -1371,6 +1371,7 @@ function renderShotAdvice(){
   if(typeof selectedZoom==="number"&&selectedZoom){
     html+="<br>✅ Seçimin: <b>"+sel+"x</b>";
   }
+  html+="<br>🖼️ <b>Fotoğraf Oku</b>: iPhone'da <b>1x</b> seç"; /* s45 (kullanıcı) */
 
   document.querySelectorAll(".zoomBtn").forEach(b=>{
     b.classList.toggle("rec",Number(b.dataset.z)===sel);
@@ -4755,7 +4756,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s44";
+const HZ_SURUM="3Kas-s45";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
