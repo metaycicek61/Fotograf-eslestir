@@ -336,7 +336,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s47</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s48</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -544,6 +544,7 @@ let SCAN_RIGHT=.97;
 let SCAN_TOP=.20;
 let SCAN_BOTTOM=.795;
 const SCAN_MARGIN=.03;
+const SCAN_UST_CIZGI=.12,SCAN_ALT_CIZGI=.80; /* s48: kamera alanında üst/alt kılavuz çizgileri */
 
 function updateScanBox(){
   const rect=cameraBox.getBoundingClientRect();
@@ -554,8 +555,10 @@ function updateScanBox(){
      etkilemez. Okuma sıkıştırmadan yapılır (genişlik 502, yükseklik orana göre). */
   SCAN_LEFT=SCAN_MARGIN;
   SCAN_RIGHT=1-SCAN_MARGIN;
-  SCAN_TOP=SCAN_MARGIN;
-  SCAN_BOTTOM=1-SCAN_MARGIN;
+  /* s48 (kullanıcı): okuma alanı iki yatay paralel çizgi arası — grafiğin üstündeki/altındaki
+     yazılar (yüzde satırı, tarih, gösterge düğmeleri) çizgilerin dışında bırakılır */
+  SCAN_TOP=SCAN_UST_CIZGI;
+  SCAN_BOTTOM=SCAN_ALT_CIZGI;
 }
 let SCAN_OUT_H=TARGET_H;
 const CAPTURE_SCALE=2;
@@ -1435,6 +1438,24 @@ function findChartBox(img){
     }
   }
   if(!best||best.b-best.t<h*.08)return null;
+  /* s48: bant içinde boş satırla ayrılmış İNCE şeritler (yüzde satırı, tarih/gösterge yazıları)
+     mum değildir → atılır. Ana mum kütlesi (en çok renkli piksel) ve ona benzer yükseklikteki
+     parçalar kalır. Mumlar fiyatla birbirine bağlı olduğu için gerçek mum kümesi bölünmez. */
+  {
+    const bos=Math.max(2,Math.round(h*.015));
+    const runs=[];let rs=-1,rl=-1,px=0;
+    for(let y=best.t;y<=best.b+1;y++){
+      const on=y<=best.b&&rowCnt[y]>=2;
+      if(on){if(rs<0){rs=y;px=0;}rl=y;px+=rowCnt[y];}
+      else if(rs>=0&&(y-rl>bos||y>best.b)){runs.push({t:rs,b:rl,px});rs=-1;}
+    }
+    if(runs.length>1){
+      const ana=runs.reduce((p,q)=>q.px>p.px?q:p);
+      const H0=ana.b-ana.t;
+      const kal=runs.filter(r=>r===ana||(r.b-r.t)>=H0*.25);
+      best={t:Math.min(...kal.map(r=>r.t)),b:Math.max(...kal.map(r=>r.b))};
+    }
+  }
 
   const colCnt=new Int32Array(w);
   let total=0;
@@ -1665,6 +1686,15 @@ function drawGrid(){
   const w=rect.width;
   const h=rect.height;
 
+  /* s48: ızgara ve dikdörtgen yerine yalnızca İKİ YATAY PARALEL ÇİZGİ */
+  if(true){
+    const yu=SCAN_TOP*h,ya=SCAN_BOTTOM*h;
+    ctx.strokeStyle="rgba(40,255,150,.95)";ctx.lineWidth=2.5;
+    [yu,ya].forEach(y=>{ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();});
+    ctx.fillStyle="rgba(40,255,150,.95)";ctx.font="bold 13px -apple-system";
+    ctx.fillText("Grafiği iki çizgi arasına al",SCAN_LEFT*w+6,Math.max(14,yu-7));
+    return{ctx,rect};
+  }
   ctx.strokeStyle="rgba(255,255,255,.22)";
   ctx.lineWidth=1;
 
@@ -1792,7 +1822,7 @@ function drawDetectedCandles(candles){
   ctx.fillText(
     "ALGILANAN: "+candles.length,
     scanX+9,
-    scanY+39
+    Math.max(14,scanY-24) /* s48: üst çizginin üstünde, mumların üstüne binmesin */
   );
 }
 
@@ -4759,7 +4789,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s47";
+const HZ_SURUM="3Kas-s48";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam

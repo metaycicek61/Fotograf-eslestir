@@ -747,3 +747,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Site, aynı fotoğraf (Fotoğraf Oku yolu): 50 mum, renk dizisi BİREBİR AYNI (50/50).
 - Site, canlı Tara: 51 mum (canlı kare biraz daha geniş → sol kenarda yarım bir mum fazladan; sıra 1 kaymalı aynı). Canlı karede kutular bulanıklıktan büyük/iç içe, en riskli yer dipteki yan yana 3 büyük mum (kırmızı-yeşil-kırmızı) — yine de ayrı sayıldı.
 - Karşılaştırma: en iyi LO QM 21:18 %40 "az mum (51/71)" — kütüphane formasyonu 71 mum, kadrajda 51 → %20 testi çalışmadı (en az 61 gerekir). Okuma doğru; sorun formasyon/kadraj uzunluk farkı.
+- s48 (kullanıcı: "kamerada üst ve alt iki paralel kılavuz çizgi; grafik bu arasına gelsin, sadece iki çizgi"). Yedek: `yedek-s47-dal`.
+  1) Kamera alanında ızgara ve yeşil dikdörtgen yerine yalnızca İKİ YATAY YEŞİL ÇİZGİ (üst %12, alt %80; SCAN_UST_CIZGI/SCAN_ALT_CIZGI). Okuma yalnızca iki çizgi arasından; tarih/gösterge düğmeleri/yüzde satırı dışarıda. Yazılar ("Grafiği iki çizgi arasına al", "ALGILANAN") üst çizginin üstünde.
+  2) Fotoğraf Oku: grafik bulma (findChartBox) boş satırla ayrılmış ince şeritleri (yüzde satırı vb.) atıyor. Test: alta "-5,14% / 18,33%" yazılı fotoğrafta s47 → 58 mum (6 sahte), s48 → 52 (doğru). Diğer 6 fotoğrafta mum sayısı ve renk dizisi AYNI (50/50 dahil).
+  Not: kamera alanının dikey okuma bandı daraldı (%94 → %68); canlı Tara telefonda denenecek.
