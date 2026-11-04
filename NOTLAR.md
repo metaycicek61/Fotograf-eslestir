@@ -733,3 +733,4 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Not: iPhone, "Görsel Ekle" menüsünde "Fotoğraf Çek" seçeneğini de gösterir (Safari bunu gizlemeye izin vermiyor).
 - s44 (kullanıcı): çekim önerisi metni sadeleşti: "1x: 33 ile 90 mum arası formasyonlar • 2x: kısa formasyonlar (33 mumdan az)" + kütüphanedeki en uzun formasyona göre öneri + seçimin. Eşik (33) ve 1x/2x seçimi DEĞİŞMEDİ. Yedek: `yedek-s43-dal`.
 - s45 (kullanıcı): çekim önerisine "🖼️ Fotoğraf Oku: iPhone'da 1x seç" satırı eklendi. Yedek: `yedek-s44-dal`.
+- s46 (kullanıcı): "3. Tüm Karşılaştırmalar" başlığı → "3. Karşılaştırma Sonuçları". Yedek: `yedek-s45-dal`.
