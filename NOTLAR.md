@@ -772,3 +772,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Canlı kamerada (fotoğraf modu/donuk kare değilken) sensörün son 6 sayımının ortancasına göre sarı öneri kutusu: (1) 2x'te formasyon için az mum (formasyon − %15) → "1x'e geç"; (2) 1x'te de az → "🖼️ Fotoğraf Oku" (iPhone fotoğrafı daha geniş); (3) 1x'te mumlar çok küçük (aralık < 5,5 px) ve 2x'te de yetecekse → "2x'e geç". "Hayır, devam" → öneri 60 sn susar. Tara/okuma/karşılaştırma DEĞİŞMEDİ.
   Test (tarayıcı, 6 durum): 2x/51 mum/71'lik formasyon → 1x önerisi, evet → zoom 1; 1x/51 → Fotoğraf Oku önerisi; 1x/66 → öneri yok; 1x/90 küçük + 30'luk formasyon → 2x önerisi; Hayır → gizlenir; 2x/35/30'luk → öneri yok. Hata yok.
 - SIRADAKİ: s52 = 🔁 Çift Çekim düğmesi (tek dokunuş: canlı kare otomatik + iPhone kamerası; iki sonuç + çift kontrol özeti).
+- Kontrol (4 Kasım 07:05): Tara ekranındaki beyaz ızgaranın okumaya/dizilime/karşılaştırmaya etkisi YOK (yalnız görsel). İşlevsel olan okunan alanın sınırı (yeşil dikdörtgen / iki çizgi).
+- s52 (kullanıcı: "faydası yoksa iki ekrandaki sanal çizgileri yerine koyalım; yazı ve rakamlar mum sayılmasın; sonra çift karşılaştırma"). Yedek: `yedek-s51-dal`.
+  İki yatay çizgi (%12–%80) yine HEM canlı Tara HEM Fotoğraf Oku'da (s48 gibi); ızgara kaldırıldı. s51 geçiş önerisi duruyor. Düzeltme: Tara'dan (donuk kare) sonra Fotoğraf Oku yapınca "▶️ Devam" yazısı takılı kalıyordu → artık temizleniyor.
+  Test: canlı ekran iki çizgili; 7 fotoğrafta mum sayısı/renk dizisi aynı; Tara→Fotoğraf akışında düğme "🧠 Tara". Hata yok.
+- SIRADAKİ: s53 = 🔁 Çift Çekim (iki sonuç + çift kontrol özeti).
