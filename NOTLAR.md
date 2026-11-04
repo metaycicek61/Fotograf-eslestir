@@ -777,3 +777,15 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   İki yatay çizgi (%12–%80) yine HEM canlı Tara HEM Fotoğraf Oku'da (s48 gibi); ızgara kaldırıldı. s51 geçiş önerisi duruyor. Düzeltme: Tara'dan (donuk kare) sonra Fotoğraf Oku yapınca "▶️ Devam" yazısı takılı kalıyordu → artık temizleniyor.
   Test: canlı ekran iki çizgili; 7 fotoğrafta mum sayısı/renk dizisi aynı; Tara→Fotoğraf akışında düğme "🧠 Tara". Hata yok.
 - SIRADAKİ: s53 = 🔁 Çift Çekim (iki sonuç + çift kontrol özeti).
+
+## ▶️ YARIN (5 Kasım) — buradan başla (son sürüm 3Kas-s52)
+- Proje başlangıcı: 25 Ekim 2026 (depodaki ilk kayıt) → bugün 4 Kasım = 11. gün (11 farklı günde çalışıldı).
+- Bu gece/sabah (3–4 Kasım) yapılanlar: s28→s52. Kanal çizgileri kısaltıldı/eşit boy; Binance telefon fotoğrafında yeşil mumların silinmesi düzeltildi; soldan eksiltme (%20 testi az mumda da çalışır); Tara sonrası donuk kare + Devam; sonuç ekranı sırası (1. Çekilen Grafik + kanallar, 2. En Yakın, 3. Karşılaştırma Sonuçları); test görüntüsü ve Referans Formasyon Ekle gizlendi; 📚 Kütüphane başlığı (Görsel Ekle + Fotoğraf Tara); çekim önerisi metni; kütüphane/sonuçlar yalnız gerektiğinde görünür; iki paralel çizgi (yazı/rakam mum sayılmaz) iki ekranda; mum sayısına göre geçiş önerisi (1x/2x/Fotoğraf Oku).
+- Test sonuçları: okuma 50/50 birebir (Fotoğraf Oku), canlı ±1; kendi formasyonu %90–97; ilk hedef (▼) gerçekleşti; farklı grafikler düşük puan (seçici).
+- YARIN SIRASI:
+  1. s52'yi telefonda dene (?v=52): canlı Tara + Fotoğraf Oku, iki çizgi, geçiş önerisi.
+  2. s53: 🔁 Çift Çekim düğmesi (tek dokunuş: canlı kare otomatik + iPhone kamerası; iki sonuç + çift kontrol özeti: aynı/farklı formasyon).
+  3. Canlıdaki moire sahte mum (#29) → "komşularından kopuk tek mumu at" (onay bekliyor).
+  4. Test 2–5: kendini bulma (yeni formasyon ekle + Tara), seçicilik (başka coin/1 saat), zaman kayması (1–2 yeni mum), hedef takibi.
+  5. 1x üst sınır "90 mum" testi (70–90 mumluk grafik).
+  6. Sonra: QM yapı kontrolü (H/HH/L/LL, mum sayısından bağımsız); kütüphane mum birleşmesi (düşük öncelik); giriş koruması (en son).
