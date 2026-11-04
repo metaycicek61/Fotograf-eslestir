@@ -783,6 +783,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Bu gece/sabah (3–4 Kasım) yapılanlar: s28→s52. Kanal çizgileri kısaltıldı/eşit boy; Binance telefon fotoğrafında yeşil mumların silinmesi düzeltildi; soldan eksiltme (%20 testi az mumda da çalışır); Tara sonrası donuk kare + Devam; sonuç ekranı sırası (1. Çekilen Grafik + kanallar, 2. En Yakın, 3. Karşılaştırma Sonuçları); test görüntüsü ve Referans Formasyon Ekle gizlendi; 📚 Kütüphane başlığı (Görsel Ekle + Fotoğraf Tara); çekim önerisi metni; kütüphane/sonuçlar yalnız gerektiğinde görünür; iki paralel çizgi (yazı/rakam mum sayılmaz) iki ekranda; mum sayısına göre geçiş önerisi (1x/2x/Fotoğraf Oku).
 - Test sonuçları: okuma 50/50 birebir (Fotoğraf Oku), canlı ±1; kendi formasyonu %90–97; ilk hedef (▼) gerçekleşti; farklı grafikler düşük puan (seçici).
 - YARIN SIRASI:
+  0. ⭐ YENİ FORMASYONLAR (kullanıcı 07:30): SH (short) ve LO (long) formasyonlar bulunacak — DAHA KISA (mum sayısı az; ~33 ve altı → 2x ile rahat okunur, "az mum" sorunu olmaz) ve YALNIZCA BTC için geçerli (BTC/USDT, tercihen 15 dk). Kütüphaneye 📚 Kütüphane → Görsel Ekle / Fotoğraf Tara ile eklenecek (yön sorusu → kesim → kanallar + hedef → kaydet).
   1. s52'yi telefonda dene (?v=52): canlı Tara + Fotoğraf Oku, iki çizgi, geçiş önerisi.
   2. s53: 🔁 Çift Çekim düğmesi (tek dokunuş: canlı kare otomatik + iPhone kamerası; iki sonuç + çift kontrol özeti: aynı/farklı formasyon).
   3. Canlıdaki moire sahte mum (#29) → "komşularından kopuk tek mumu at" (onay bekliyor).
