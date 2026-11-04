@@ -721,3 +721,5 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Not: Safari'de sitenin çerçevesi iPhone'un kendi kamera ekranının İÇİNE çizilemez; çerçeve çekimden sonra sitede görünür.
   Test (tarayıcı): Tara fotoğrafı → 36 mum, sonuç kartı + Taranan kare, düğme Devam, hata yok.
   Sonra: 1x/2x çekim önerisi eşiği (33) sitenin dar video kamerasına göreydi; iPhone kamerasıyla yeniden ölçülmeli.
+- s39 GERİ ALINDI (kullanıcı 03:54: "bence olmadı, s38'e geri dön"). Site yeniden s38 (Okuyucu.html = 0b2ea24). s39 dalda saklı: `yedek-s39-dal`.
+  s39 telefonda: Tara → iPhone kamerası → 35 mum, SH %52; fotoğraf çerçevede solda geniş beyaz alanla küçük göründü (grafik bulma kutusu alt yüzde yazılarını da alıp dikeyde uzadığı için genişlik daraldı; aynı sorun Fotoğraf Oku'da da var).
