@@ -336,7 +336,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s36</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s37</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -408,7 +408,7 @@ button,.fileButton{
      Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
-  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s36)</span></h2>
+  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s37)</span></h2>
   <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
@@ -1779,7 +1779,9 @@ function drawDetectedCandles(candles){
 }
 
 window.addEventListener("resize",()=>{
-  drawGrid();
+  /* s37: iPhone'da kaydırınca adres çubuğu "resize" tetikliyor; donuk karede kutular silinmesin */
+  if(performance.now()<freezeUntil&&donukMumlar)drawDetectedCandles(donukMumlar);
+  else drawGrid();
 });
 
 function captureFullFrame(){
@@ -1918,6 +1920,7 @@ async function captureBest(frames=6,delay=450,gap=110){
 /* Anında önizleme: yakalanan kare, okunan mumlarla birlikte
    kamera alanında 2 saniye donar (kaydırmadan kontrol için). */
 let freezeUntil=0;
+let donukMumlar=null;
 let freezeTimer=null;
 function showFrozen(full,candles,ms=2000){
   try{
@@ -1927,6 +1930,7 @@ function showFrozen(full,candles,ms=2000){
     st.getContext("2d").drawImage(full,0,0);
     st.style.display="block";
     freezeUntil=performance.now()+ms;
+    donukMumlar=candles;
     drawDetectedCandles(candles);
     sensorStatus.textContent=
       "⏸ Yakalanan kare: "+candles.length+" mum";
@@ -4714,7 +4718,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s36";
+const HZ_SURUM="3Kas-s37";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam

@@ -709,3 +709,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
   Sonuç kartında "📷 Taranan kare": Tara'nın okuduğu kare (yeşil alan, tam çözünürlük) kalıcı gösterilir. Karşılaştırmaya giren mumlar renkli kutulu, dışarıda kalanlar gri kesikli, pencere başı mavi dikey çizgi. Dokununca büyük görünümde açılır (iki parmakla büyütme). Okuma/karşılaştırma DEĞİŞMEDİ.
 - s36 (kullanıcı: "Tara'ya basınca kare kamera ekranında kalsın; Tara düğmesi DEVAM olsun, basınca canlıya geçsin"). Yedek: `yedek-s35-dal`.
   Tara sonrası kare kamera alanında okunan kutularla DONUK kalır, düğme "▶️ Devam" olur; basınca canlı görüntü ve sensör devam eder, düğme yine "🧠 Tara". 1x/2x seçimi ve fotoğraf modundan çıkış da canlıya döndürür. Okuma Tara anındaki karede yapılır (değişmedi); donukken yalnız canlı sensör durur, kamera akışı ve kare tamponu çalışır. Sonuç kartındaki "📷 Taranan kare" (s35) de kalıyor.
+- s36 telefonda TEST EDİLDİ (4 Kasım 03:11): donuk kare + "▶️ Devam" + sonuç kartındaki "📷 Taranan kare" (53 mum, son 41 karşılaştırıldı) çalışıyor.
+- s37: iPhone'da sayfa kaydırılınca (adres çubuğu → resize) donuk karedeki mum kutuları siliniyordu; artık yeniden çiziliyor. Yedek: `yedek-s36-dal`.
+## ⭐ İLK HEDEF GERÇEKLEŞMESİ (4 Kasım 03:11)
+- Formasyon LO QM 11-04 02:42 (41 mum), hedef ▼ aşağı, sonraki 8 mum. 03:11'de (15 dk grafik, ~2 yeni mum) büyük kırmızı düşüş mumu geldi → hedef yönü TUTTU.
+- Aynı anda skor %82'ye düştü (39/41, hareket %61; önce %90–97): yeni mumlar sağa eklendiği için son 41 mumluk pencere formasyondan 2 mum kaydı. Bu beklenen davranış: site formasyonun ŞİMDİ bitip bitmediğini ölçüyor; formasyon geçtikçe skor düşer.
