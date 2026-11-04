@@ -716,3 +716,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Aynı anda skor %82'ye düştü (39/41, hareket %61; önce %90–97): yeni mumlar sağa eklendiği için son 41 mumluk pencere formasyondan 2 mum kaydı. Bu beklenen davranış: site formasyonun ŞİMDİ bitip bitmediğini ölçüyor; formasyon geçtikçe skor düşer.
 - Fotoğraf Oku testi (4 Kasım 03:20): 1x 38 mum → LO %68 (soldan 3 düşüldü, hareket %43); 2x 37 mum → LO elendi, en üstte SH 21:15 %46. Neden: grafik 02:42'den sonra 4–5 mum ilerledi (hedef ▼ gerçekleşti), pencere kaydı. Okuma sağlıklı (moire'ye rağmen mumlar ayrı).
 - s38: fotoğraf modunda kaydırınca (iPhone resize) mum kutuları siliniyordu, canlı sensör olmadığı için geri gelmiyordu → artık son çizilen kutular yeniden çiziliyor. Yedek: `yedek-s37-dal`.
+- s39 (kullanıcı: "Tara doğrudan Fotoğraf Oku gibi iPhone kamerasına bağlansın, çerçeve yine olsun"; öncelik: canlı veride en net mum okuma). Yedek: `yedek-s38-dal`.
+  Tara → iPhone'un kendi kamerası açılır (capture=environment, galeri yok; tam 3:4 sensör, iPhone odağı) → fotoğraf kamera alanında yeşil çerçeveyle gösterilir, mumlar kutulanır → otomatik karşılaştırma → düğme "▶️ Devam" → basınca canlı kameraya dönülür. Canlı görüntü nişan almak için kalır. Fotoğraf Oku (galeri seçeneğiyle) aynen duruyor; ikisi aynı işleyişi (fotoIsle) kullanır. Okuma/karşılaştırma DEĞİŞMEDİ.
+  Not: Safari'de sitenin çerçevesi iPhone'un kendi kamera ekranının İÇİNE çizilemez; çerçeve çekimden sonra sitede görünür.
+  Test (tarayıcı): Tara fotoğrafı → 36 mum, sonuç kartı + Taranan kare, düğme Devam, hata yok.
+  Sonra: 1x/2x çekim önerisi eşiği (33) sitenin dar video kamerasına göreydi; iPhone kamerasıyla yeniden ölçülmeli.
