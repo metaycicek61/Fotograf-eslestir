@@ -336,7 +336,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s48</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s49</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -1819,11 +1819,14 @@ function drawDetectedCandles(candles){
   ctx.fillStyle="#fff";
   ctx.font="bold 12px -apple-system";
 
+  /* s49: sağa yaslı — soldaki "Grafiği iki çizgi arasına al" yazısıyla üst üste binmesin */
+  ctx.textAlign="right";
   ctx.fillText(
     "ALGILANAN: "+candles.length,
-    scanX+9,
-    Math.max(14,scanY-24) /* s48: üst çizginin üstünde, mumların üstüne binmesin */
+    scanX+scanW-6,
+    Math.max(14,scanY-7)
   );
+  ctx.textAlign="left";
 }
 
 window.addEventListener("resize",()=>{
@@ -4789,7 +4792,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s48";
+const HZ_SURUM="3Kas-s49";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
