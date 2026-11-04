@@ -768,3 +768,7 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - [ ] Eşik 33 iPhone/site kamerasına göre yeniden ölçülecek → ölçümler: site 2x 26–36 mum, site 1x 45–60; iPhone 2x 36–41, iPhone 1x ~50. 33 eşiği site 2x kapasitesine uyuyor (DEĞİŞMESİN). Metindeki üst sınır "90" TEST EDİLMEDİ (en çok 60); 502 px okumada 90 mum ≈ 5 px aralık → birleşme riski. Test edilmeli.
 - [ ] Açık: canlıdaki moire sahte mum (#29) → "komşularından kopuk tek mumu at" (onay bekliyor).
 - [ ] Açık: kütüphanedeki 71/76 mumluk formasyonlar 1x kadrajında (51–58 mum) "az mum" kalıyor → ya ekran uzaklaştırılmalı ya formasyonlar ~55 mumu geçmemeli.
+- s51 (kullanıcı: "çekim sırasında mum sayısına göre geçiş önerisi; onaylarsa geçer, onaylamazsa çekime devam"). Yedek: `yedek-s50-dal`.
+  Canlı kamerada (fotoğraf modu/donuk kare değilken) sensörün son 6 sayımının ortancasına göre sarı öneri kutusu: (1) 2x'te formasyon için az mum (formasyon − %15) → "1x'e geç"; (2) 1x'te de az → "🖼️ Fotoğraf Oku" (iPhone fotoğrafı daha geniş); (3) 1x'te mumlar çok küçük (aralık < 5,5 px) ve 2x'te de yetecekse → "2x'e geç". "Hayır, devam" → öneri 60 sn susar. Tara/okuma/karşılaştırma DEĞİŞMEDİ.
+  Test (tarayıcı, 6 durum): 2x/51 mum/71'lik formasyon → 1x önerisi, evet → zoom 1; 1x/51 → Fotoğraf Oku önerisi; 1x/66 → öneri yok; 1x/90 küçük + 30'luk formasyon → 2x önerisi; Hayır → gizlenir; 2x/35/30'luk → öneri yok. Hata yok.
+- SIRADAKİ: s52 = 🔁 Çift Çekim düğmesi (tek dokunuş: canlı kare otomatik + iPhone kamerası; iki sonuç + çift kontrol özeti).

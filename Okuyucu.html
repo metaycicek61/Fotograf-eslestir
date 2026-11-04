@@ -336,7 +336,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s50</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s51</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -358,6 +358,14 @@ button,.fileButton{
 
 <div id="sensorStatus">Sensör bekliyor.</div>
 <div id="hint">Kamerayı aç, grafiği yeşil kutunun içine getir.</div>
+<!-- s51: mum sayısına göre geçiş önerisi (onaylarsan geçer, onaylamazsan çekime devam) -->
+<div id="zoomOneri" style="display:none;margin:6px 4px 0;padding:8px 10px;border-radius:12px;background:#3a2f0b;border:1px solid #a16207;color:#fde68a;font-size:15px;font-weight:700;text-align:center">
+  <div id="zoomOneriYazi"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+    <button id="zoomOneriEvet" style="margin:0;padding:10px 4px;font-size:15px;background:#15803d"></button>
+    <button id="zoomOneriHayir" style="margin:0;padding:10px 4px;font-size:15px;background:#4b5563">Hayır, devam</button>
+  </div>
+</div>
 <div id="zoomNote" class="small"></div>
 <!-- Çekimden önce 1x / 2x önerisi (kütüphanedeki formasyonların mum sayısına göre) -->
 <div id="shotAdvice">📐 Çekim önerisi hesaplanıyor…</div>
@@ -653,6 +661,62 @@ async function updateReferenceCounts(){
   refCounts=counts.filter(n=>n>=2);
   setTimeout(()=>renderShotAdvice(),0);
 }
+
+/* s51 (kullanıcı): çekim sırasında mum sayısına göre geçiş önerisi. Kamera formasyonun
+   %20 testi için gereken mumu (formasyon − %15) göremiyorsa 2x → [1x'e geç], 1x'te de
+   yetmiyorsa [🖼️ Fotoğraf Oku ile dene] (iPhone fotoğrafı ~%30 daha geniş görür).
+   1x'te mumlar çok küçük ve 2x'te de yeterli mum kalacaksa [2x'e geç]. Onaylarsan geçer;
+   "Hayır, devam" ile öneri bir süre susar, çekime devam edilir. Tara/okuma DEĞİŞMEZ. */
+let zoGecmis=[],zoSusUntil=0,zoSon="",zoEylem=null;
+function zoFormMumlari(){
+  const out=[];
+  references.forEach((r,i)=>{const n=(r&&r.hazir&&r.hazir.mum)||refCounts[i];if(n>=4)out.push(n);});
+  return out;
+}
+function zoomOneriGuncelle(candles){
+  const box=document.getElementById("zoomOneri");
+  const gizle=()=>{if(box.style.display!=="none")box.style.display="none";zoSon="";};
+  if(stillMode||donuk||!cameraReady||Date.now()<zoSusUntil)return gizle();
+  const F=zoFormMumlari();if(!F.length)return gizle();
+  zoGecmis.push(candles.length);if(zoGecmis.length>6)zoGecmis.shift();
+  if(zoGecmis.length<3)return;
+  const N=[...zoGecmis].sort((a,b)=>a-b)[zoGecmis.length>>1];
+  if(N<8)return gizle();
+  const gerek=n=>n-Math.floor(n*.15);
+  const enUzun=Math.max(...F),enGerek=gerek(enUzun);
+  const az=F.filter(n=>N<gerek(n)).length;
+  const xs=candles.map(c=>c.x).sort((a,b)=>a-b),dx=[];
+  for(let i=1;i<xs.length;i++)dx.push(xs[i]-xs[i-1]);
+  const pitch=dx.length?dx.sort((a,b)=>a-b)[dx.length>>1]:99;
+  const rec=Math.max(...F)>SHOT_LIMIT_2X?1:2;
+  const z=(typeof selectedZoom==="number"&&selectedZoom)?selectedZoom:rec;
+  let yazi="",dugme="",eylem=null;
+  if(az&&z===2){
+    yazi="📏 Kamerada "+N+" mum var; "+az+" formasyon için az (en uzun "+enUzun+" mum → en az "+enGerek+" gerekli). 1x'e geçilsin mi?";
+    dugme="1x'e geç";eylem=()=>{const b=document.querySelector('.zoomBtn[data-z="1"]');b&&b.click();};
+  }else if(az&&z===1){
+    yazi="📏 1x'te "+N+" mum görünüyor; "+az+" formasyon için az (en az "+enGerek+"). Telefonu biraz uzaklaştır ya da iPhone fotoğrafıyla dene (daha geniş görür).";
+    dugme="🖼️ Fotoğraf Oku";eylem=()=>{const i=document.getElementById("photoInput");i&&i.click();};
+  }else if(!az&&z===1&&pitch<5.5&&Math.floor(N/2)>=enGerek){
+    yazi="🔍 Mumlar çok küçük ("+N+" mum, birleşme riski). 2x'te de yeterli mum kalır. 2x'e geçilsin mi?";
+    dugme="2x'e geç";eylem=()=>{const b=document.querySelector('.zoomBtn[data-z="2"]');b&&b.click();};
+  }
+  if(!eylem)return gizle();
+  zoEylem=eylem;
+  if(yazi!==zoSon){
+    document.getElementById("zoomOneriYazi").textContent=yazi;
+    document.getElementById("zoomOneriEvet").textContent=dugme;
+    zoSon=yazi;
+  }
+  if(box.style.display==="none")box.style.display="block";
+}
+document.addEventListener("click",e=>{
+  const id=e.target&&e.target.id;
+  if(id==="zoomOneriEvet"){document.getElementById("zoomOneri").style.display="none";zoSon="";zoGecmis=[];
+    zoSusUntil=Date.now()+4000;if(zoEylem)zoEylem();}
+  else if(id==="zoomOneriHayir"){document.getElementById("zoomOneri").style.display="none";zoSon="";
+    zoSusUntil=Date.now()+60000;}
+});
 
 let hintLockUntil=0;
 let hintHistory=[];
@@ -3086,6 +3150,7 @@ async function updateSensor(){
       " mum algılıyor";
 
     updateHint(candles,canvas);
+    try{zoomOneriGuncelle(candles);}catch(e){console.error(e);}
 
   }catch(err){
 
@@ -4798,7 +4863,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s50";
+const HZ_SURUM="3Kas-s51";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
