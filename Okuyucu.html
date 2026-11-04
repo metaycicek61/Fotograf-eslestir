@@ -336,7 +336,7 @@ button,.fileButton{
 <div class="wrap">
 
 <h1>📷 Formasyon Okuyucu AI</h1>
-<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s34</div>
+<div id="surumEtiket" style="text-align:center;margin:-6px 0 8px;font-size:15px;font-weight:800;color:#fbbf24">sürüm 3Kas-s35</div>
 
 <div class="cameraBox">
   <video id="video" autoplay playsinline muted></video>
@@ -392,6 +392,11 @@ button,.fileButton{
   <div id="bestScore">-%</div>
   <div id="bestDetail" class="small"></div>
   <button id="bestZoomBtn" style="display:none;background:#1d4ed8">🔍 Formasyonu Büyük Aç (kanallarla)</button>
+  <div id="bestShot" style="display:none;margin-top:12px">
+    <div class="small" style="font-weight:800;margin-bottom:6px">📷 Taranan kare <span id="bestShotInfo"></span></div>
+    <div id="bestShotImg"></div>
+    <div class="small" style="margin-top:4px;color:#9ca3af">Renkli kutular karşılaştırmaya giren mumlar, gri kutular dışarıda kalanlar. Dokun → büyüt.</div>
+  </div>
 </div>
 
 <div class="card">
@@ -403,7 +408,7 @@ button,.fileButton{
      Kütüphaneye girecek formasyon, kamera / Fotoğraf Oku ile AYNI işlemden geçer.
      Adım 1: numaralama (+ sahte mumları silme). Sonraki adımlar: kesim, %20 kanal, kaydet. -->
 <div class="card" id="hzCard">
-  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s34)</span></h2>
+  <h2>🛠️ Formasyon Hazırla <span style="font-size:14px;color:#fbbf24">(3Kas-s35)</span></h2>
   <div class="small">Görseli seç; site onu Fotoğraf Oku ile aynı yoldan okur (okuma çözünürlüğü kamerayla aynı). Görüntü orijinal netlikte, en sağdan (son mumlardan) açılır. Numaralar altta; dokunduğun sütundaki mum seçilir.</div>
   <label class="fileButton" id="hzPick">
     🖼️ Görsel Seç
@@ -4320,6 +4325,32 @@ scanBtn.addEventListener(
   scanFormation
 );
 
+function taranKareGoster(full,detected,nWin){
+  updateScanBox();
+  const sx=Math.round(full.width*SCAN_LEFT),sy=Math.round(full.height*SCAN_TOP);
+  const sw=Math.round(full.width*(SCAN_RIGHT-SCAN_LEFT)),sh=Math.round(full.height*(SCAN_BOTTOM-SCAN_TOP));
+  const c=document.createElement("canvas");c.width=sw;c.height=sh;
+  const ctx=c.getContext("2d");ctx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+  const kx=sw/TARGET_W,ky=sh/Math.max(1,SCAN_OUT_H),lw=Math.max(2,sw/300);
+  const ilk=Math.max(0,detected.length-(nWin||detected.length));
+  ctx.lineWidth=lw;
+  detected.forEach((m,i)=>{
+    const ic=i>=ilk;
+    ctx.strokeStyle=!ic?"#374151":(m.direction>0?"#16a34a":"#dc2626");
+    ctx.setLineDash(ic?[]:[lw*3,lw*2]);
+    const l=(m.left!=null?m.left:m.x-2)*kx-lw,r=(m.right!=null?m.right:m.x+2)*kx+lw;
+    ctx.strokeRect(l,m.top*ky-lw,r-l,(m.bottom-m.top)*ky+2*lw);
+  });
+  ctx.setLineDash([]);
+  if(ilk>0&&detected[ilk]){const xl=((detected[ilk].left!=null?detected[ilk].left:detected[ilk].x-2)*kx)-lw*3;
+    ctx.strokeStyle="#2563eb";ctx.lineWidth=lw*1.5;ctx.beginPath();ctx.moveTo(xl,0);ctx.lineTo(xl,sh);ctx.stroke();}
+  c.style.width="100%";c.style.display="block";c.style.borderRadius="10px";c.style.cursor="zoom-in";
+  c.addEventListener("click",()=>window.openZoomEl&&window.openZoomEl(c,"📷 Taranan kare"));
+  const box=document.getElementById("bestShotImg");box.innerHTML="";box.appendChild(c);
+  document.getElementById("bestShotInfo").textContent="("+detected.length+" mum algılandı"+(ilk>0?", karşılaştırılan son "+(detected.length-ilk):"")+")";
+  document.getElementById("bestShot").style.display="block";
+}
+
 async function scanFormation(){
 
   if(!cameraReady){
@@ -4509,6 +4540,13 @@ async function scanFormation(){
     );
 
     renderResults(results);
+    /* s35 (kullanıcı: "çektiğim kareyi görmek istiyorum, Tara'dan sonra kamera canlıya dönüyor"):
+       taranan kare sonuç kartında kalır; dokununca büyük açılır */
+    try{
+      const b0=results[0];
+      const nWin=b0&&b0.k20&&!b0.k20.az?b0.k20.n:(b0?b0.windowCount:0);
+      taranKareGoster(bestShot.full,detected,nWin);
+    }catch(e){console.error(e);}
 
     statusEl.textContent=
       detected.length+
@@ -4662,7 +4700,7 @@ function hzStillGeom(img,box){
    kabul edilir: CSS'teki kutu oranı 1,20 (genişlik 330). Kamera / Fotoğraf Oku
    okumasına dokunulmaz. */
 const HZ_BOX={width:330,height:275};
-const HZ_SURUM="3Kas-s34";
+const HZ_SURUM="3Kas-s35";
 function hzImageToScan(img){
   /* kütüphane için SOL taraf önemli: çerçeve yerine görselin KENDİ oranı
      (grafik + buildStill payları) kullanılır → grafik okuma alanını tam
@@ -5712,11 +5750,14 @@ function tahminText(t){
   let curRef=null,mod="temiz";const MB=document.getElementById("zoomMod");
   MB.onclick=()=>{mod=mod==="temiz"?"orijinal":"temiz";show(false);};
   window.openZoom=function(ref){if(!ref)return;curRef=ref;mod="temiz";show(true);};
+  /* s35: taranan kare gibi hazır bir tuvali büyük aç */
+  window.openZoomEl=function(cv,title){const k=document.createElement("canvas");k.width=cv.width;k.height=cv.height;
+    k.getContext("2d").drawImage(cv,0,0);curRef={_el:k,name:title};mod="temiz";show(true);};
   function show(refit){const ref=curRef;
-    const has=!!(ref.hazir&&ref.hazir.temizOrj&&ref.hazir.orijinal);
+    const has=!ref._el&&!!(ref.hazir&&ref.hazir.temizOrj&&ref.hazir.orijinal);
     MB.style.display=has?"":"none";MB.textContent=mod==="temiz"?"👁 Orijinal":"🧹 Temiz";
     const keep={sc,tx,ty};
-    el=window.refPreview(ref,mod);el.style.width="";el.style.maxWidth="none";el.style.display="block";
+    el=ref._el||window.refPreview(ref,mod);el.style.width="";el.style.maxWidth="none";el.style.display="block";
     S.innerHTML="";S.appendChild(el);
     document.getElementById("zoomTitle").textContent=ref.name||"";
     V.style.display="block";document.body.style.overflow="hidden";

@@ -705,3 +705,5 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - Sitenin önerisiyle 1x (formasyon 41 > 33): 2 deneme → %97 (45 mum algılandı, %20 kanal 40/41, hareket %96) ve %90 (60 mum, 40/41, hareket %79). Hedef ▼ aşağı, son mumların yönü uyuyor. İlk analiz sonucu: aynı grafik %90–97.
 - Fark: 60 mumlu karede (grafik dışı alan, tarih/gösterge yazıları kadraja girmiş) mumlar küçülüyor → hareket uyumu düşüyor. Kadraj grafiği doldurursa sonuç daha iyi.
 - Karar: kamera 3:4 değişikliği ŞİMDİLİK YAPILMADI (sitenin 1x önerisi sorunu karşılıyor). Not: 33 eşiği sitenin kendi kamerasına göre; iPhone fotoğrafıyla hazırlanan formasyonlarda site önerisine uyulmalı.
+- s35 (kullanıcı: "kullanıcı çektiği kareyi görmek istiyor; Tara'dan sonra kamera canlıya dönüyor"). Yedek: `yedek-s34-dal`.
+  Sonuç kartında "📷 Taranan kare": Tara'nın okuduğu kare (yeşil alan, tam çözünürlük) kalıcı gösterilir. Karşılaştırmaya giren mumlar renkli kutulu, dışarıda kalanlar gri kesikli, pencere başı mavi dikey çizgi. Dokununca büyük görünümde açılır (iki parmakla büyütme). Okuma/karşılaştırma DEĞİŞMEDİ.
