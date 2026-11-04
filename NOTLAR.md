@@ -735,3 +735,10 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - s45 (kullanıcı): çekim önerisine "🖼️ Fotoğraf Oku: iPhone'da 1x seç" satırı eklendi. Yedek: `yedek-s44-dal`.
 - s46 (kullanıcı): "3. Tüm Karşılaştırmalar" başlığı → "3. Karşılaştırma Sonuçları". Yedek: `yedek-s45-dal`.
 - s47 (kullanıcı): 🖼️ Formasyon Kütüphanesi (kayıtlı formasyon kartları) ana ekranda GİZLİ, 📚 Kütüphane açılınca görünür/kapanınca gizlenir. 📋 3. Karşılaştırma Sonuçları yalnızca karşılaştırma (Tara/Fotoğraf Oku) yapınca görünür. Test: başlangıçta ikisi gizli, Kütüphane aç/kapa çalışıyor, karşılaştırma sonrası sonuçlar görünüyor. Yedek: `yedek-s46-dal`.
+
+## ▶️ KALDIĞIMIZ YER (4 Kasım 05:36) — site sadeleşti (s47), kullanıcı memnun
+- Ana ekran: kamera + 1x/2x + Kaydet + 🧠 Tara (kare donar → ▶️ Devam) + 🖼️ Fotoğraf Oku + çekim önerisi.
+- Karşılaştırmadan sonra: 📷 1. Çekilen Grafik (mum sayımı + kanallar) → 🎯 2. En Yakın Formasyon → 📋 3. Karşılaştırma Sonuçları (hepsi alt alta).
+- 📚 Kütüphane (kapalı): 🖼️ Görsel Ekle / 📷 Fotoğraf Tara → yön → kesim → temizlik → kanallar+hedef → kaydet; kayıtlı formasyonlar burada.
+- Gizli ama kodda duran: Test Görüntüsü (TEST_GORUNUR), Referans Formasyon Ekle (refBtn).
+- SIRADAKİ ADAYLAR: (1) QM yapı kontrolü (H/HH/L/LL dönüş noktaları, mum sayısı ve tempodan bağımsız) — kullanıcı onayı bekliyor; (2) fotoğrafta grafik bulma kutusunun alt yüzde yazılarını almaması; (3) kütüphaneye yeni formasyonlar ekleyip seçicilik/hedef testleri; (4) en sona: giriş koruması.
