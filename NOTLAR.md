@@ -742,3 +742,8 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - 📚 Kütüphane (kapalı): 🖼️ Görsel Ekle / 📷 Fotoğraf Tara → yön → kesim → temizlik → kanallar+hedef → kaydet; kayıtlı formasyonlar burada.
 - Gizli ama kodda duran: Test Görüntüsü (TEST_GORUNUR), Referans Formasyon Ekle (refBtn).
 - SIRADAKİ ADAYLAR: (1) QM yapı kontrolü (H/HH/L/LL dönüş noktaları, mum sayısı ve tempodan bağımsız) — kullanıcı onayı bekliyor; (2) fotoğrafta grafik bulma kutusunun alt yüzde yazılarını almaması; (3) kütüphaneye yeni formasyonlar ekleyip seçicilik/hedef testleri; (4) en sona: giriş koruması.
+## TEST 1 — OKUMA DOĞRULUĞU (4 Kasım 05:40, BTC 15dk, 1x)
+- Elle sayım (iPhone fotoğrafı): 50 mum, renk dizisi KYYYKYYKKKYYKKKYKYKKYKYYYYYYYYKKKYYKYKKKKKYKYKYKKK (K=kırmızı, Y=yeşil).
+- Site, aynı fotoğraf (Fotoğraf Oku yolu): 50 mum, renk dizisi BİREBİR AYNI (50/50).
+- Site, canlı Tara: 51 mum (canlı kare biraz daha geniş → sol kenarda yarım bir mum fazladan; sıra 1 kaymalı aynı). Canlı karede kutular bulanıklıktan büyük/iç içe, en riskli yer dipteki yan yana 3 büyük mum (kırmızı-yeşil-kırmızı) — yine de ayrı sayıldı.
+- Karşılaştırma: en iyi LO QM 21:18 %40 "az mum (51/71)" — kütüphane formasyonu 71 mum, kadrajda 51 → %20 testi çalışmadı (en az 61 gerekir). Okuma doğru; sorun formasyon/kadraj uzunluk farkı.
