@@ -757,3 +757,14 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 - s50 (kullanıcı: "Tara eski ızgaralı hâlinde kalsın; Fotoğraf Oku seçilince iki çizgi kullanılsın — iki seçeneği de kullanalım"). Yedek: `yedek-s49-dal`.
   Canlı kamera / Tara: s47'deki ızgara + yeşil dikdörtgen + "SON HAREKET", okuma alanı tam (kenarlarda %3). Fotoğraf Oku (stillMode): iki yatay çizgi (%12–%80), "Grafiği iki çizgi arasına al", ALGILANAN sağda. stillMode artık buildStill'den ÖNCE açılıyor (fotoğraf iki çizgili alana göre yerleşir). Canlıya Dön → ızgara geri gelir.
   Test: canlı ekran ızgaralı; fotoğraf modu iki çizgili; 7 fotoğrafta mum sayısı/renk dizisi aynı (yüzde satırlı fotoğraf 52 doğru). Hata yok.
+
+## 1x ÇALIŞMASI — DURUM (4 Kasım 06:25, 31 Ekim 04:49 kararıyla karşılaştırma)
+- [x] Önce uzun formasyonlar bulunacak → kütüphanede 41, 55, 71, 76 mumluk formasyonlar var.
+- [x] O mum sayısıyla 1x test → Tara 1x: 45 mum %97, 60 mum %90 (kendi formasyonu); 58 mum SH %71.
+- [x] Okuma doğruluğu → Fotoğraf Oku 50/50 birebir; canlı Tara 51 (±1, sol kenar yarım mum); 58 mumda 1 sahte (moire lekesi, #29).
+- [x] Eski sınır "~56 mumda kutular karışıyordu" → artık 50–60 mum sayım doğru (kutular canlıda büyük/iç içe ama ayrı sayılıyor).
+- [ ] Ayırma kodunu küçük mumlara göre ayarlama → şimdilik GEREK YOK (dipteki yan yana büyük mumlar ayrı okundu).
+- [ ] 1,5x düğmesi → şimdilik GEREK YOK.
+- [ ] Eşik 33 iPhone/site kamerasına göre yeniden ölçülecek → ölçümler: site 2x 26–36 mum, site 1x 45–60; iPhone 2x 36–41, iPhone 1x ~50. 33 eşiği site 2x kapasitesine uyuyor (DEĞİŞMESİN). Metindeki üst sınır "90" TEST EDİLMEDİ (en çok 60); 502 px okumada 90 mum ≈ 5 px aralık → birleşme riski. Test edilmeli.
+- [ ] Açık: canlıdaki moire sahte mum (#29) → "komşularından kopuk tek mumu at" (onay bekliyor).
+- [ ] Açık: kütüphanedeki 71/76 mumluk formasyonlar 1x kadrajında (51–58 mum) "az mum" kalıyor → ya ekran uzaklaştırılmalı ya formasyonlar ~55 mumu geçmemeli.
