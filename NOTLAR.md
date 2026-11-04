@@ -714,3 +714,5 @@ Sonuç: güvenilir okuma için en az 20 mum görünmeli. En iyi çekim: orta mes
 ## ⭐ İLK HEDEF GERÇEKLEŞMESİ (4 Kasım 03:11)
 - Formasyon LO QM 11-04 02:42 (41 mum), hedef ▼ aşağı, sonraki 8 mum. 03:11'de (15 dk grafik, ~2 yeni mum) büyük kırmızı düşüş mumu geldi → hedef yönü TUTTU.
 - Aynı anda skor %82'ye düştü (39/41, hareket %61; önce %90–97): yeni mumlar sağa eklendiği için son 41 mumluk pencere formasyondan 2 mum kaydı. Bu beklenen davranış: site formasyonun ŞİMDİ bitip bitmediğini ölçüyor; formasyon geçtikçe skor düşer.
+- Fotoğraf Oku testi (4 Kasım 03:20): 1x 38 mum → LO %68 (soldan 3 düşüldü, hareket %43); 2x 37 mum → LO elendi, en üstte SH 21:15 %46. Neden: grafik 02:42'den sonra 4–5 mum ilerledi (hedef ▼ gerçekleşti), pencere kaydı. Okuma sağlıklı (moire'ye rağmen mumlar ayrı).
+- s38: fotoğraf modunda kaydırınca (iPhone resize) mum kutuları siliniyordu, canlı sensör olmadığı için geri gelmiyordu → artık son çizilen kutular yeniden çiziliyor. Yedek: `yedek-s37-dal`.
